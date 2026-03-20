@@ -81,23 +81,23 @@ export default function Products() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-[1200px] mx-auto px-4 py-3 flex items-center gap-4">
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
+        <div className="max-w-[1200px] mx-auto px-2 sm:px-4 py-2 sm:py-3 flex items-center gap-2 sm:gap-4">
+          <Link href="/" className="flex items-center gap-1 sm:gap-2 shrink-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-red-600 rounded flex items-center justify-center">
               <ShoppingCart size={16} className="text-white" />
             </div>
-            <span className="font-bold text-gray-800 text-lg hidden sm:block">ShopMart</span>
+            <span className="font-bold text-gray-800 text-base sm:text-lg hidden sm:block">ShopMart</span>
           </Link>
-          <div className="flex-1 max-w-2xl">
+          <div className="flex-1 max-w-2xl hidden md:block">
             <div className="flex border-2 border-red-500 rounded overflow-hidden">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search products..."
-                className="flex-1 px-4 py-2 text-sm outline-none"
+                className="flex-1 px-3 py-1.5 text-xs sm:text-sm outline-none"
               />
-              <button className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 transition-colors">
+              <button className="bg-red-500 hover:bg-red-600 text-white px-3 sm:px-5 py-1.5 sm:py-2 transition-colors">
                 <Search size={16} />
               </button>
             </div>

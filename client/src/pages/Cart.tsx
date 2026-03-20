@@ -1,13 +1,17 @@
 /**
  * ShopMart - Cart Page
  * Design: 活力促銷電商風 - 紅白主色調
+ * Mobile Optimized: 響應式布局，手機版本購物車適配
  */
 
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { ShoppingCart, Search, User, Trash2, Plus, Minus, ChevronRight, ArrowLeft } from 'lucide-react';
+import { ShoppingCart, Search, User, Trash2, Plus, Minus, ChevronRight, ArrowLeft, Globe, LogOut } from 'lucide-react';
 import { products } from '@/lib/data';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { t } from '@/lib/translations';
 
 interface CartItem {
   product: typeof products[0];
@@ -20,6 +24,9 @@ export default function Cart() {
   const [cartItems, setCartItems] = useState<CartItem[]>(
     products.slice(0, 3).map(p => ({ product: p, qty: 1, selected: true }))
   );
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const { language, toggleLanguage } = useLanguage();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const selectedItems = cartItems.filter(item => item.selected);
   const totalPrice = selectedItems.reduce((sum, item) => sum + item.product.price * item.qty, 0);
@@ -38,7 +45,7 @@ export default function Cart() {
 
   const handleRemove = (id: number) => {
     setCartItems(prev => prev.filter(item => item.product.id !== id));
-    toast.success('Item removed from cart');
+    toast.success(language === 'zh' ? '已移除商品' : 'Item removed from cart');
   };
 
   const handleToggleSelect = (id: number) => {
@@ -54,113 +61,161 @@ export default function Cart() {
 
   const handleCheckout = () => {
     if (selectedItems.length === 0) {
-      toast.error('Please select at least one item');
+      toast.error(language === 'zh' ? '請選擇至少一件商品' : 'Please select at least one item');
       return;
     }
-    toast.success('Proceeding to checkout...');
+    toast.success(language === 'zh' ? '進行結帳...' : 'Proceeding to checkout...');
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-[1200px] mx-auto px-4 py-3 flex items-center gap-4">
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
+        <div className="max-w-[1200px] mx-auto px-2 sm:px-4 py-2 sm:py-3 flex items-center gap-2 sm:gap-4">
+          <Link href="/" className="flex items-center gap-1 sm:gap-2 shrink-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-red-600 rounded flex items-center justify-center">
               <ShoppingCart size={16} className="text-white" />
             </div>
-            <span className="font-bold text-gray-800 text-lg hidden sm:block">ShopMart</span>
+            <span className="font-bold text-gray-800 text-base sm:text-lg hidden sm:block">ShopMart</span>
           </Link>
-          <div className="flex-1 max-w-2xl">
+          
+          {/* Search bar - hidden on mobile */}
+          <div className="flex-1 max-w-2xl hidden md:block">
             <div className="flex border-2 border-red-500 rounded overflow-hidden">
-              <input type="text" placeholder="Search products..." className="flex-1 px-4 py-2 text-sm outline-none" />
-              <button className="bg-red-500 text-white px-5 py-2"><Search size={16} /></button>
+              <input type="text" placeholder="Search products..." className="flex-1 px-3 py-1.5 text-xs sm:text-sm outline-none" />
+              <button className="bg-red-500 text-white px-3 sm:px-5 py-1.5 sm:py-2"><Search size={16} /></button>
             </div>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <button className="relative p-2">
-              <ShoppingCart size={22} className="text-red-500" />
+          
+          <div className="flex items-center gap-1 sm:gap-3 shrink-0">
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center justify-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-red-500 hover:bg-gray-100 rounded transition-colors"
+              title={language === 'zh' ? 'Switch to English' : 'Switch to Chinese'}
+            >
+              <Globe size={18} />
+              <span className="font-medium text-xs sm:text-sm">{language === 'zh' ? 'EN' : 'ZH'}</span>
+            </button>
+            
+            <button className="relative p-2 hover:text-red-500 transition-colors">
+              <ShoppingCart size={20} className="text-red-500" />
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">{cartItems.length}</span>
             </button>
-            <Link href="/login" className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-red-500">
-              <User size={20} />
-              <span className="hidden sm:block">SIGN IN</span>
-            </Link>
+            
+            {isAuthenticated && user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-1 text-sm text-gray-600 hover:text-red-500 transition-colors"
+                >
+                  <User size={18} />
+                  <span className="hidden sm:block font-medium text-xs sm:text-sm">{user.name}</span>
+                </button>
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-40 sm:w-48 bg-white rounded shadow-lg border border-gray-100 z-50">
+                    <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-100">
+                      <p className="text-xs sm:text-sm font-medium text-gray-800">{user.name}</p>
+                      <p className="text-xs text-gray-500">{user.email}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setShowUserMenu(false);
+                      }}
+                      className="w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 border-t border-gray-100"
+                    >
+                      <LogOut size={14} />
+                      {language === 'zh' ? '登出' : 'Logout'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link href="/login" className="flex items-center gap-1 text-xs sm:text-sm text-gray-600 hover:text-red-500 transition-colors">
+                <User size={18} />
+                <span className="hidden sm:block font-medium">{language === 'zh' ? '登入' : 'SIGN IN'}</span>
+              </Link>
+            )}
           </div>
         </div>
       </header>
 
       {/* Breadcrumb */}
-      <div className="max-w-[1200px] mx-auto px-4 py-3">
-        <div className="flex items-center gap-2 text-sm text-gray-500">
+      <div className="max-w-[1200px] mx-auto px-2 sm:px-4 py-2 sm:py-3">
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
           <Link href="/" className="hover:text-red-500">Home</Link>
           <ChevronRight size={14} />
-          <span className="text-gray-700">Shopping Cart</span>
+          <span className="text-gray-700">{language === 'zh' ? '購物車' : 'Shopping Cart'}</span>
         </div>
       </div>
 
-      <div className="max-w-[1200px] mx-auto px-4 pb-8">
+      <div className="max-w-[1200px] mx-auto px-2 sm:px-4 pb-6 sm:pb-8">
         {cartItems.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm p-16 text-center">
+          <div className="bg-white rounded-lg shadow-sm p-8 sm:p-16 text-center">
             <ShoppingCart size={60} className="mx-auto text-gray-200 mb-4" />
-            <p className="text-gray-400 text-lg">Your cart is empty</p>
+            <p className="text-gray-400 text-base sm:text-lg">{language === 'zh' ? '購物車為空' : 'Your cart is empty'}</p>
             <Link href="/products">
-              <button className="mt-4 bg-red-500 hover:bg-red-600 text-white px-8 py-2.5 rounded font-medium transition-colors">
-                Continue Shopping
+              <button className="mt-4 bg-red-500 hover:bg-red-600 text-white px-6 sm:px-8 py-2 sm:py-2.5 rounded font-medium transition-colors text-sm sm:text-base">
+                {language === 'zh' ? '繼續購物' : 'Continue Shopping'}
               </button>
             </Link>
           </div>
         ) : (
-          <div className="flex gap-4">
+          <div className="flex flex-col lg:flex-row gap-3 sm:gap-4">
             {/* Cart items */}
             <div className="flex-1 min-w-0">
-              {/* Header row */}
-              <div className="bg-white rounded-lg shadow-sm p-4 mb-3 flex items-center gap-4">
+              {/* Header row - hidden on mobile */}
+              <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 mb-3 hidden sm:flex items-center gap-4">
                 <input
                   type="checkbox"
                   checked={cartItems.every(item => item.selected)}
                   onChange={handleSelectAll}
                   className="w-4 h-4 accent-red-500"
                 />
-                <span className="text-sm text-gray-600">Select All ({cartItems.length})</span>
-                <span className="ml-auto text-sm text-gray-400">Price</span>
+                <span className="text-xs sm:text-sm text-gray-600">{language === 'zh' ? '全選' : 'Select All'} ({cartItems.length})</span>
+                <span className="ml-auto text-xs sm:text-sm text-gray-400">{language === 'zh' ? '價格' : 'Price'}</span>
               </div>
 
               {/* Items */}
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {cartItems.map((item) => (
-                  <div key={item.product.id} className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-4">
+                  <div key={item.product.id} className="bg-white rounded-lg shadow-sm p-2 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
                     <input
                       type="checkbox"
                       checked={item.selected}
                       onChange={() => handleToggleSelect(item.product.id)}
-                      className="w-4 h-4 accent-red-500 shrink-0"
+                      className="w-4 h-4 accent-red-500 shrink-0 mt-1 sm:mt-0"
                     />
                     <img
                       src={item.product.image}
                       alt={item.product.name}
-                      className="w-20 h-20 object-cover rounded shrink-0"
+                      className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded shrink-0"
                       onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'; }}
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-700 line-clamp-2">{item.product.name}</p>
+                      <p className="text-xs sm:text-sm text-gray-700 line-clamp-2">{item.product.name}</p>
                       <p className="text-xs text-gray-400 mt-1">{item.product.category}</p>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button onClick={() => handleQtyChange(item.product.id, -1)} className="w-7 h-7 border border-gray-200 rounded flex items-center justify-center hover:border-red-400 transition-colors">
-                        <Minus size={12} />
-                      </button>
-                      <span className="w-8 text-center text-sm font-medium">{item.qty}</span>
-                      <button onClick={() => handleQtyChange(item.product.id, 1)} className="w-7 h-7 border border-gray-200 rounded flex items-center justify-center hover:border-red-400 transition-colors">
-                        <Plus size={12} />
-                      </button>
+                    
+                    {/* Quantity and price - responsive layout */}
+                    <div className="w-full sm:w-auto flex items-center justify-between sm:flex-col gap-2 sm:gap-0">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <button onClick={() => handleQtyChange(item.product.id, -1)} className="w-6 h-6 sm:w-7 sm:h-7 border border-gray-200 rounded flex items-center justify-center hover:border-red-400 transition-colors">
+                          <Minus size={12} />
+                        </button>
+                        <span className="w-6 text-center text-xs sm:text-sm font-medium">{item.qty}</span>
+                        <button onClick={() => handleQtyChange(item.product.id, 1)} className="w-6 h-6 sm:w-7 sm:h-7 border border-gray-200 rounded flex items-center justify-center hover:border-red-400 transition-colors">
+                          <Plus size={12} />
+                        </button>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-red-500 font-bold text-sm sm:text-base">${(item.product.price * item.qty).toFixed(2)}</p>
+                        {item.product.originalPrice && item.product.originalPrice > item.product.price && (
+                          <p className="text-xs text-gray-400 line-through">${(item.product.originalPrice * item.qty).toFixed(2)}</p>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-right shrink-0 w-24">
-                      <p className="text-red-500 font-bold">${(item.product.price * item.qty).toFixed(2)}</p>
-                      {item.product.originalPrice && item.product.originalPrice > item.product.price && (
-                        <p className="text-xs text-gray-400 line-through">${(item.product.originalPrice * item.qty).toFixed(2)}</p>
-                      )}
-                    </div>
+                    
                     <button onClick={() => handleRemove(item.product.id)} className="text-gray-300 hover:text-red-500 transition-colors shrink-0">
                       <Trash2 size={16} />
                     </button>
@@ -169,44 +224,44 @@ export default function Cart() {
               </div>
 
               <Link href="/">
-                <button className="mt-4 flex items-center gap-2 text-sm text-gray-500 hover:text-red-500 transition-colors">
+                <button className="mt-3 sm:mt-4 flex items-center gap-2 text-xs sm:text-sm text-gray-500 hover:text-red-500 transition-colors">
                   <ArrowLeft size={14} />
-                  Continue Shopping
+                  {language === 'zh' ? '繼續購物' : 'Continue Shopping'}
                 </button>
               </Link>
             </div>
 
-            {/* Order summary */}
-            <div className="w-72 shrink-0">
-              <div className="bg-white rounded-lg shadow-sm p-5 sticky top-20">
-                <h3 className="font-semibold text-gray-700 mb-4">Order Summary</h3>
-                <div className="space-y-2 text-sm">
+            {/* Order summary - responsive */}
+            <div className="w-full lg:w-64 shrink-0">
+              <div className="bg-white rounded-lg shadow-sm p-3 sm:p-5 sticky top-20">
+                <h3 className="font-semibold text-gray-700 mb-3 sm:mb-4 text-sm sm:text-base">{language === 'zh' ? '訂單摘要' : 'Order Summary'}</h3>
+                <div className="space-y-2 text-xs sm:text-sm">
                   <div className="flex justify-between text-gray-600">
-                    <span>Subtotal ({selectedItems.length} items)</span>
+                    <span>{language === 'zh' ? '小計' : 'Subtotal'} ({selectedItems.length} {language === 'zh' ? '件' : 'items'})</span>
                     <span>${totalPrice.toFixed(2)}</span>
                   </div>
                   {savings > 0 && (
                     <div className="flex justify-between text-green-500">
-                      <span>You save</span>
+                      <span>{language === 'zh' ? '節省' : 'You save'}</span>
                       <span>-${savings.toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-gray-600">
-                    <span>Shipping</span>
-                    <span className="text-green-500">Free</span>
+                    <span>{language === 'zh' ? '運費' : 'Shipping'}</span>
+                    <span className="text-green-500">{language === 'zh' ? '免費' : 'Free'}</span>
                   </div>
                   <div className="border-t border-gray-100 pt-2 flex justify-between font-bold text-gray-800">
-                    <span>Total</span>
-                    <span className="text-red-500 text-lg">${totalPrice.toFixed(2)}</span>
+                    <span>{language === 'zh' ? '總計' : 'Total'}</span>
+                    <span className="text-red-500 text-base sm:text-lg">${totalPrice.toFixed(2)}</span>
                   </div>
                 </div>
                 <button
                   onClick={handleCheckout}
-                  className="mt-4 w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded font-medium transition-colors"
+                  className="mt-3 sm:mt-4 w-full bg-red-500 hover:bg-red-600 text-white py-2 sm:py-3 rounded font-medium transition-colors text-sm sm:text-base"
                 >
-                  Checkout ({selectedItems.length})
+                  {language === 'zh' ? '結帳' : 'Checkout'} ({selectedItems.length})
                 </button>
-                <p className="text-xs text-gray-400 text-center mt-3">Secure checkout powered by ShopMart</p>
+                <p className="text-xs text-gray-400 text-center mt-2 sm:mt-3">{language === 'zh' ? '安全結帳' : 'Secure checkout'} - ShopMart</p>
               </div>
             </div>
           </div>

@@ -123,7 +123,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top utility bar */}
-      <div className="bg-gray-700 text-gray-300 text-xs py-1.5">
+      <div className="bg-gray-700 text-gray-300 text-xs py-1.5 hidden sm:block">
         <div className="max-w-[1200px] mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/" className="hover:text-white transition-colors">Home</Link>
@@ -139,31 +139,31 @@ export default function Home() {
 
       {/* Main navigation */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-[1200px] mx-auto px-4 py-3 flex items-center gap-4">
+        <div className="max-w-[1200px] mx-auto px-2 sm:px-4 py-2 sm:py-3 flex items-center gap-2 sm:gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
+          <Link href="/" className="flex items-center gap-1 sm:gap-2 shrink-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-red-600 rounded flex items-center justify-center">
               <ShoppingCart size={16} className="text-white" />
             </div>
-            <span className="font-bold text-gray-800 text-lg hidden sm:block">ShopMart</span>
+            <span className="font-bold text-gray-800 text-base sm:text-lg hidden sm:block">ShopMart</span>
           </Link>
 
-          {/* Search bar */}
-          <div className="flex-1 max-w-2xl">
+          {/* Search bar - hidden on mobile */}
+          <div className="flex-1 max-w-2xl hidden md:block">
             <div className="flex border-2 border-red-500 rounded overflow-hidden">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Please enter the item to search"
-                className="flex-1 px-4 py-2 text-sm outline-none"
+                className="flex-1 px-3 py-1.5 text-xs sm:text-sm outline-none"
               />
-              <button className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 transition-colors">
+              <button className="bg-red-500 hover:bg-red-600 text-white px-3 sm:px-5 py-1.5 sm:py-2 transition-colors">
                 <Search size={16} />
               </button>
             </div>
             {/* Hot search tags */}
-            <div className="flex gap-3 mt-1">
+            <div className="flex gap-2 mt-1 flex-wrap">
               {['Tea', 'Keyboard', 'Shoes', 'Dress', 'Fragrance'].map((tag) => (
                 <button
                   key={tag}
@@ -177,14 +177,14 @@ export default function Home() {
           </div>
 
           {/* Right actions */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-3 shrink-0">
             <button
               onClick={toggleLanguage}
-              className="flex items-center gap-1 px-2 py-1.5 text-sm text-gray-600 hover:text-red-500 hover:bg-gray-100 rounded transition-colors"
+              className="flex items-center justify-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-red-500 hover:bg-gray-100 rounded transition-colors"
               title={language === 'zh' ? 'Switch to English' : 'Switch to Chinese'}
             >
               <Globe size={18} />
-              <span className="hidden sm:block font-medium">{language === 'zh' ? 'EN' : 'ZH'}</span>
+              <span className="font-medium text-xs sm:text-sm">{language === 'zh' ? 'EN' : 'ZH'}</span>
             </button>
             
             <Link href="/cart" className="relative p-2 hover:text-red-500 transition-colors">

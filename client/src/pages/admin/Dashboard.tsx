@@ -59,7 +59,7 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
   const [location] = useLocation();
 
   return (
-    <aside className={`fixed left-0 top-0 h-full bg-gray-900 text-white transition-all duration-300 z-50 flex flex-col ${collapsed ? 'w-16' : 'w-60'}`}>
+    <aside className={`fixed left-0 top-0 h-full bg-gray-900 text-white transition-all duration-300 z-50 flex flex-col ${collapsed ? 'w-12 sm:w-16' : 'w-48 sm:w-60'}`}>
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-gray-700">
         <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center shrink-0">
@@ -119,27 +119,27 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminSidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
-      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-60'}`}>
+      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'ml-12 sm:ml-16' : 'ml-48 sm:ml-60'}`}>
         {/* Top bar */}
-        <header className="bg-white shadow-sm px-6 py-4 flex items-center justify-between sticky top-0 z-40">
-          <div className="flex items-center gap-3">
-            <div className="relative">
+        <header className="bg-white shadow-sm px-2 sm:px-6 py-3 sm:py-4 flex items-center justify-between sticky top-0 z-40">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 sm:flex-none">
+            <div className="relative hidden sm:block">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search..."
-                className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 w-64"
+                className="pl-9 pr-4 py-2 text-xs sm:text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 w-48 sm:w-64"
               />
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-red-500 hover:bg-gray-100 rounded transition-colors"
+              className="flex items-center justify-center gap-0.5 sm:gap-1.5 px-1.5 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-red-500 hover:bg-gray-100 rounded transition-colors"
               title={language === 'zh' ? 'Switch to English' : 'Switch to Chinese'}
             >
               <Globe size={18} />
-              <span className="font-medium">{language === 'zh' ? 'EN' : 'ZH'}</span>
+              <span className="font-medium hidden sm:inline">{language === 'zh' ? 'EN' : 'ZH'}</span>
             </button>
             <button className="relative p-2 text-gray-500 hover:text-gray-700">
               <Bell size={20} />
@@ -153,7 +153,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </header>
-        <main className="p-6">
+        <main className="p-2 sm:p-4 md:p-6">
           {children}
         </main>
       </div>
