@@ -7,8 +7,10 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
-import { ShoppingCart, Search, User, ChevronRight, Phone, MessageCircle, ArrowUp, Heart, MapPin } from 'lucide-react';
+import { ShoppingCart, Search, User, ChevronRight, Phone, MessageCircle, ArrowUp, Heart, MapPin, Globe } from 'lucide-react';
 import { products, categories } from '@/lib/data';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { t } from '@/lib/translations';
 import type { Product } from '@/lib/data';
 
 // Unsplash product images for categories
@@ -90,6 +92,7 @@ export default function Home() {
   const [cartCount] = useState(3);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { language, toggleLanguage } = useLanguage();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -169,6 +172,15 @@ export default function Home() {
 
           {/* Right actions */}
           <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center gap-1 px-2 py-1.5 text-sm text-gray-600 hover:text-red-500 hover:bg-gray-100 rounded transition-colors"
+              title={language === 'zh' ? 'Switch to English' : 'Switch to Chinese'}
+            >
+              <Globe size={18} />
+              <span className="hidden sm:block font-medium">{language === 'zh' ? 'EN' : 'ZH'}</span>
+            </button>
+            
             <button className="relative p-2 hover:text-red-500 transition-colors">
               <ShoppingCart size={22} className="text-gray-600" />
               {cartCount > 0 && (
