@@ -162,6 +162,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 }
 
 export default function Dashboard() {
+  const { language } = useLanguage();
   const recentOrders = orders.slice(0, 5);
 
   const statusColors: Record<string, string> = {
@@ -175,35 +176,35 @@ export default function Dashboard() {
   return (
     <AdminLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-        <p className="text-gray-500 text-sm mt-1">Welcome back! Here's what's happening with your store.</p>
+        <h1 className="text-2xl font-bold text-gray-800">{language === 'zh' ? '儀表板' : 'Dashboard'}</h1>
+        <p className="text-gray-500 text-sm mt-1">{language === 'zh' ? '歡迎回來！以下是您商店的最新動態。' : 'Welcome back! Here\'s what\'s happening with your store.'}</p>
       </div>
 
       {/* Stats cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard
-          title="Total Revenue"
+          title={language === 'zh' ? '總收入' : 'Total Revenue'}
           value={`$${(dashboardStats.totalRevenue / 1000).toFixed(1)}K`}
           growth={dashboardStats.revenueGrowth}
           icon={DollarSign}
           color="bg-red-500"
         />
         <StatCard
-          title="Total Orders"
+          title={language === 'zh' ? '總訂單' : 'Total Orders'}
           value={dashboardStats.totalOrders.toLocaleString()}
           growth={dashboardStats.ordersGrowth}
           icon={ShoppingBag}
           color="bg-blue-500"
         />
         <StatCard
-          title="Total Users"
+          title={language === 'zh' ? '總用戶' : 'Total Users'}
           value={dashboardStats.totalUsers.toLocaleString()}
           growth={dashboardStats.usersGrowth}
           icon={UserCheck}
           color="bg-green-500"
         />
         <StatCard
-          title="Total Products"
+          title={language === 'zh' ? '總商品' : 'Total Products'}
           value={dashboardStats.totalProducts.toLocaleString()}
           growth={dashboardStats.productsGrowth}
           icon={Box}
@@ -216,10 +217,10 @@ export default function Dashboard() {
         {/* Revenue chart */}
         <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-5 border border-gray-100">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-700">Revenue Overview</h3>
+            <h3 className="font-semibold text-gray-700">{language === 'zh' ? '收入概覽' : 'Revenue Overview'}</h3>
             <select className="text-xs border border-gray-200 rounded px-2 py-1 outline-none">
-              <option>This Year</option>
-              <option>Last Year</option>
+              <option>{language === 'zh' ? '今年' : 'This Year'}</option>
+              <option>{language === 'zh' ? '去年' : 'Last Year'}</option>
             </select>
           </div>
           <ResponsiveContainer width="100%" height={220}>
@@ -247,7 +248,7 @@ export default function Dashboard() {
 
         {/* Category pie chart */}
         <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
-          <h3 className="font-semibold text-gray-700 mb-4">Sales by Category</h3>
+          <h3 className="font-semibold text-gray-700 mb-4">{language === 'zh' ? '按類別销售' : 'Sales by Category'}</h3>
           <ResponsiveContainer width="100%" height={180}>
             <PieChart>
               <Pie
@@ -283,7 +284,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         {/* Monthly orders bar chart */}
         <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
-          <h3 className="font-semibold text-gray-700 mb-4">Monthly Orders</h3>
+          <h3 className="font-semibold text-gray-700 mb-4">{language === 'zh' ? '月度訂單' : 'Monthly Orders'}</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={salesData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -298,9 +299,9 @@ export default function Dashboard() {
         {/* Recent orders */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
           <div className="flex items-center justify-between p-5 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-700">Recent Orders</h3>
+            <h3 className="font-semibold text-gray-700">{language === 'zh' ? '最近訂單' : 'Recent Orders'}</h3>
             <Link href="/admin/orders" className="text-xs text-red-500 hover:underline flex items-center gap-1">
-              View all <ChevronRight size={12} />
+              {language === 'zh' ? '查看全部' : 'View all'} <ChevronRight size={12} />
             </Link>
           </div>
           <div className="divide-y divide-gray-50">
@@ -325,21 +326,21 @@ export default function Dashboard() {
       {/* Top products */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-100">
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-700">Top Products</h3>
+          <h3 className="font-semibold text-gray-700">{language === 'zh' ? '熱銀商品' : 'Top Products'}</h3>
           <Link href="/admin/products" className="text-xs text-red-500 hover:underline flex items-center gap-1">
-            View all <ChevronRight size={12} />
+            {language === 'zh' ? '查看全部' : 'View all'} <ChevronRight size={12} />
           </Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50">
-                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">Product</th>
-                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">Category</th>
-                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">Price</th>
-                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">Sold</th>
-                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">Stock</th>
-                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">Status</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">{language === 'zh' ? '商品' : 'Product'}</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">{language === 'zh' ? '分類' : 'Category'}</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">{language === 'zh' ? '价格' : 'Price'}</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">{language === 'zh' ? '已賣' : 'Sold'}</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">{language === 'zh' ? '库存' : 'Stock'}</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">{language === 'zh' ? '狀态' : 'Status'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">

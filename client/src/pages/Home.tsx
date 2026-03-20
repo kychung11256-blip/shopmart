@@ -11,6 +11,7 @@ import { ShoppingCart, Search, User, ChevronRight, Phone, MessageCircle, ArrowUp
 import { products, categories } from '@/lib/data';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { t } from '@/lib/translations';
+import { getProductName, getCategoryName } from '@/lib/data-translations';
 import type { Product } from '@/lib/data';
 
 // Unsplash product images for categories
@@ -47,6 +48,7 @@ const bannerSlides = [
 function ProductCard({ product }: { product: Product }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [, navigate] = useLocation();
+  const { language } = useLanguage();
 
   return (
     <div className="product-card bg-white border border-gray-100 rounded overflow-hidden group cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
@@ -72,14 +74,14 @@ function ProductCard({ product }: { product: Product }) {
         )}
       </div>
       <div className="p-3">
-        <p className="text-sm text-gray-700 line-clamp-2 min-h-[2.5rem] leading-tight">{product.name}</p>
+        <p className="text-sm text-gray-700 line-clamp-2 min-h-[2.5rem] leading-tight">{getProductName(product.id, language)}</p>
         <div className="mt-2 flex items-baseline gap-2">
           <span className="price-current text-base">${product.price.toFixed(2)}</span>
           {product.originalPrice && product.originalPrice > product.price && (
             <span className="price-original text-xs">${product.originalPrice.toFixed(2)}</span>
           )}
         </div>
-        <p className="text-xs text-gray-400 mt-1">{product.sold} Sold</p>
+        <p className="text-xs text-gray-400 mt-1">{product.sold} {language === 'zh' ? '已賣' : 'Sold'}</p>
       </div>
     </div>
   );
@@ -213,7 +215,7 @@ export default function Home() {
                       : 'text-gray-700 hover:bg-gray-50 hover:text-red-500'
                   }`}
                 >
-                  {cat.name}
+                  {getCategoryName(cat.name, language)}
                 </button>
               ))}
             </div>
@@ -255,9 +257,9 @@ export default function Home() {
             {/* Recommended section */}
             <section className="bg-white rounded shadow-sm mb-4">
               <div className="section-title flex items-center justify-between">
-                <span>Recommended</span>
+                <span>{t('recommended', language)}</span>
                 <Link href="/products" className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1">
-                  More <ChevronRight size={12} />
+                  {t('more', language)} <ChevronRight size={12} />
                 </Link>
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -266,10 +268,10 @@ export default function Home() {
                 ))}
                 {/* Placeholder cards */}
                 <div className="bg-gray-50 border border-dashed border-gray-200 rounded flex items-center justify-center min-h-[180px] text-gray-300 text-sm">
-                  More Products
+                  {language === 'zh' ? '更多商品' : 'More Products'}
                 </div>
                 <div className="bg-gray-50 border border-dashed border-gray-200 rounded flex items-center justify-center min-h-[180px] text-gray-300 text-sm">
-                  Coming Soon
+                  {language === 'zh' ? '敬請期待' : 'Coming Soon'}
                 </div>
               </div>
             </section>
@@ -279,7 +281,7 @@ export default function Home() {
               {/* SHOP STREET */}
               <section className="bg-white rounded shadow-sm">
                 <div className="section-title flex items-center justify-between">
-                  <span className="font-bold tracking-wide">SHOP STREET</span>
+                  <span className="font-bold tracking-wide">{language === 'zh' ? '購物街' : 'SHOP STREET'}</span>
                   <Link href="/products" className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1">
                     <ChevronRight size={14} />
                   </Link>
@@ -305,7 +307,7 @@ export default function Home() {
               {/* TOP ONE */}
               <section className="bg-white rounded shadow-sm">
                 <div className="section-title flex items-center justify-between">
-                  <span className="font-bold tracking-wide">TOP ONE</span>
+                  <span className="font-bold tracking-wide">{language === 'zh' ? '熱銷排行' : 'TOP ONE'}</span>
                   <Link href="/products" className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1">
                     <ChevronRight size={14} />
                   </Link>
@@ -341,9 +343,9 @@ export default function Home() {
             {/* Top List */}
             <section className="bg-white rounded shadow-sm mb-4">
               <div className="section-title flex items-center justify-between">
-                <span>Top List</span>
+                <span>{language === 'zh' ? '排行榜' : 'Top List'}</span>
                 <Link href="/products" className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1">
-                  More <ChevronRight size={12} />
+                  {t('more', language)} <ChevronRight size={12} />
                 </Link>
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -356,9 +358,9 @@ export default function Home() {
             {/* Promotions */}
             <section className="bg-white rounded shadow-sm mb-4">
               <div className="section-title flex items-center justify-between">
-                <span>Promotions</span>
+                <span>{language === 'zh' ? '促銷活動' : 'Promotions'}</span>
                 <Link href="/products" className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1">
-                  More <ChevronRight size={12} />
+                  {t('more', language)} <ChevronRight size={12} />
                 </Link>
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -370,7 +372,7 @@ export default function Home() {
 
             {/* You May Also Like */}
             <section className="bg-white rounded shadow-sm mb-4">
-              <div className="section-title">You May Also Like</div>
+              <div className="section-title">{language === 'zh' ? '您可能也喜歡' : 'You May Also Like'}</div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 {youMayLikeProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
@@ -386,10 +388,10 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { icon: '🏪', title: 'Complete variety', desc: 'Millions of products' },
-              { icon: '🚚', title: 'Fast delivery', desc: 'Same day shipping' },
-              { icon: '✅', title: 'Genuine product', desc: '100% authentic' },
-              { icon: '💰', title: 'Low price every day', desc: 'Best deals guaranteed' },
+              { icon: '🏪', title: language === 'zh' ? '商品齊全' : 'Complete variety', desc: language === 'zh' ? '百萬商品' : 'Millions of products' },
+              { icon: '🚚', title: language === 'zh' ? '快速配送' : 'Fast delivery', desc: language === 'zh' ? '同日配送' : 'Same day shipping' },
+              { icon: '✅', title: language === 'zh' ? '正品保證' : 'Genuine product', desc: language === 'zh' ? '100%正品' : '100% authentic' },
+              { icon: '💰', title: language === 'zh' ? '天天低價' : 'Low price every day', desc: language === 'zh' ? '最優惠價格' : 'Best deals guaranteed' },
             ].map((badge) => (
               <div key={badge.title} className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center text-xl shrink-0">
@@ -416,26 +418,26 @@ export default function Home() {
                 </div>
                 <span className="text-white font-bold text-lg">ShopMart</span>
               </div>
-              <p className="text-sm">Your one-stop online shopping destination with millions of products.</p>
+              <p className="text-sm">{language === 'zh' ? '您的一站式在線購物目的地，擁有數百萬種商品。' : 'Your one-stop online shopping destination with millions of products.'}</p>
             </div>
             <div>
-              <h4 className="text-white font-medium mb-3">Quick Links</h4>
+              <h4 className="text-white font-medium mb-3">{language === 'zh' ? '快速連結' : 'Quick Links'}</h4>
               <ul className="space-y-1.5 text-sm">
-                {['Home', 'Products', 'Categories', 'Promotions', 'About Us'].map((link) => (
+                {(language === 'zh' ? ['首頁', '商品', '分類', '促銷', '關於我們'] : ['Home', 'Products', 'Categories', 'Promotions', 'About Us']).map((link) => (
                   <li key={link}><a href="#" className="hover:text-white transition-colors">{link}</a></li>
                 ))}
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-medium mb-3">Customer Service</h4>
+              <h4 className="text-white font-medium mb-3">{language === 'zh' ? '客戶服務' : 'Customer Service'}</h4>
               <ul className="space-y-1.5 text-sm">
-                {['My Account', 'Order Tracking', 'Returns', 'FAQ', 'Contact Us'].map((link) => (
+                {(language === 'zh' ? ['我的帳戶', '訂單追蹤', '退貨', '常見問題', '聯繫我們'] : ['My Account', 'Order Tracking', 'Returns', 'FAQ', 'Contact Us']).map((link) => (
                   <li key={link}><a href="#" className="hover:text-white transition-colors">{link}</a></li>
                 ))}
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-medium mb-3">Contact</h4>
+              <h4 className="text-white font-medium mb-3">{language === 'zh' ? '聯繫方式' : 'Contact'}</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <Phone size={14} />
@@ -443,7 +445,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-start gap-2">
                   <MapPin size={14} className="mt-0.5 shrink-0" />
-                  <span>Room 1101-04, Block A, Qihang Times Square, Xi'an City</span>
+                  <span>{language === 'zh' ? '西安市奇行時代廣場A座1101-04室' : 'Room 1101-04, Block A, Qihang Times Square, Xi\'an City'}</span>
                 </div>
               </div>
             </div>
@@ -456,14 +458,14 @@ export default function Home() {
 
       {/* Right floating buttons */}
       <div className="fixed right-4 bottom-20 flex flex-col gap-2 z-40">
-        <button className="w-12 h-12 bg-white border border-gray-200 shadow-md rounded flex flex-col items-center justify-center gap-0.5 hover:border-red-400 hover:text-red-500 transition-colors group">
+          <button className="w-12 h-12 bg-white border border-gray-200 shadow-md rounded flex flex-col items-center justify-center gap-0.5 hover:border-red-400 hover:text-red-500 transition-colors group">
           <MessageCircle size={16} className="text-gray-500 group-hover:text-red-500" />
-          <span className="text-xs text-gray-500 group-hover:text-red-500 leading-none">Service</span>
+          <span className="text-xs text-gray-500 group-hover:text-red-500 leading-none">{language === 'zh' ? '服務' : 'Service'}</span>
         </button>
         <Link href="/admin">
           <button className="w-12 h-12 bg-red-500 border border-red-400 shadow-md rounded flex flex-col items-center justify-center gap-0.5 hover:bg-red-600 transition-colors">
             <User size={16} className="text-white" />
-            <span className="text-xs text-white leading-none">Admin</span>
+            <span className="text-xs text-white leading-none">{language === 'zh' ? '管理' : 'Admin'}</span>
           </button>
         </Link>
         {showBackToTop && (
@@ -472,7 +474,7 @@ export default function Home() {
             className="w-12 h-12 bg-white border border-gray-200 shadow-md rounded flex flex-col items-center justify-center gap-0.5 hover:border-red-400 hover:text-red-500 transition-colors group"
           >
             <ArrowUp size={16} className="text-gray-500 group-hover:text-red-500" />
-            <span className="text-xs text-gray-500 group-hover:text-red-500 leading-none">Top</span>
+            <span className="text-xs text-gray-500 group-hover:text-red-500 leading-none">{language === 'zh' ? '頂部' : 'Top'}</span>
           </button>
         )}
       </div>
