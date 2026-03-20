@@ -7,9 +7,10 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
-import { ShoppingCart, Search, User, ChevronRight, Phone, MessageCircle, ArrowUp, Heart, MapPin, Globe } from 'lucide-react';
+import { ShoppingCart, Search, User, ChevronRight, Phone, MessageCircle, ArrowUp, Heart, MapPin, Globe, LogOut } from 'lucide-react';
 import { products, categories } from '@/lib/data';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { t } from '@/lib/translations';
 import { getProductName, getCategoryName } from '@/lib/data-translations';
 import type { Product } from '@/lib/data';
@@ -94,7 +95,10 @@ export default function Home() {
   const [cartCount] = useState(3);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const { language, toggleLanguage } = useLanguage();
+  const { user, isAuthenticated, logout } = useAuth();
+  const [, navigate] = useLocation();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -183,18 +187,61 @@ export default function Home() {
               <span className="hidden sm:block font-medium">{language === 'zh' ? 'EN' : 'ZH'}</span>
             </button>
             
-            <button className="relative p-2 hover:text-red-500 transition-colors">
+            <Link href="/cart" className="relative p-2 hover:text-red-500 transition-colors">
               <ShoppingCart size={22} className="text-gray-600" />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
-            </button>
-            <Link href="/login" className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-red-500 transition-colors">
-              <User size={20} />
-              <span className="hidden sm:block font-medium">SIGN IN</span>
             </Link>
+            {isAuthenticated && user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-red-500 transition-colors"
+                >
+                  <User size={20} />
+                  <span className="hidden sm:block font-medium">{user.name}</span>
+                </button>
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg border border-gray-100 z-50">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-800">{user.name}</p>
+                      <p className="text-xs text-gray-500">{user.email}</p>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium mt-1 inline-block ${
+                        user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {user.role === 'admin' ? (language === 'zh' ? '管理員' : 'Admin') : (language === 'zh' ? '用戶' : 'User')}
+                      </span>
+                    </div>
+                    <Link href="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                      {language === 'zh' ? '我的訂單' : 'My Orders'}
+                    </Link>
+                    {user.role === 'admin' && (
+                      <Link href="/admin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        {language === 'zh' ? '管理儀表板' : 'Admin Dashboard'}
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => {
+                        logout();
+                        setShowUserMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 border-t border-gray-100"
+                    >
+                      <LogOut size={16} />
+                      {language === 'zh' ? '登出' : 'Logout'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link href="/login" className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-red-500 transition-colors">
+                <User size={20} />
+                <span className="hidden sm:block font-medium">{language === 'zh' ? '登入' : 'SIGN IN'}</span>
+              </Link>
+            )}
           </div>
         </div>
       </header>

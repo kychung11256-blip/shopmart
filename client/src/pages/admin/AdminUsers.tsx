@@ -4,18 +4,20 @@
  */
 
 import { useState } from 'react';
-import { Search, Eye, Ban, CheckCircle, Users, X } from 'lucide-react';
+import { Search, Eye, Ban, CheckCircle, Users, X, Shield, User as UserIcon } from 'lucide-react';
 import { AdminLayout } from './Dashboard';
 import { users as initialUsers } from '@/lib/data';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { User } from '@/lib/data';
 import { toast } from 'sonner';
 
-function UserDetailModal({ user, onClose }: { user: User; onClose: () => void }) {
+function UserDetailModal({ user, onClose, onUpdateRole }: { user: User; onClose: () => void; onUpdateRole: (id: number, role: 'admin' | 'user') => void }) {
+  const { language } = useLanguage();
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-800">User Profile</h2>
+          <h2 className="text-lg font-semibold text-gray-800">{language === 'zh' ? '用戶檔案' : 'User Profile'}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
         </div>
         <div className="p-5">
@@ -29,25 +31,63 @@ function UserDetailModal({ user, onClose }: { user: User; onClose: () => void })
             <div>
               <h3 className="font-semibold text-gray-800">{user.name}</h3>
               <p className="text-sm text-gray-500">{user.email}</p>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium mt-1 inline-block ${
-                user.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-              }`}>
-                {user.status}
-              </span>
+              <div className="flex gap-2 mt-1">
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  user.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                }`}>
+                  {language === 'zh' ? (user.status === 'active' ? '活跃' : '被封禁') : user.status}
+                </span>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  (user as any).role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                }`}>
+                  {(user as any).role === 'admin' ? (language === 'zh' ? '管理员' : 'Admin') : (language === 'zh' ? '用戶' : 'User')}
+                </span>
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-gray-50 rounded-lg p-3 text-center">
               <p className="text-2xl font-bold text-gray-800">{user.orders}</p>
-              <p className="text-xs text-gray-500 mt-1">Total Orders</p>
+              <p className="text-xs text-gray-500 mt-1">{language === 'zh' ? '總訂單' : 'Total Orders'}</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3 text-center">
               <p className="text-2xl font-bold text-red-500">${user.spent.toFixed(0)}</p>
-              <p className="text-xs text-gray-500 mt-1">Total Spent</p>
+              <p className="text-xs text-gray-500 mt-1">{language === 'zh' ? '總消費' : 'Total Spent'}</p>
             </div>
           </div>
           <div className="mt-4 text-sm text-gray-500">
-            <p>Member since: {user.createdAt}</p>
+            <p>{language === 'zh' ? '成员自' : 'Member since'}: {user.createdAt}</p>
+          </div>
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <p className="text-sm font-medium text-gray-700 mb-2">{language === 'zh' ? '設置角色' : 'Set Role'}</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  onUpdateRole(user.id, 'user');
+                  onClose();
+                }}
+                className={`flex-1 py-2 px-3 rounded text-xs font-medium transition-colors ${
+                  (user as any).role === 'user'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {language === 'zh' ? '用戶' : 'User'}
+              </button>
+              <button
+                onClick={() => {
+                  onUpdateRole(user.id, 'admin');
+                  onClose();
+                }}
+                className={`flex-1 py-2 px-3 rounded text-xs font-medium transition-colors ${
+                  (user as any).role === 'admin'
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {language === 'zh' ? '管理员' : 'Admin'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -56,24 +96,37 @@ function UserDetailModal({ user, onClose }: { user: User; onClose: () => void })
 }
 
 export default function AdminUsers() {
-  const [userList, setUserList] = useState(initialUsers);
+  const { language } = useLanguage();
+  const [userList, setUserList] = useState(initialUsers.map(u => ({ ...u, role: 'user' as 'admin' | 'user' })));
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [filterRole, setFilterRole] = useState('All');
+  const [selectedUser, setSelectedUser] = useState<(User & { role: 'admin' | 'user' }) | null>(null);
 
   const filtered = userList.filter(u => {
     const matchSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       u.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchStatus = filterStatus === 'All' || u.status === filterStatus;
-    return matchSearch && matchStatus;
+    const matchRole = filterRole === 'All' || (u as any).role === filterRole;
+    return matchSearch && matchStatus && matchRole;
   });
 
   const handleToggleBan = (id: number) => {
     setUserList(prev => prev.map(u => {
       if (u.id === id) {
         const newStatus = u.status === 'active' ? 'banned' : 'active';
-        toast.success(`User ${newStatus === 'banned' ? 'banned' : 'unbanned'} successfully`);
+        toast.success(language === 'zh' ? `用戶已${newStatus === 'banned' ? '被封禁' : '解除封禁'}` : `User ${newStatus === 'banned' ? 'banned' : 'unbanned'} successfully`);
         return { ...u, status: newStatus };
+      }
+      return u;
+    }));
+  };
+
+  const handleUpdateRole = (id: number, role: 'admin' | 'user') => {
+    setUserList(prev => prev.map(u => {
+      if (u.id === id) {
+        toast.success(language === 'zh' ? `用戶角色已更新` : 'User role updated');
+        return { ...u, role };
       }
       return u;
     }));
@@ -85,8 +138,8 @@ export default function AdminUsers() {
   return (
     <AdminLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Users</h1>
-        <p className="text-gray-500 text-sm mt-1">{userList.length} registered users</p>
+        <h1 className="text-2xl font-bold text-gray-800">{language === 'zh' ? '用戶管理' : 'Users'}</h1>
+        <p className="text-gray-500 text-sm mt-1">{userList.length} {language === 'zh' ? '个已註冊的用戶' : 'registered users'}</p>
       </div>
 
       {/* Summary cards */}
@@ -230,7 +283,7 @@ export default function AdminUsers() {
       </div>
 
       {selectedUser && (
-        <UserDetailModal user={selectedUser} onClose={() => setSelectedUser(null)} />
+        <UserDetailModal user={selectedUser} onClose={() => setSelectedUser(null)} onUpdateRole={handleUpdateRole} />
       )}
     </AdminLayout>
   );
