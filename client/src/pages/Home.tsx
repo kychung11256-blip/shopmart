@@ -462,12 +462,7 @@ export default function Home() {
           <MessageCircle size={16} className="text-gray-500 group-hover:text-red-500" />
           <span className="text-xs text-gray-500 group-hover:text-red-500 leading-none">{language === 'zh' ? '服務' : 'Service'}</span>
         </button>
-        <Link href="/admin">
-          <button className="w-12 h-12 bg-red-500 border border-red-400 shadow-md rounded flex flex-col items-center justify-center gap-0.5 hover:bg-red-600 transition-colors">
-            <User size={16} className="text-white" />
-            <span className="text-xs text-white leading-none">{language === 'zh' ? '管理' : 'Admin'}</span>
-          </button>
-        </Link>
+
         {showBackToTop && (
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

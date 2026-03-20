@@ -8,12 +8,14 @@ import { Plus, Search, Edit2, Trash2, Package } from 'lucide-react';
 import { AdminLayout } from './Dashboard';
 import { products as initialProducts, categories } from '@/lib/data';
 import ProductEditDialog from '@/components/ProductEditDialog';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { Product } from '@/lib/data';
 import { toast } from 'sonner';
 
 // 使用新的 ProductEditDialog 組件替代舊的 ProductModal
 
 export default function AdminProducts() {
+  const { language } = useLanguage();
   const [productList, setProductList] = useState(initialProducts);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('All');
@@ -31,7 +33,7 @@ export default function AdminProducts() {
   const handleSave = (formData: Product) => {
     if (formData.id) {
       setProductList(prev => prev.map(p => p.id === formData.id ? formData : p));
-      toast.success('Product updated successfully!');
+      toast.success(language === 'zh' ? '商品已成功更新' : 'Product updated successfully!');
     } else {
       const newProduct: Product = {
         ...formData,
@@ -41,16 +43,16 @@ export default function AdminProducts() {
         createdAt: formData.createdAt || new Date().toISOString().split('T')[0],
       };
       setProductList(prev => [newProduct, ...prev]);
-      toast.success('Product added successfully!');
+      toast.success(language === 'zh' ? '商品已成功添加' : 'Product added successfully!');
     }
     setShowModal(false);
     setEditingProduct(null);
   };
 
   const handleDelete = (id: number) => {
-    if (confirm('Are you sure you want to delete this product?')) {
+    if (confirm(language === 'zh' ? '你確定要刪除此商品吗？' : 'Are you sure you want to delete this product?')) {
       setProductList(prev => prev.filter(p => p.id !== id));
-      toast.success('Product deleted.');
+      toast.success(language === 'zh' ? '商品已刪除' : 'Product deleted.');
     }
   };
 
@@ -64,15 +66,15 @@ export default function AdminProducts() {
     <AdminLayout>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Products</h1>
-          <p className="text-gray-500 text-sm mt-1">{productList.length} products total</p>
+          <h1 className="text-2xl font-bold text-gray-800">{language === 'zh' ? '商品管理' : 'Products'}</h1>
+          <p className="text-gray-500 text-sm mt-1">{productList.length} {language === 'zh' ? '个商品' : 'products total'}</p>
         </div>
         <button
           onClick={() => { setEditingProduct(null); setShowModal(true); }}
           className="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2"
         >
           <Plus size={16} />
-          Add Product
+          {language === 'zh' ? '添加商品' : 'Add Product'}
         </button>
       </div>
 
@@ -85,7 +87,7 @@ export default function AdminProducts() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search products..."
+              placeholder={language === 'zh' ? '搜索商品...' : 'Search products...'}
               className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400"
             />
           </div>
@@ -94,7 +96,7 @@ export default function AdminProducts() {
             onChange={(e) => setFilterCategory(e.target.value)}
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400"
           >
-            <option value="All">All Categories</option>
+            <option value="All">{language === 'zh' ? '所有分類' : 'All Categories'}</option>
             {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
           </select>
           <select
@@ -102,12 +104,12 @@ export default function AdminProducts() {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400"
           >
-            <option value="All">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="out_of_stock">Out of Stock</option>
+            <option value="All">{language === 'zh' ? '所有狀态' : 'All Status'}</option>
+            <option value="active">{language === 'zh' ? '活跃' : 'Active'}</option>
+            <option value="inactive">{language === 'zh' ? '非活跃' : 'Inactive'}</option>
+            <option value="out_of_stock">{language === 'zh' ? '缺貨' : 'Out of Stock'}</option>
           </select>
-          <span className="text-sm text-gray-500">{filtered.length} results</span>
+          <span className="text-sm text-gray-500">{filtered.length} {language === 'zh' ? '个结果' : 'results'}</span>
         </div>
       </div>
 
@@ -117,13 +119,13 @@ export default function AdminProducts() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Product</th>
-                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Category</th>
-                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Price</th>
-                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Stock</th>
-                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Sold</th>
-                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Status</th>
-                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Actions</th>
+                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '商品' : 'Product'}</th>
+                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '分類' : 'Category'}</th>
+                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '价格' : 'Price'}</th>
+                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '库存' : 'Stock'}</th>
+                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '已賣' : 'Sold'}</th>
+                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '狀态' : 'Status'}</th>
+                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '操作' : 'Actions'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">

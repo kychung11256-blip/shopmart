@@ -7,15 +7,17 @@ import { useState } from 'react';
 import { Search, Eye, ChevronDown, X, Package, Truck, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { AdminLayout } from './Dashboard';
 import { orders as initialOrders } from '@/lib/data';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { getStatusLabel } from '@/lib/data-translations';
 import type { Order } from '@/lib/data';
 import { toast } from 'sonner';
 
-const statusConfig: Record<string, { color: string; icon: any; label: string }> = {
-  pending: { color: 'bg-yellow-100 text-yellow-700', icon: Clock, label: 'Pending' },
-  processing: { color: 'bg-blue-100 text-blue-700', icon: Package, label: 'Processing' },
-  shipped: { color: 'bg-purple-100 text-purple-700', icon: Truck, label: 'Shipped' },
-  delivered: { color: 'bg-green-100 text-green-700', icon: CheckCircle, label: 'Delivered' },
-  cancelled: { color: 'bg-red-100 text-red-700', icon: XCircle, label: 'Cancelled' },
+const statusConfig: Record<string, { color: string; icon: any }> = {
+  pending: { color: 'bg-yellow-100 text-yellow-700', icon: Clock },
+  processing: { color: 'bg-blue-100 text-blue-700', icon: Package },
+  shipped: { color: 'bg-purple-100 text-purple-700', icon: Truck },
+  delivered: { color: 'bg-green-100 text-green-700', icon: CheckCircle },
+  cancelled: { color: 'bg-red-100 text-red-700', icon: XCircle },
 };
 
 function OrderDetailModal({ order, onClose, onUpdateStatus }: {
@@ -23,13 +25,14 @@ function OrderDetailModal({ order, onClose, onUpdateStatus }: {
   onClose: () => void;
   onUpdateStatus: (id: string, status: Order['status']) => void;
 }) {
+  const { language } = useLanguage();
   const config = statusConfig[order.status];
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-800">Order Details</h2>
+          <h2 className="text-lg font-semibold text-gray-800">{language === 'zh' ? '訂單詳情' : 'Order Details'}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={20} />
           </button>
@@ -41,18 +44,18 @@ function OrderDetailModal({ order, onClose, onUpdateStatus }: {
               <p className="text-xs text-gray-400">{order.createdAt}</p>
             </div>
             <span className={`text-xs px-3 py-1 rounded-full font-medium ${config.color}`}>
-              {config.label}
+              {getStatusLabel(order.status, language)}
             </span>
           </div>
 
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm font-medium text-gray-700 mb-1">Customer</p>
+            <p className="text-sm font-medium text-gray-700 mb-1">{language === 'zh' ? '客戶' : 'Customer'}</p>
             <p className="text-sm text-gray-600">{order.userName}</p>
             <p className="text-xs text-gray-400 mt-1">{order.address}</p>
           </div>
 
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Products</p>
+            <p className="text-sm font-medium text-gray-700 mb-2">{language === 'zh' ? '商品' : 'Products'}</p>
             <div className="space-y-2">
               {order.products.map((p, idx) => (
                 <div key={idx} className="flex items-center justify-between text-sm">
@@ -60,15 +63,15 @@ function OrderDetailModal({ order, onClose, onUpdateStatus }: {
                   <span className="font-medium text-gray-700">${(p.price * p.qty).toFixed(2)}</span>
                 </div>
               ))}
-              <div className="border-t border-gray-200 pt-2 flex justify-between font-semibold">
-                <span>Total</span>
+                <div className="border-t border-gray-200 pt-2 flex justify-between font-semibold">
+                  <span>{language === 'zh' ? '總計' : 'Total'}</span>
                 <span className="text-red-500">${order.total.toFixed(2)}</span>
               </div>
             </div>
           </div>
 
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Update Status</p>
+            <p className="text-sm font-medium text-gray-700 mb-2">{language === 'zh' ? '更新狀态' : 'Update Status'}</p>
             <div className="grid grid-cols-3 gap-2">
               {(Object.keys(statusConfig) as Order['status'][]).map((status) => (
                 <button
@@ -81,7 +84,7 @@ function OrderDetailModal({ order, onClose, onUpdateStatus }: {
                       : 'bg-gray-50 text-gray-600 hover:bg-red-50 hover:text-red-500 border border-gray-200'
                   }`}
                 >
-                  {statusConfig[status].label}
+                  {getStatusLabel(status, language)}
                 </button>
               ))}
             </div>
@@ -93,6 +96,7 @@ function OrderDetailModal({ order, onClose, onUpdateStatus }: {
 }
 
 export default function AdminOrders() {
+  const { language } = useLanguage();
   const [orderList, setOrderList] = useState(initialOrders);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
@@ -107,7 +111,7 @@ export default function AdminOrders() {
 
   const handleUpdateStatus = (id: string, status: Order['status']) => {
     setOrderList(prev => prev.map(o => o.id === id ? { ...o, status } : o));
-    toast.success(`Order status updated to ${status}`);
+    toast.success(language === 'zh' ? `訂單狀态已更新为${getStatusLabel(status, language)}` : `Order status updated to ${getStatusLabel(status, language)}`);
   };
 
   const statusCounts = Object.keys(statusConfig).reduce((acc, status) => {
@@ -118,8 +122,8 @@ export default function AdminOrders() {
   return (
     <AdminLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Orders</h1>
-        <p className="text-gray-500 text-sm mt-1">{orderList.length} orders total</p>
+        <h1 className="text-2xl font-bold text-gray-800">{language === 'zh' ? '訂單管理' : 'Orders'}</h1>
+        <p className="text-gray-500 text-sm mt-1">{orderList.length} {language === 'zh' ? '个訂單' : 'orders total'}</p>
       </div>
 
       {/* Status summary cards */}
@@ -137,7 +141,7 @@ export default function AdminOrders() {
                 config.color.includes('blue') ? 'text-blue-500' :
                 config.color.includes('purple') ? 'text-purple-500' :
                 config.color.includes('green') ? 'text-green-500' : 'text-red-500'} />
-              <span className="text-xs text-gray-500">{config.label}</span>
+              <span className="text-xs text-gray-500">{getStatusLabel(status as any, language)}</span>
             </div>
             <p className="text-xl font-bold text-gray-700">{statusCounts[status] || 0}</p>
           </button>
@@ -153,7 +157,7 @@ export default function AdminOrders() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by order ID or customer..."
+              placeholder={language === 'zh' ? '按訂單 ID 或客戶名稱搜索...' : 'Search by order ID or customer...'}
               className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400"
             />
           </div>
@@ -162,12 +166,12 @@ export default function AdminOrders() {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400"
           >
-            <option value="All">All Status</option>
-            {Object.entries(statusConfig).map(([status, config]) => (
-              <option key={status} value={status}>{config.label}</option>
+            <option value="All">{language === 'zh' ? '所有狀态' : 'All Status'}</option>
+            {Object.entries(statusConfig).map(([status]) => (
+              <option key={status} value={status}>{getStatusLabel(status as any, language)}</option>
             ))}
           </select>
-          <span className="text-sm text-gray-500">{filtered.length} results</span>
+          <span className="text-sm text-gray-500">{filtered.length} {language === 'zh' ? '个结果' : 'results'}</span>
         </div>
       </div>
 
@@ -177,13 +181,13 @@ export default function AdminOrders() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Order ID</th>
-                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Customer</th>
-                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Products</th>
-                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Total</th>
-                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Date</th>
-                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Status</th>
-                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Actions</th>
+                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '訂單 ID' : 'Order ID'}</th>
+                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '客戶' : 'Customer'}</th>
+                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '商品' : 'Products'}</th>
+                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '總計' : 'Total'}</th>
+                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '日期' : 'Date'}</th>
+                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '狀态' : 'Status'}</th>
+                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '操作' : 'Actions'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -208,7 +212,7 @@ export default function AdminOrders() {
                     <td className="px-5 py-3 text-sm text-gray-500">{order.createdAt}</td>
                     <td className="px-5 py-3">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${config.color}`}>
-                        {config.label}
+                        {getStatusLabel(order.status, language)}
                       </span>
                     </td>
                     <td className="px-5 py-3">
