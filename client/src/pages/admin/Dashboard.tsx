@@ -1,0 +1,370 @@
+/**
+ * ShopMart Admin - Dashboard
+ * Design: 深色側邊欄 + 白色內容區域
+ * 包含: 銷售統計、訂單概覽、商品管理入口
+ */
+
+import { useState } from 'react';
+import { Link, useLocation } from 'wouter';
+import {
+  LayoutDashboard, Package, ShoppingBag, Users, Tag, BarChart3,
+  Settings, LogOut, Menu, X, TrendingUp, TrendingDown, DollarSign,
+  ShoppingCart, UserCheck, Box, ChevronRight, Bell, Search, Eye
+} from 'lucide-react';
+import { dashboardStats, salesData, categoryData, orders, products } from '@/lib/data';
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend, BarChart, Bar
+} from 'recharts';
+
+const navItems = [
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
+  { icon: Package, label: 'Products', href: '/admin/products' },
+  { icon: ShoppingBag, label: 'Orders', href: '/admin/orders' },
+  { icon: Users, label: 'Users', href: '/admin/users' },
+  { icon: Tag, label: 'Categories', href: '/admin/categories' },
+  { icon: BarChart3, label: 'Analytics', href: '/admin/analytics' },
+  { icon: Settings, label: 'Settings', href: '/admin/settings' },
+];
+
+function StatCard({ title, value, growth, icon: Icon, color }: {
+  title: string;
+  value: string;
+  growth: number;
+  icon: any;
+  color: string;
+}) {
+  const isPositive = growth >= 0;
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-sm text-gray-500 font-medium">{title}</p>
+          <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
+          <div className={`flex items-center gap-1 mt-2 text-xs font-medium ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+            {isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+            <span>{Math.abs(growth)}% vs last month</span>
+          </div>
+        </div>
+        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${color}`}>
+          <Icon size={22} className="text-white" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+  const [location] = useLocation();
+
+  return (
+    <aside className={`fixed left-0 top-0 h-full bg-gray-900 text-white transition-all duration-300 z-50 flex flex-col ${collapsed ? 'w-16' : 'w-60'}`}>
+      {/* Logo */}
+      <div className="flex items-center gap-3 px-4 py-5 border-b border-gray-700">
+        <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center shrink-0">
+          <ShoppingCart size={16} className="text-white" />
+        </div>
+        {!collapsed && <span className="font-bold text-lg">ShopMart</span>}
+        <button
+          onClick={onToggle}
+          className="ml-auto text-gray-400 hover:text-white transition-colors"
+        >
+          {collapsed ? <Menu size={18} /> : <X size={18} />}
+        </button>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 py-4 overflow-y-auto">
+        {navItems.map((item) => {
+          const isActive = location === item.href;
+          return (
+            <Link key={item.href} href={item.href}>
+              <div className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors cursor-pointer ${
+                isActive
+                  ? 'bg-red-600 text-white'
+                  : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+              }`}>
+                <item.icon size={18} className="shrink-0" />
+                {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
+              </div>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Bottom actions */}
+      <div className="border-t border-gray-700 p-4">
+        <Link href="/">
+          <div className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors cursor-pointer py-2">
+            <Eye size={18} className="shrink-0" />
+            {!collapsed && <span className="text-sm">View Store</span>}
+          </div>
+        </Link>
+        <Link href="/login">
+          <div className="flex items-center gap-3 text-gray-400 hover:text-red-400 transition-colors cursor-pointer py-2">
+            <LogOut size={18} className="shrink-0" />
+            {!collapsed && <span className="text-sm">Logout</span>}
+          </div>
+        </Link>
+      </div>
+    </aside>
+  );
+}
+
+export function AdminLayout({ children }: { children: React.ReactNode }) {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <AdminSidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-60'}`}>
+        {/* Top bar */}
+        <header className="bg-white shadow-sm px-6 py-4 flex items-center justify-between sticky top-0 z-40">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search..."
+                className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400 w-64"
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <button className="relative p-2 text-gray-500 hover:text-gray-700">
+              <Bell size={20} />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                <span className="text-red-600 font-bold text-sm">A</span>
+              </div>
+              <span className="text-sm font-medium text-gray-700">Admin</span>
+            </div>
+          </div>
+        </header>
+        <main className="p-6">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  const recentOrders = orders.slice(0, 5);
+
+  const statusColors: Record<string, string> = {
+    pending: 'bg-yellow-100 text-yellow-700',
+    processing: 'bg-blue-100 text-blue-700',
+    shipped: 'bg-purple-100 text-purple-700',
+    delivered: 'bg-green-100 text-green-700',
+    cancelled: 'bg-red-100 text-red-700',
+  };
+
+  return (
+    <AdminLayout>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+        <p className="text-gray-500 text-sm mt-1">Welcome back! Here's what's happening with your store.</p>
+      </div>
+
+      {/* Stats cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatCard
+          title="Total Revenue"
+          value={`$${(dashboardStats.totalRevenue / 1000).toFixed(1)}K`}
+          growth={dashboardStats.revenueGrowth}
+          icon={DollarSign}
+          color="bg-red-500"
+        />
+        <StatCard
+          title="Total Orders"
+          value={dashboardStats.totalOrders.toLocaleString()}
+          growth={dashboardStats.ordersGrowth}
+          icon={ShoppingBag}
+          color="bg-blue-500"
+        />
+        <StatCard
+          title="Total Users"
+          value={dashboardStats.totalUsers.toLocaleString()}
+          growth={dashboardStats.usersGrowth}
+          icon={UserCheck}
+          color="bg-green-500"
+        />
+        <StatCard
+          title="Total Products"
+          value={dashboardStats.totalProducts.toLocaleString()}
+          growth={dashboardStats.productsGrowth}
+          icon={Box}
+          color="bg-purple-500"
+        />
+      </div>
+
+      {/* Charts row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        {/* Revenue chart */}
+        <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-5 border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-700">Revenue Overview</h3>
+            <select className="text-xs border border-gray-200 rounded px-2 py-1 outline-none">
+              <option>This Year</option>
+              <option>Last Year</option>
+            </select>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={salesData}>
+              <defs>
+                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#E93323" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#E93323" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} />
+              <Tooltip formatter={(value) => [`$${value}`, 'Revenue']} />
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                stroke="#E93323"
+                strokeWidth={2}
+                fill="url(#colorRevenue)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Category pie chart */}
+        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
+          <h3 className="font-semibold text-gray-700 mb-4">Sales by Category</h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <PieChart>
+              <Pie
+                data={categoryData}
+                cx="50%"
+                cy="50%"
+                innerRadius={50}
+                outerRadius={75}
+                dataKey="value"
+              >
+                {categoryData.map((entry, index) => (
+                  <Cell key={index} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => [`${value}%`, 'Share']} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="space-y-1.5 mt-2">
+            {categoryData.map((item) => (
+              <div key={item.name} className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span className="text-gray-600">{item.name}</span>
+                </div>
+                <span className="font-medium text-gray-700">{item.value}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Orders chart + Recent orders */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        {/* Monthly orders bar chart */}
+        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
+          <h3 className="font-semibold text-gray-700 mb-4">Monthly Orders</h3>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={salesData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} />
+              <Tooltip />
+              <Bar dataKey="orders" fill="#E93323" radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Recent orders */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between p-5 border-b border-gray-100">
+            <h3 className="font-semibold text-gray-700">Recent Orders</h3>
+            <Link href="/admin/orders" className="text-xs text-red-500 hover:underline flex items-center gap-1">
+              View all <ChevronRight size={12} />
+            </Link>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {recentOrders.map((order) => (
+              <div key={order.id} className="flex items-center justify-between px-5 py-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">{order.id}</p>
+                  <p className="text-xs text-gray-400">{order.userName}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-gray-800">${order.total.toFixed(2)}</p>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[order.status]}`}>
+                    {order.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Top products */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100">
+          <h3 className="font-semibold text-gray-700">Top Products</h3>
+          <Link href="/admin/products" className="text-xs text-red-500 hover:underline flex items-center gap-1">
+            View all <ChevronRight size={12} />
+          </Link>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">Product</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">Category</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">Price</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">Sold</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">Stock</th>
+                <th className="text-left text-xs font-medium text-gray-500 px-5 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {products.slice(0, 6).map((product) => (
+                <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-10 h-10 rounded object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'; }}
+                      />
+                      <span className="text-sm text-gray-700 line-clamp-1 max-w-[180px]">{product.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-5 py-3 text-sm text-gray-500">{product.category}</td>
+                  <td className="px-5 py-3 text-sm font-medium text-red-500">${product.price.toFixed(2)}</td>
+                  <td className="px-5 py-3 text-sm text-gray-600">{product.sold}</td>
+                  <td className="px-5 py-3 text-sm text-gray-600">{product.stock}</td>
+                  <td className="px-5 py-3">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      product.status === 'active' ? 'bg-green-100 text-green-700' :
+                      product.status === 'inactive' ? 'bg-gray-100 text-gray-600' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {product.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </AdminLayout>
+  );
+}
