@@ -4,151 +4,14 @@
  */
 
 import { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Eye, Filter, Upload, X, Save, Package } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Package } from 'lucide-react';
 import { AdminLayout } from './Dashboard';
 import { products as initialProducts, categories } from '@/lib/data';
+import ProductEditDialog from '@/components/ProductEditDialog';
 import type { Product } from '@/lib/data';
 import { toast } from 'sonner';
 
-function ProductModal({ product, onClose, onSave }: {
-  product: Partial<Product> | null;
-  onClose: () => void;
-  onSave: (p: Partial<Product>) => void;
-}) {
-  const [form, setForm] = useState<Partial<Product>>(product || {
-    name: '', price: 0, originalPrice: 0, category: 'Apparel',
-    stock: 0, status: 'active', description: '', image: '',
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave(form);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-800">
-            {product?.id ? 'Edit Product' : 'Add New Product'}
-          </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X size={20} />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
-              <input
-                type="text"
-                value={form.name || ''}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                required
-                className="w-full border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-red-400"
-                placeholder="Enter product name"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Price *</label>
-              <input
-                type="number"
-                step="0.01"
-                value={form.price || ''}
-                onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) })}
-                required
-                className="w-full border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-red-400"
-                placeholder="0.00"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Original Price</label>
-              <input
-                type="number"
-                step="0.01"
-                value={form.originalPrice || ''}
-                onChange={(e) => setForm({ ...form, originalPrice: parseFloat(e.target.value) })}
-                className="w-full border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-red-400"
-                placeholder="0.00"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-              <select
-                value={form.category || ''}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className="w-full border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-red-400"
-              >
-                {categories.map(c => (
-                  <option key={c.id} value={c.name}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Stock *</label>
-              <input
-                type="number"
-                value={form.stock || ''}
-                onChange={(e) => setForm({ ...form, stock: parseInt(e.target.value) })}
-                required
-                className="w-full border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-red-400"
-                placeholder="0"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select
-                value={form.status || 'active'}
-                onChange={(e) => setForm({ ...form, status: e.target.value as Product['status'] })}
-                className="w-full border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-red-400"
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="out_of_stock">Out of Stock</option>
-              </select>
-            </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-              <input
-                type="url"
-                value={form.image || ''}
-                onChange={(e) => setForm({ ...form, image: e.target.value })}
-                className="w-full border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-red-400"
-                placeholder="https://..."
-              />
-            </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea
-                value={form.description || ''}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                rows={3}
-                className="w-full border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-red-400 resize-none"
-                placeholder="Product description..."
-              />
-            </div>
-          </div>
-          <div className="flex gap-3 pt-2">
-            <button
-              type="submit"
-              className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded font-medium transition-colors flex items-center justify-center gap-2"
-            >
-              <Save size={16} />
-              {product?.id ? 'Save Changes' : 'Add Product'}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 border border-gray-200 text-gray-600 hover:bg-gray-50 py-2.5 rounded font-medium transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+// 使用新的 ProductEditDialog 組件替代舊的 ProductModal
 
 export default function AdminProducts() {
   const [productList, setProductList] = useState(initialProducts);
@@ -156,7 +19,7 @@ export default function AdminProducts() {
   const [filterCategory, setFilterCategory] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
   const [showModal, setShowModal] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const filtered = productList.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -165,18 +28,18 @@ export default function AdminProducts() {
     return matchSearch && matchCat && matchStatus;
   });
 
-  const handleSave = (formData: Partial<Product>) => {
+  const handleSave = (formData: Product) => {
     if (formData.id) {
-      setProductList(prev => prev.map(p => p.id === formData.id ? { ...p, ...formData } as Product : p));
+      setProductList(prev => prev.map(p => p.id === formData.id ? formData : p));
       toast.success('Product updated successfully!');
     } else {
       const newProduct: Product = {
         ...formData,
         id: Date.now(),
-        sold: 0,
-        rating: 5.0,
-        createdAt: new Date().toISOString().split('T')[0],
-      } as Product;
+        sold: formData.sold || 0,
+        rating: formData.rating || 5.0,
+        createdAt: formData.createdAt || new Date().toISOString().split('T')[0],
+      };
       setProductList(prev => [newProduct, ...prev]);
       toast.success('Product added successfully!');
     }
@@ -333,13 +196,12 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      {showModal && (
-        <ProductModal
-          product={editingProduct}
-          onClose={() => { setShowModal(false); setEditingProduct(null); }}
-          onSave={handleSave}
-        />
-      )}
+      <ProductEditDialog
+        isOpen={showModal}
+        product={editingProduct as Product | null}
+        onClose={() => { setShowModal(false); setEditingProduct(null); }}
+        onSave={handleSave}
+      />
     </AdminLayout>
   );
 }
