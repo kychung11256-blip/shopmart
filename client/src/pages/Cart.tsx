@@ -51,46 +51,70 @@ export default function Cart() {
   const { language, toggleLanguage } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
 
-  // 使用 TRPC 獲取購物車數據
-  const { data: apiCartItems = [], isLoading: cartLoading, refetch: refetchCart } = trpc.cart.list.useQuery();
+  // 使用 TRPC 獲取購物車數據（只在登入時）
+  const { data: apiCartItems = [], isLoading: cartLoading, refetch: refetchCart } = trpc.cart.list.useQuery(undefined, {
+    enabled: isAuthenticated, // 只在登入時才調用
+  });
   const { data: allProducts = [] } = trpc.products.list.useQuery({ limit: 200 });
 
   // TRPC 變更操作
   const removeCartMutation = trpc.cart.remove.useMutation();
 
-  // 初始化購物車
+  // 初始化購物車 - 支持未登入用戶的本地購物車
   useEffect(() => {
-    if (cartLoading) {
-      setIsLoading(true);
-      return;
-    }
+    if (isAuthenticated) {
+      // 登入用戶：使用 API 購物車
+      if (cartLoading) {
+        setIsLoading(true);
+        return;
+      }
 
-    if (apiCartItems.length === 0) {
-      // 如果購物車為空，直接設置為空
-      setCartItems([]);
+      if (apiCartItems.length === 0) {
+        setCartItems([]);
+        setIsLoading(false);
+        return;
+      }
+
+      const convertedProducts = allProducts.map(convertDbProductToFrontend);
+      const items: CartItem[] = apiCartItems
+        .map((cartItem: any) => {
+          const product = convertedProducts.find(p => p.id === cartItem.productId);
+          if (!product) return null;
+          return {
+            id: cartItem.id,
+            product: product,
+            qty: cartItem.quantity,
+            selected: true,
+          } as CartItem;
+        })
+        .filter((item): item is CartItem => item !== null);
+
+      setCartItems(items);
       setIsLoading(false);
-      return;
+    } else {
+      // 未登入用戶：使用本地 localStorage 購物車
+      try {
+        const localCart = localStorage.getItem('shopmart_cart');
+        if (localCart) {
+          const items = JSON.parse(localCart) as CartItem[];
+          const convertedProducts = allProducts.map(convertDbProductToFrontend);
+          const validItems = items.filter(item => 
+            convertedProducts.find(p => p.id === item.product.id)
+          ).map(item => ({
+            ...item,
+            product: convertedProducts.find(p => p.id === item.product.id)!
+          }));
+          setCartItems(validItems);
+        } else {
+          setCartItems([]);
+        }
+      } catch (error) {
+        console.error('Error loading local cart:', error);
+        setCartItems([]);
+      }
+      setIsLoading(false);
     }
-
-    // 將 API 購物車項目與商品信息合併
-    const convertedProducts = allProducts.map(convertDbProductToFrontend);
-    const items: CartItem[] = apiCartItems
-      .map((cartItem: any) => {
-        const product = convertedProducts.find(p => p.id === cartItem.productId);
-        // 如果找不到商品，跳過此項（不使用本地後備數據）
-        if (!product) return null;
-        return {
-          id: cartItem.id, // 保存購物車項目 ID
-          product: product,
-          qty: cartItem.quantity,
-          selected: true,
-        } as CartItem;
-      })
-      .filter((item): item is CartItem => item !== null);
-
-    setCartItems(items);
-    setIsLoading(false);
-  }, [apiCartItems, allProducts, cartLoading]);
+  }, [isAuthenticated, apiCartItems, allProducts, cartLoading]);
 
   const selectedItems = cartItems.filter(item => item.selected);
   const totalPrice = selectedItems.reduce((sum, item) => sum + item.product.price * item.qty, 0);
@@ -98,25 +122,39 @@ export default function Cart() {
   const savings = totalOriginal - totalPrice;
 
   const handleQtyChange = (id: number, delta: number) => {
-    setCartItems(prev => prev.map(item => {
-      if (item.product.id === id) {
-        const newQty = Math.max(1, item.qty + delta);
-        return { ...item, qty: newQty };
+    setCartItems(prev => {
+      const updated = prev.map(item => {
+        if (item.product.id === id) {
+          const newQty = Math.max(1, item.qty + delta);
+          return { ...item, qty: newQty };
+        }
+        return item;
+      });
+      // 保存到本地存儲（如果未登入）
+      if (!isAuthenticated) {
+        localStorage.setItem('shopmart_cart', JSON.stringify(updated));
       }
-      return item;
-    }));
+      return updated;
+    });
   };
 
   // 修復：調用 API 刪除購物車項目
   const handleRemove = async (cartItemId: number | undefined, productId: number) => {
-    if (!cartItemId) {
-      // 如果沒有購物車項目 ID，直接從本地狀態刪除
-      setCartItems(prev => prev.filter(item => item.product.id !== productId));
+    if (!isAuthenticated || !cartItemId) {
+      // 未登入或沒有購物車項目 ID：直接從本地狀態刪除
+      setCartItems(prev => {
+        const updated = prev.filter(item => item.product.id !== productId);
+        if (!isAuthenticated) {
+          localStorage.setItem('shopmart_cart', JSON.stringify(updated));
+        }
+        return updated;
+      });
       toast.success(language === 'zh' ? '已移除商品' : 'Item removed from cart');
       return;
     }
 
     try {
+      // 登入用戶：調用 API 刪除
       // 標記為正在刪除
       setRemovingIds(prev => new Set(prev).add(cartItemId));
 

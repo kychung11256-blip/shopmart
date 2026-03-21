@@ -51,22 +51,39 @@ function ProductCard({ product }: { product: Product }) {
   
   // TRPC 購物車操作
   const addToCartMutation = trpc.cart.add.useMutation();
-  const { user: authUser } = useAuth();
+  const { user: authUser, isAuthenticated } = useAuth();
   
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (!authUser) {
-      toast.error('Please login to add items to cart');
-      return;
-    }
-    
     try {
       setIsAddingToCart(true);
-      await addToCartMutation.mutateAsync({
-        productId: product.id,
-        quantity: 1,
-      });
+      
+      if (authUser) {
+        // 登入用戶：添加到服務器購物車
+        await addToCartMutation.mutateAsync({
+          productId: product.id,
+          quantity: 1,
+        });
+      } else {
+        // 未登入用戶：添加到本地購物車
+        const localCart = localStorage.getItem('shopmart_cart');
+        const cartItems = localCart ? JSON.parse(localCart) : [];
+        
+        const existingItem = cartItems.find((item: any) => item.product.id === product.id);
+        if (existingItem) {
+          existingItem.qty += 1;
+        } else {
+          cartItems.push({
+            product: product,
+            qty: 1,
+            selected: true,
+          });
+        }
+        
+        localStorage.setItem('shopmart_cart', JSON.stringify(cartItems));
+      }
+      
       toast.success(`Added "${product.name}" to cart!`);
     } catch (error: any) {
       toast.error(error.message || 'Failed to add item to cart');
