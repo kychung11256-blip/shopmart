@@ -62,15 +62,52 @@ export default function ProductDetail() {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const { language, toggleLanguage } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
 
-  const handleAddToCart = () => {
-    toast.success(`Added ${qty} × "${product.name}" to cart!`);
+  // TRPC 購物車操作
+  const addToCartMutation = trpc.cart.add.useMutation();
+
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to add items to cart');
+      return;
+    }
+
+    try {
+      setIsAddingToCart(true);
+      await addToCartMutation.mutateAsync({
+        productId: product.id,
+        quantity: qty,
+      });
+      toast.success(`Added ${qty} × "${product.name}" to cart!`);
+      setQty(1);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to add item to cart');
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
-  const handleBuyNow = () => {
-    toast.success('Proceeding to checkout...');
+  const handleBuyNow = async () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to checkout');
+      return;
+    }
+    
+    try {
+      setIsAddingToCart(true);
+      await addToCartMutation.mutateAsync({
+        productId: product.id,
+        quantity: qty,
+      });
+      toast.success('Proceeding to checkout...');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to proceed to checkout');
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   const discountPercent = product.originalPrice && product.originalPrice > product.price

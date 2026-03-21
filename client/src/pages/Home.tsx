@@ -126,7 +126,11 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
-  const [cartCount] = useState(3);
+  // 從 TRPC 獲取購物車數據
+  const { data: cartItems = [] } = trpc.cart.list.useQuery();
+  
+  // 計算購物車項目總數
+  const cartCount = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);

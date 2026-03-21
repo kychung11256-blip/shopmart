@@ -46,7 +46,34 @@ function convertDbCategoryToFrontend(dbCategory: any): any {
 
 function ProductCard({ product }: { product: Product }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [, navigate] = useLocation();
+  
+  // TRPC 購物車操作
+  const addToCartMutation = trpc.cart.add.useMutation();
+  const { user: authUser } = useAuth();
+  
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!authUser) {
+      toast.error('Please login to add items to cart');
+      return;
+    }
+    
+    try {
+      setIsAddingToCart(true);
+      await addToCartMutation.mutateAsync({
+        productId: product.id,
+        quantity: 1,
+      });
+      toast.success(`Added "${product.name}" to cart!`);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to add item to cart');
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
 
   return (
     <div className="product-card bg-white border border-gray-100 rounded overflow-hidden group cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
@@ -83,8 +110,12 @@ function ProductCard({ product }: { product: Product }) {
             <span className="price-original text-xs">${product.originalPrice.toFixed(2)}</span>
           )}
         </div>
-        <button className="mt-2 w-full bg-red-500 hover:bg-red-600 text-white text-xs py-1.5 rounded transition-colors">
-          Add to Cart
+        <button 
+          onClick={handleAddToCart}
+          disabled={isAddingToCart}
+          className="mt-2 w-full bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white text-xs py-1.5 rounded transition-colors"
+        >
+          {isAddingToCart ? 'Adding...' : 'Add to Cart'}
         </button>
       </div>
     </div>
