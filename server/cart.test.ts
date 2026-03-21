@@ -110,4 +110,27 @@ describe('Cart API', () => {
     expect(item).toBeDefined();
     expect(item?.quantity).toBe(3); // 1 + 2 = 3
   });
+
+  it('should return empty cart after removing all items', async () => {
+    // 添加一個項目
+    const addResult = await caller.cart.add({
+      productId: 5,
+      quantity: 1,
+    });
+    expect(addResult.success).toBe(true);
+
+    // 獲取購物車
+    let cartItems = await caller.cart.list();
+    expect(cartItems.length).toBeGreaterThan(0);
+
+    // 刪除所有項目
+    for (const item of cartItems) {
+      const removeResult = await caller.cart.remove(item.id);
+      expect(removeResult.success).toBe(true);
+    }
+
+    // 驗證購物車為空
+    cartItems = await caller.cart.list();
+    expect(cartItems.length).toBe(0);
+  });
 });

@@ -66,10 +66,8 @@ export default function Cart() {
     }
 
     if (apiCartItems.length === 0) {
-      // 如果購物車為空，使用默認數據
-      setCartItems(
-        defaultProducts.slice(0, 3).map(p => ({ product: p, qty: 1, selected: true }))
-      );
+      // 如果購物車為空，直接設置為空
+      setCartItems([]);
       setIsLoading(false);
       return;
     }
