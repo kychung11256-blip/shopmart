@@ -199,6 +199,7 @@ export default function AdminProducts() {
                 <th className="px-6 py-3 text-left text-sm font-semibold">分類</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">價格</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">庫存</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">圖片</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">狀態</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">操作</th>
               </tr>
@@ -249,6 +250,22 @@ export default function AdminProducts() {
                       placeholder="0"
                       className="w-full"
                     />
+                  </td>
+                  <td className="px-6 py-4 col-span-2">
+                    <div className="space-y-2">
+                      <Input
+                        type="text"
+                        value={editingData.image || ''}
+                        onChange={(e) => setEditingData({ ...editingData, image: e.target.value })}
+                        placeholder="Image URL (e.g., https://...)"
+                        className="w-full"
+                      />
+                      {editingData.image && (
+                        <div className="w-16 h-16 rounded border border-gray-200 overflow-hidden">
+                          <img src={editingData.image} alt="preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/64')} />
+                        </div>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <Select
@@ -332,6 +349,22 @@ export default function AdminProducts() {
                         className="w-full"
                       />
                     </td>
+                    <td className="px-6 py-4 col-span-2">
+                      <div className="space-y-2">
+                        <Input
+                          type="text"
+                          value={editingData.image || ''}
+                          onChange={(e) => setEditingData({ ...editingData, image: e.target.value })}
+                          placeholder="Image URL (e.g., https://...)"
+                          className="w-full"
+                        />
+                        {editingData.image && (
+                          <div className="w-16 h-16 rounded border border-gray-200 overflow-hidden">
+                            <img src={editingData.image} alt="preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/64')} />
+                          </div>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-6 py-4">
                       <Select
                         value={String(editingData.status || 'active')}
@@ -372,6 +405,13 @@ export default function AdminProducts() {
                     <td className="px-6 py-4 text-sm">{String(product.categoryId) || 'N/A'}</td>
                     <td className="px-6 py-4 text-sm text-red-600 font-semibold">${(product.price / 100).toFixed(2)}</td>
                     <td className="px-6 py-4 text-sm">{product.stock}</td>
+                    <td className="px-6 py-4">
+                      {product.image ? (
+                        <img src={product.image} alt={product.name} className="w-12 h-12 rounded object-cover" onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/48')} />
+                      ) : (
+                        <span className="text-xs text-gray-400">No image</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-sm">
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
                         product.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
