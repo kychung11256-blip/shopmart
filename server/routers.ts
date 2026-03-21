@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
+import { publicProcedure, router, protectedProcedure, adminProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { getDb } from "./db";
 import { products, categories, orders, orderItems, cart, InsertProduct, InsertOrder, InsertOrderItem, InsertCartItem } from "../drizzle/schema";
@@ -54,7 +54,7 @@ export const appRouter = router({
           return null;
         }
       }),
-    create: protectedProcedure
+    create: adminProcedure
       .input(z.object({
         name: z.string(),
         description: z.string().optional(),
@@ -65,7 +65,6 @@ export const appRouter = router({
         stock: z.number().default(0),
       }))
       .mutation(async ({ input, ctx }) => {
-        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
         const db = await getDb();
         if (!db) throw new Error('Database not available');
         try {
@@ -81,7 +80,7 @@ export const appRouter = router({
           throw error;
         }
       }),
-    update: protectedProcedure
+    update: adminProcedure
       .input(z.object({
         id: z.number(),
         name: z.string().optional(),
@@ -94,7 +93,6 @@ export const appRouter = router({
         status: z.enum(['active', 'inactive', 'deleted']).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
-        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
         const db = await getDb();
         if (!db) throw new Error('Database not available');
         try {
@@ -109,10 +107,9 @@ export const appRouter = router({
           throw error;
         }
       }),
-    delete: protectedProcedure
+    delete: adminProcedure
       .input(z.number())
       .mutation(async ({ input, ctx }) => {
-        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
         const db = await getDb();
         if (!db) throw new Error('Database not available');
         try {

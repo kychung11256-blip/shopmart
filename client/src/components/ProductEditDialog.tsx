@@ -13,32 +13,61 @@ interface ProductEditDialogProps {
   isOpen: boolean;
   product: Product | null;
   onClose: () => void;
-  onSave: (product: Product) => void;
+  onSave: (product: Product) => Promise<void>;
+}
+
+interface FormData {
+  id?: number;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  categoryId?: number;
+  stock: number;
+  sold?: number;
+  rating?: number;
+  status: 'active' | 'inactive' | 'deleted';
+  description?: string;
+  image?: string;
+  createdAt?: string;
 }
 
 export default function ProductEditDialog({ isOpen, product, onClose, onSave }: ProductEditDialogProps) {
-  const [formData, setFormData] = useState<Product | null>(product || {
-    id: 0,
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     price: 0,
-    originalPrice: 0,
-    category: 'Apparel',
     stock: 0,
-    sold: 0,
-    rating: 5.0,
     status: 'active',
-    description: '',
-    image: '',
-    createdAt: new Date().toISOString().split('T')[0],
-  } as Product);
-  const [imagePreview, setImagePreview] = useState<string | null>(product?.image || null);
+  });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // 當product改變時更新formData
   React.useEffect(() => {
     if (product) {
-      setFormData(product);
+      setFormData({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        originalPrice: product.originalPrice || undefined,
+        categoryId: product.categoryId || undefined,
+        stock: product.stock || 0,
+        sold: product.sold || undefined,
+        rating: product.rating || undefined,
+        status: (product.status as 'active' | 'inactive' | 'deleted') || 'active',
+        description: product.description || undefined,
+        image: product.image || undefined,
+        createdAt: typeof product.createdAt === 'string' ? product.createdAt : undefined,
+      });
       setImagePreview(product.image || null);
+    } else {
+      setFormData({
+        name: '',
+        price: 0,
+        stock: 0,
+        status: 'active',
+      });
+      setImagePreview(null);
     }
   }, [product, isOpen]);
 
@@ -66,9 +95,7 @@ export default function ProductEditDialog({ isOpen, product, onClose, onSave }: 
       reader.onload = (event) => {
         const result = event.target?.result as string;
         setImagePreview(result);
-        if (formData) {
-          setFormData({ ...formData, image: result });
-        }
+        setFormData({ ...formData, image: result });
         setIsUploading(false);
         toast.success('Image uploaded successfully');
       };
@@ -78,29 +105,66 @@ export default function ProductEditDialog({ isOpen, product, onClose, onSave }: 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    if (formData) {
+    
+    // 數字字段轉換
+    if (['price', 'originalPrice', 'stock', 'sold', 'rating'].includes(name)) {
       setFormData({
         ...formData,
-        [name]: name === 'price' || name === 'originalPrice' || name === 'stock' || name === 'sold' ? parseFloat(value) : value,
+        [name]: parseFloat(value) || 0,
+      });
+    } else if (name === 'categoryId') {
+      setFormData({
+        ...formData,
+        [name]: value ? parseInt(value) : undefined,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
       });
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData) return;
 
     // 驗證必填欄位
-    if (!formData.name || !formData.price || !formData.category) {
-      toast.error('Please fill in all required fields');
+    if (!formData.name || formData.price === undefined || formData.price < 0) {
+      toast.error('Please fill in all required fields (Name and Price)');
       return;
     }
 
-    onSave(formData);
-    toast.success('Product updated successfully');
-    onClose();
+    setIsSaving(true);
+    try {
+      // 轉換為 Product 格式
+      const productData: Product = {
+        id: formData.id || 0,
+        name: formData.name,
+        price: formData.price,
+        originalPrice: formData.originalPrice,
+        categoryId: formData.categoryId,
+        stock: formData.stock,
+        sold: formData.sold || 0,
+        rating: formData.rating || 0,
+        status: formData.status,
+        description: formData.description,
+        image: formData.image,
+        createdAt: formData.createdAt ? new Date(formData.createdAt) : new Date(),
+      };
+
+      // 等待異步保存完成
+      await onSave(productData);
+      toast.success(formData.id ? 'Product updated successfully' : 'Product created successfully');
+      onClose();
+    } catch (error: any) {
+      console.error('Save error:', error);
+      toast.error(error.message || 'Failed to save product');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  if (!isOpen || !formData) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -113,6 +177,7 @@ export default function ProductEditDialog({ isOpen, product, onClose, onSave }: 
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
+            disabled={isSaving}
           >
             <X size={24} />
           </button>
@@ -150,7 +215,7 @@ export default function ProductEditDialog({ isOpen, product, onClose, onSave }: 
                     type="file"
                     accept="image/*"
                     onChange={handleImageUpload}
-                    disabled={isUploading}
+                    disabled={isUploading || isSaving}
                     className="hidden"
                   />
                 </label>
@@ -165,166 +230,173 @@ export default function ProductEditDialog({ isOpen, product, onClose, onSave }: 
           </div>
 
           {/* Form Fields */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
             {/* Product Name */}
-            <div className="col-span-2">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                 placeholder="Enter product name"
+                disabled={isSaving}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400 disabled:bg-gray-100"
               />
             </div>
 
-            {/* Category */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-              >
-                <option value="">Select category</option>
-                <option value="HOME PET">HOME PET</option>
-                <option value="OUTDOORS">OUTDOORS</option>
-                <option value="DIGITAL">DIGITAL</option>
-                <option value="Apparel">Apparel</option>
-                <option value="Children">Children</option>
-                <option value="COSMETICS">COSMETICS</option>
-                <option value="Food & Drink">Food & Drink</option>
-                <option value="Sports">Sports</option>
-              </select>
+            {/* Category and Status */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select
+                  name="categoryId"
+                  value={formData.categoryId || ''}
+                  onChange={handleInputChange}
+                  disabled={isSaving}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400 disabled:bg-gray-100"
+                >
+                  <option value="">Select category</option>
+                  <option value="1">HOME PET</option>
+                  <option value="2">OUTDOORS</option>
+                  <option value="3">DIGITAL</option>
+                  <option value="4">Apparel</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  disabled={isSaving}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400 disabled:bg-gray-100"
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="deleted">Deleted</option>
+                </select>
+              </div>
             </div>
 
-            {/* Status */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="out_of_stock">Out of Stock</option>
-              </select>
+            {/* Price Fields */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Price *</label>
+                <input
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleInputChange}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  disabled={isSaving}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400 disabled:bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Original Price</label>
+                <input
+                  type="number"
+                  name="originalPrice"
+                  value={formData.originalPrice || ''}
+                  onChange={handleInputChange}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  disabled={isSaving}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400 disabled:bg-gray-100"
+                />
+              </div>
             </div>
 
-            {/* Price */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Price *</label>
-              <input
-                type="number"
-                name="price"
-                value={formData.price}
-                onChange={handleInputChange}
-                step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="0.00"
-              />
-            </div>
-
-            {/* Original Price */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Original Price</label>
-              <input
-                type="number"
-                name="originalPrice"
-                value={formData.originalPrice || ''}
-                onChange={handleInputChange}
-                step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="0.00"
-              />
-            </div>
-
-            {/* Stock */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
-              <input
-                type="number"
-                name="stock"
-                value={formData.stock}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="0"
-              />
-            </div>
-
-            {/* Sold */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Sold</label>
-              <input
-                type="number"
-                name="sold"
-                value={formData.sold}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="0"
-              />
+            {/* Stock and Sold */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                <input
+                  type="number"
+                  name="stock"
+                  value={formData.stock}
+                  onChange={handleInputChange}
+                  placeholder="0"
+                  min="0"
+                  disabled={isSaving}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400 disabled:bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Sold</label>
+                <input
+                  type="number"
+                  name="sold"
+                  value={formData.sold || ''}
+                  onChange={handleInputChange}
+                  placeholder="0"
+                  min="0"
+                  disabled={isSaving}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400 disabled:bg-gray-100"
+                />
+              </div>
             </div>
 
             {/* Rating */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Rating (0-5)</label>
               <input
                 type="number"
                 name="rating"
-                value={formData.rating || 0}
+                value={formData.rating || ''}
                 onChange={handleInputChange}
-                step="0.1"
+                placeholder="5.0"
                 min="0"
                 max="5"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="0.0"
+                step="0.1"
+                disabled={isSaving}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400 disabled:bg-gray-100"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea
+                name="description"
+                value={formData.description || ''}
+                onChange={handleInputChange}
+                placeholder="Enter product description"
+                rows={4}
+                disabled={isSaving}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400 disabled:bg-gray-100 resize-none"
               />
             </div>
           </div>
 
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea
-              name="description"
-              value={formData.description || ''}
-              onChange={handleInputChange}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-              placeholder="Enter product description"
-            />
+          {/* Footer */}
+          <div className="flex gap-3 justify-end border-t border-gray-200 pt-6">
+            <button
+              onClick={onClose}
+              disabled={isSaving}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              {isSaving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </button>
           </div>
-
-          {/* Created Date (Read-only) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Created Date</label>
-            <input
-              type="text"
-              value={formData.createdAt instanceof Date ? formData.createdAt.toLocaleDateString() : (typeof formData.createdAt === 'string' ? formData.createdAt : '')}
-              disabled
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
-            />
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors font-medium"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors font-medium"
-          >
-            Save Changes
-          </button>
         </div>
       </div>
     </div>
