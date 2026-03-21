@@ -171,6 +171,75 @@ export const appRouter = router({
         return [];
       }
     }),
+    listAll: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      try {
+        return await db.select().from(categories).orderBy(asc(categories.order));
+      } catch (error) {
+        console.error('[API] Error fetching all categories:', error);
+        return [];
+      }
+    }),
+    create: adminProcedure
+      .input(z.object({
+        name: z.string(),
+        description: z.string().optional(),
+        order: z.number().default(0),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          const newCategory = {
+            name: input.name,
+            description: input.description,
+            order: input.order,
+            status: 'active' as const,
+          };
+          await db.insert(categories).values(newCategory);
+          console.log('[API] Category created successfully:', input.name);
+          return { success: true };
+        } catch (error) {
+          console.error('[API] Error creating category:', error);
+          throw error;
+        }
+      }),
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        description: z.string().optional(),
+        order: z.number().optional(),
+        status: z.enum(['active', 'inactive']).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          const { id, ...updates } = input;
+          await db.update(categories).set(updates).where(eq(categories.id, id));
+          console.log('[API] Category updated successfully:', id);
+          return { success: true };
+        } catch (error) {
+          console.error('[API] Error updating category:', error);
+          throw error;
+        }
+      }),
+    delete: adminProcedure
+      .input(z.number())
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          await db.update(categories).set({ status: 'inactive' }).where(eq(categories.id, input));
+          console.log('[API] Category deleted successfully:', input);
+          return { success: true };
+        } catch (error) {
+          console.error('[API] Error deleting category:', error);
+          throw error;
+        }
+      }),
   }),
 
   // Orders router
