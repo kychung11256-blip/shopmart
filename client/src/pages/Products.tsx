@@ -1,13 +1,48 @@
 /**
  * ShopMart - Products Page
  * Design: 活力促銷電商風 - 紅白主色調
+ * API Integration: 使用 TRPC 實時獲取商品數據
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useLocation } from 'wouter';
-import { ShoppingCart, Search, User, ChevronRight, Filter, SlidersHorizontal, Heart, Star } from 'lucide-react';
-import { products, categories } from '@/lib/data';
+import { ShoppingCart, Search, User, ChevronRight, Filter, SlidersHorizontal, Heart, Star, Globe, LogOut } from 'lucide-react';
+import { products as defaultProducts, categories as defaultCategories } from '@/lib/data';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { trpc } from '@/lib/trpc';
 import type { Product } from '@/lib/data';
+import { toast } from 'sonner';
+
+// 轉換數據庫商品格式為前端格式
+function convertDbProductToFrontend(dbProduct: any): Product {
+  return {
+    id: dbProduct.id,
+    name: dbProduct.name,
+    price: dbProduct.price / 100, // 從分轉換為元
+    originalPrice: dbProduct.originalPrice ? dbProduct.originalPrice / 100 : undefined,
+    image: dbProduct.image,
+    categoryId: dbProduct.categoryId,
+    sold: dbProduct.sold || 0,
+    rating: dbProduct.rating ? dbProduct.rating / 100 : 0, // 從 0-500 轉換為 0-5
+    description: dbProduct.description,
+    stock: dbProduct.stock || 0,
+    status: dbProduct.status || 'active',
+    createdAt: dbProduct.createdAt,
+    updatedAt: dbProduct.updatedAt,
+  };
+}
+
+// 轉換數據庫分類格式為前端格式
+function convertDbCategoryToFrontend(dbCategory: any): any {
+  return {
+    id: dbCategory.id,
+    name: dbCategory.name,
+    nameEn: dbCategory.nameEn,
+    icon: dbCategory.icon || '📦',
+    order: dbCategory.order || 0,
+  };
+}
 
 function ProductCard({ product }: { product: Product }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -57,25 +92,46 @@ function ProductCard({ product }: { product: Product }) {
 }
 
 export default function Products() {
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState('default');
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const { language, toggleLanguage } = useLanguage();
+  const { user, isAuthenticated, logout } = useAuth();
+  const [, navigate] = useLocation();
 
-  const filteredProducts = products.filter(p => {
-    const matchesCategory = activeCategory === 'All' || p.category === activeCategory;
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesPrice = p.price >= priceRange[0] && p.price <= priceRange[1];
-    return matchesCategory && matchesSearch && matchesPrice;
-  });
+  // 使用 TRPC 獲取商品和分類數據
+  const { data: apiProducts = [], isLoading: productsLoading } = trpc.products.list.useQuery({ limit: 200 });
+  const { data: apiCategories = [], isLoading: categoriesLoading } = trpc.categories.list.useQuery();
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (sortBy === 'price_asc') return a.price - b.price;
-    if (sortBy === 'price_desc') return b.price - a.price;
-    if (sortBy === 'popular') return b.sold - a.sold;
-    if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
-    return 0;
-  });
+  // 轉換 API 數據為前端格式
+  const products = apiProducts.length > 0 
+    ? apiProducts.map(convertDbProductToFrontend)
+    : defaultProducts;
+  
+  const categories = apiCategories.length > 0
+    ? apiCategories.map(convertDbCategoryToFrontend)
+    : defaultCategories;
+
+  // 過濾和排序商品
+  const filteredProducts = useMemo(() => {
+    return products.filter(p => {
+      const matchesCategory = activeCategory === null || p.categoryId === activeCategory;
+      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesPrice = p.price >= priceRange[0] && p.price <= priceRange[1];
+      return matchesCategory && matchesSearch && matchesPrice;
+    });
+  }, [products, activeCategory, searchQuery, priceRange]);
+
+  const sortedProducts = useMemo(() => {
+    const sorted = [...filteredProducts];
+    if (sortBy === 'price_asc') sorted.sort((a, b) => a.price - b.price);
+    else if (sortBy === 'price_desc') sorted.sort((a, b) => b.price - a.price);
+    else if (sortBy === 'popular') sorted.sort((a, b) => b.sold - a.sold);
+    else if (sortBy === 'rating') sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    return sorted;
+  }, [filteredProducts, sortBy]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -102,15 +158,60 @@ export default function Products() {
               </button>
             </div>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <button className="relative p-2">
-              <ShoppingCart size={22} className="text-gray-600" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+          <div className="flex items-center gap-1 sm:gap-3 shrink-0">
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center justify-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-red-500 hover:bg-gray-100 rounded transition-colors"
+              title={language === 'zh' ? 'Switch to English' : 'Switch to Chinese'}
+            >
+              <Globe size={18} />
+              <span className="font-medium text-xs sm:text-sm">{language === 'zh' ? 'EN' : 'ZH'}</span>
             </button>
-            <Link href="/login" className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-red-500">
-              <User size={20} />
-              <span className="hidden sm:block">SIGN IN</span>
+            <Link href="/cart" className="relative p-2 hover:text-red-500 transition-colors">
+              <ShoppingCart size={22} className="text-gray-600" />
             </Link>
+            {isAuthenticated && user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-red-500 transition-colors"
+                >
+                  <User size={20} />
+                  <span className="hidden sm:block font-medium">{user.name}</span>
+                </button>
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg border border-gray-100 z-50">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-800">{user.name}</p>
+                      <p className="text-xs text-gray-500">{user.email}</p>
+                    </div>
+                    <Link href="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                      {language === 'zh' ? '我的訂單' : 'My Orders'}
+                    </Link>
+                    {user.role === 'admin' && (
+                      <Link href="/admin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        {language === 'zh' ? '管理儀表板' : 'Admin Dashboard'}
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => {
+                        logout();
+                        setShowUserMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 border-t border-gray-100"
+                    >
+                      <LogOut size={16} />
+                      {language === 'zh' ? '登出' : 'Logout'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link href="/login" className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-red-500 transition-colors">
+                <User size={20} />
+                <span className="hidden sm:block font-medium">{language === 'zh' ? '登入' : 'SIGN IN'}</span>
+              </Link>
+            )}
           </div>
         </div>
       </header>
@@ -118,109 +219,124 @@ export default function Products() {
       {/* Breadcrumb */}
       <div className="max-w-[1200px] mx-auto px-4 py-3">
         <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/" className="hover:text-red-500">Home</Link>
+          <Link href="/" className="hover:text-red-500">{language === 'zh' ? '首頁' : 'Home'}</Link>
           <ChevronRight size={14} />
-          <span className="text-gray-700">All Products</span>
+          <span className="text-gray-700">{language === 'zh' ? '商品' : 'Products'}</span>
         </div>
       </div>
 
       <div className="max-w-[1200px] mx-auto px-4 pb-8">
         <div className="flex gap-4">
-          {/* Filter sidebar */}
+          {/* Sidebar filters */}
           <aside className="w-48 shrink-0 hidden lg:block">
-            <div className="bg-white rounded shadow-sm p-4 mb-4">
-              <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                <Filter size={14} />
-                Categories
-              </h3>
-              <div className="space-y-1">
-                {['All', ...categories.map(c => c.name)].map((cat) => (
+            <div className="bg-white rounded-lg shadow-sm p-4 sticky top-24">
+              {/* Category filter */}
+              <div className="mb-6">
+                <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <Filter size={16} />
+                  {language === 'zh' ? '分類' : 'Category'}
+                </h3>
+                <div className="space-y-2">
                   <button
-                    key={cat}
-                    onClick={() => setActiveCategory(cat)}
-                    className={`w-full text-left px-3 py-2 text-sm rounded transition-colors ${
-                      activeCategory === cat
-                        ? 'bg-red-50 text-red-500 font-medium'
-                        : 'text-gray-600 hover:bg-gray-50'
+                    onClick={() => setActiveCategory(null)}
+                    className={`block w-full text-left px-3 py-2 rounded text-sm transition-colors ${
+                      activeCategory === null
+                        ? 'bg-red-100 text-red-600 font-medium'
+                        : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
-                    {cat}
+                    {language === 'zh' ? '全部' : 'All'}
                   </button>
-                ))}
+                  {categoriesLoading ? (
+                    <div className="text-xs text-gray-500">{language === 'zh' ? '加載中...' : 'Loading...'}</div>
+                  ) : (
+                    categories.map(cat => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setActiveCategory(cat.id)}
+                        className={`block w-full text-left px-3 py-2 rounded text-sm transition-colors ${
+                          activeCategory === cat.id
+                            ? 'bg-red-100 text-red-600 font-medium'
+                            : 'text-gray-600 hover:bg-gray-100'
+                        }`}
+                      >
+                        {cat.name}
+                      </button>
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div className="bg-white rounded shadow-sm p-4">
-              <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                <SlidersHorizontal size={14} />
-                Price Range
-              </h3>
-              <div className="space-y-2">
-                {[
-                  { label: 'Under $10', min: 0, max: 10 },
-                  { label: '$10 - $50', min: 10, max: 50 },
-                  { label: '$50 - $100', min: 50, max: 100 },
-                  { label: '$100 - $300', min: 100, max: 300 },
-                  { label: 'Over $300', min: 300, max: 9999 },
-                ].map((range) => (
-                  <button
-                    key={range.label}
-                    onClick={() => setPriceRange([range.min, range.max])}
-                    className={`w-full text-left px-3 py-1.5 text-sm rounded transition-colors ${
-                      priceRange[0] === range.min && priceRange[1] === range.max
-                        ? 'bg-red-50 text-red-500'
-                        : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    {range.label}
-                  </button>
-                ))}
+              {/* Price filter */}
+              <div>
+                <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <SlidersHorizontal size={16} />
+                  {language === 'zh' ? '價格' : 'Price'}
+                </h3>
+                <div className="space-y-2">
+                  {[
+                    { label: '$0 - $100', min: 0, max: 100 },
+                    { label: '$100 - $300', min: 100, max: 300 },
+                    { label: '$300 - $500', min: 300, max: 500 },
+                    { label: '$500+', min: 500, max: 10000 },
+                  ].map(range => (
+                    <button
+                      key={range.label}
+                      onClick={() => setPriceRange([range.min, range.max])}
+                      className={`block w-full text-left px-3 py-2 rounded text-sm transition-colors ${
+                        priceRange[0] === range.min && priceRange[1] === range.max
+                          ? 'bg-red-100 text-red-600 font-medium'
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      {range.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </aside>
 
-          {/* Products grid */}
-          <div className="flex-1 min-w-0">
+          {/* Main content */}
+          <main className="flex-1 min-w-0">
             {/* Sort bar */}
-            <div className="bg-white rounded shadow-sm p-3 mb-4 flex items-center justify-between">
-              <p className="text-sm text-gray-500">{sortedProducts.length} products found</p>
+            <div className="bg-white rounded-lg shadow-sm p-4 mb-4 flex items-center justify-between flex-wrap gap-3">
+              <div className="text-sm text-gray-600">
+                {language === 'zh' ? '找到' : 'Found'} <span className="font-semibold text-gray-800">{sortedProducts.length}</span> {language === 'zh' ? '個商品' : 'products'}
+              </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500">Sort by:</span>
-                {[
-                  { value: 'default', label: 'Default' },
-                  { value: 'popular', label: 'Popular' },
-                  { value: 'price_asc', label: 'Price ↑' },
-                  { value: 'price_desc', label: 'Price ↓' },
-                  { value: 'rating', label: 'Rating' },
-                ].map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setSortBy(option.value)}
-                    className={`px-3 py-1 text-xs rounded transition-colors ${
-                      sortBy === option.value
-                        ? 'bg-red-500 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
+                <span className="text-sm text-gray-600">{language === 'zh' ? '排序：' : 'Sort by:'}</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="border border-gray-200 rounded px-3 py-1.5 text-sm outline-none focus:border-red-400"
+                >
+                  <option value="default">{language === 'zh' ? '默認' : 'Default'}</option>
+                  <option value="price_asc">{language === 'zh' ? '價格低到高' : 'Price: Low to High'}</option>
+                  <option value="price_desc">{language === 'zh' ? '價格高到低' : 'Price: High to Low'}</option>
+                  <option value="popular">{language === 'zh' ? '最熱銷' : 'Most Popular'}</option>
+                  <option value="rating">{language === 'zh' ? '評分最高' : 'Highest Rated'}</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Products grid */}
+            {productsLoading ? (
+              <div className="text-center py-12 text-gray-500">
+                {language === 'zh' ? '加載商品中...' : 'Loading products...'}
+              </div>
+            ) : sortedProducts.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                {language === 'zh' ? '未找到符合條件的商品' : 'No products found'}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {sortedProducts.map(product => (
+                  <ProductCard key={product.id} product={product} />
                 ))}
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {sortedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-
-            {sortedProducts.length === 0 && (
-              <div className="bg-white rounded shadow-sm p-16 text-center">
-                <p className="text-gray-400 text-lg">No products found</p>
-                <p className="text-gray-300 text-sm mt-2">Try adjusting your filters</p>
-              </div>
             )}
-          </div>
+          </main>
         </div>
       </div>
     </div>

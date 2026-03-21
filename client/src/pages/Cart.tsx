@@ -2,31 +2,87 @@
  * ShopMart - Cart Page
  * Design: 活力促銷電商風 - 紅白主色調
  * Mobile Optimized: 響應式布局，手機版本購物車適配
+ * API Integration: 使用 TRPC 實時同步購物車數據
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { ShoppingCart, Search, User, Trash2, Plus, Minus, ChevronRight, ArrowLeft, Globe, LogOut } from 'lucide-react';
-import { products } from '@/lib/data';
+import { products as defaultProducts } from '@/lib/data';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { t } from '@/lib/translations';
+import { trpc } from '@/lib/trpc';
+import type { Product } from '@/lib/data';
 
 interface CartItem {
-  product: typeof products[0];
+  product: Product;
   qty: number;
   selected: boolean;
 }
 
+// 轉換數據庫商品格式為前端格式
+function convertDbProductToFrontend(dbProduct: any): Product {
+  return {
+    id: dbProduct.id,
+    name: dbProduct.name,
+    price: dbProduct.price / 100, // 從分轉換為元
+    originalPrice: dbProduct.originalPrice ? dbProduct.originalPrice / 100 : undefined,
+    image: dbProduct.image,
+    categoryId: dbProduct.categoryId,
+    sold: dbProduct.sold || 0,
+    rating: dbProduct.rating ? dbProduct.rating / 100 : 0,
+    description: dbProduct.description,
+    stock: dbProduct.stock || 0,
+    status: dbProduct.status || 'active',
+    createdAt: dbProduct.createdAt,
+    updatedAt: dbProduct.updatedAt,
+  };
+}
+
 export default function Cart() {
   const [, navigate] = useLocation();
-  const [cartItems, setCartItems] = useState<CartItem[]>(
-    products.slice(0, 3).map(p => ({ product: p, qty: 1, selected: true }))
-  );
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { language, toggleLanguage } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
+
+  // 使用 TRPC 獲取購物車數據
+  const { data: apiCartItems = [], isLoading: cartLoading } = trpc.cart.list.useQuery();
+  const { data: allProducts = [] } = trpc.products.list.useQuery({ limit: 200 });
+
+  // 初始化購物車
+  useEffect(() => {
+    if (cartLoading) {
+      setIsLoading(true);
+      return;
+    }
+
+    if (apiCartItems.length === 0) {
+      // 如果購物車為空，使用默認數據
+      setCartItems(
+        defaultProducts.slice(0, 3).map(p => ({ product: p, qty: 1, selected: true }))
+      );
+      setIsLoading(false);
+      return;
+    }
+
+    // 將 API 購物車項目與商品信息合併
+    const convertedProducts = allProducts.map(convertDbProductToFrontend);
+    const items: CartItem[] = apiCartItems.map((cartItem: any) => {
+      const product = convertedProducts.find(p => p.id === cartItem.productId);
+      return {
+        product: product || defaultProducts[0],
+        qty: cartItem.quantity,
+        selected: true,
+      };
+    });
+
+    setCartItems(items);
+    setIsLoading(false);
+  }, [apiCartItems, allProducts, cartLoading]);
 
   const selectedItems = cartItems.filter(item => item.selected);
   const totalPrice = selectedItems.reduce((sum, item) => sum + item.product.price * item.qty, 0);
@@ -143,14 +199,19 @@ export default function Cart() {
       {/* Breadcrumb */}
       <div className="max-w-[1200px] mx-auto px-2 sm:px-4 py-2 sm:py-3">
         <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
-          <Link href="/" className="hover:text-red-500">Home</Link>
+          <Link href="/" className="hover:text-red-500">{language === 'zh' ? '首頁' : 'Home'}</Link>
           <ChevronRight size={14} />
           <span className="text-gray-700">{language === 'zh' ? '購物車' : 'Shopping Cart'}</span>
         </div>
       </div>
 
       <div className="max-w-[1200px] mx-auto px-2 sm:px-4 pb-6 sm:pb-8">
-        {cartItems.length === 0 ? (
+        {isLoading ? (
+          <div className="bg-white rounded-lg shadow-sm p-8 sm:p-16 text-center">
+            <ShoppingCart size={60} className="mx-auto text-gray-200 mb-4" />
+            <p className="text-gray-400 text-base sm:text-lg">{language === 'zh' ? '加載購物車中...' : 'Loading cart...'}</p>
+          </div>
+        ) : cartItems.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm p-8 sm:p-16 text-center">
             <ShoppingCart size={60} className="mx-auto text-gray-200 mb-4" />
             <p className="text-gray-400 text-base sm:text-lg">{language === 'zh' ? '購物車為空' : 'Your cart is empty'}</p>
@@ -194,7 +255,7 @@ export default function Cart() {
                     />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs sm:text-sm text-gray-700 line-clamp-2">{item.product.name}</p>
-                      <p className="text-xs text-gray-400 mt-1">{item.product.category}</p>
+                      <p className="text-xs text-gray-400 mt-1">{item.product.categoryId || 'N/A'}</p>
                     </div>
                     
                     {/* Quantity and price - responsive layout */}
@@ -248,20 +309,22 @@ export default function Cart() {
                   )}
                   <div className="flex justify-between text-gray-600">
                     <span>{language === 'zh' ? '運費' : 'Shipping'}</span>
-                    <span className="text-green-500">{language === 'zh' ? '免費' : 'Free'}</span>
+                    <span>{language === 'zh' ? '免費' : 'Free'}</span>
                   </div>
-                  <div className="border-t border-gray-100 pt-2 flex justify-between font-bold text-gray-800">
+                  <div className="border-t border-gray-100 pt-2 flex justify-between font-semibold text-gray-800">
                     <span>{language === 'zh' ? '總計' : 'Total'}</span>
-                    <span className="text-red-500 text-base sm:text-lg">${totalPrice.toFixed(2)}</span>
+                    <span className="text-red-500">${totalPrice.toFixed(2)}</span>
                   </div>
                 </div>
                 <button
                   onClick={handleCheckout}
-                  className="mt-3 sm:mt-4 w-full bg-red-500 hover:bg-red-600 text-white py-2 sm:py-3 rounded font-medium transition-colors text-sm sm:text-base"
+                  className="w-full mt-4 bg-red-500 hover:bg-red-600 text-white py-2.5 sm:py-3 rounded font-medium transition-colors text-xs sm:text-sm"
                 >
-                  {language === 'zh' ? '結帳' : 'Checkout'} ({selectedItems.length})
+                  {language === 'zh' ? '結帳' : 'Checkout'}
                 </button>
-                <p className="text-xs text-gray-400 text-center mt-2 sm:mt-3">{language === 'zh' ? '安全結帳' : 'Secure checkout'} - ShopMart</p>
+                <button className="w-full mt-2 border border-gray-200 hover:border-gray-300 text-gray-700 py-2 sm:py-2.5 rounded font-medium transition-colors text-xs sm:text-sm">
+                  {language === 'zh' ? '繼續購物' : 'Continue Shopping'}
+                </button>
               </div>
             </div>
           </div>

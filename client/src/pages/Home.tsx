@@ -3,6 +3,8 @@
  * Design: 活力促銷電商風 - 紅白主色調
  * Layout: 頂部雙層導航 + 左側分類欄 + 主內容區域
  * Primary: #E93323 (Red), Background: #F5F5F5
+ * 
+ * API Integration: 使用 TRPC 實時獲取商品和分類數據
  */
 
 import { useState, useEffect } from 'react';
@@ -15,6 +17,7 @@ import { t } from '@/lib/translations';
 import { getProductName, getCategoryName } from '@/lib/data-translations';
 import { trpc } from '@/lib/trpc';
 import type { Product } from '@/lib/data';
+import { toast } from 'sonner';
 
 // Unsplash product images for categories
 const categoryImages = [
@@ -46,6 +49,36 @@ const bannerSlides = [
     cta: 'Grab Deals',
   },
 ];
+
+// 轉換數據庫商品格式為前端格式
+function convertDbProductToFrontend(dbProduct: any): Product {
+  return {
+    id: dbProduct.id,
+    name: dbProduct.name,
+    price: dbProduct.price / 100, // 從分轉換為元
+    originalPrice: dbProduct.originalPrice ? dbProduct.originalPrice / 100 : undefined,
+    image: dbProduct.image,
+    categoryId: dbProduct.categoryId,
+    sold: dbProduct.sold || 0,
+    rating: dbProduct.rating ? dbProduct.rating / 100 : 0, // 從 0-500 轉換為 0-5
+    description: dbProduct.description,
+    stock: dbProduct.stock || 0,
+    status: dbProduct.status || 'active',
+    createdAt: dbProduct.createdAt,
+    updatedAt: dbProduct.updatedAt,
+  };
+}
+
+// 轉換數據庫分類格式為前端格式
+function convertDbCategoryToFrontend(dbCategory: any): any {
+  return {
+    id: dbCategory.id,
+    name: dbCategory.name,
+    nameEn: dbCategory.nameEn,
+    icon: dbCategory.icon || '📦',
+    order: dbCategory.order || 0,
+  };
+}
 
 function ProductCard({ product }: { product: Product }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -92,7 +125,7 @@ function ProductCard({ product }: { product: Product }) {
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState(1);
+  const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [cartCount] = useState(3);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -101,13 +134,18 @@ export default function Home() {
   const { user, isAuthenticated, logout } = useAuth();
   const [, navigate] = useLocation();
   
-  // Fetch products from API
-  const { data: apiProducts = [] } = trpc.products.list.useQuery({ limit: 100 });
-  const { data: apiCategories = [] } = trpc.categories.list.useQuery();
+  // 使用 TRPC 獲取商品和分類數據
+  const { data: apiProducts = [], isLoading: productsLoading } = trpc.products.list.useQuery({ limit: 100 });
+  const { data: apiCategories = [], isLoading: categoriesLoading } = trpc.categories.list.useQuery();
   
-  // Use API data if available, otherwise use default data
-  const products = apiProducts.length > 0 ? apiProducts : defaultProducts;
-  const categories = apiCategories.length > 0 ? apiCategories : defaultCategories;
+  // 轉換 API 數據為前端格式
+  const products = apiProducts.length > 0 
+    ? apiProducts.map(convertDbProductToFrontend)
+    : defaultProducts;
+  
+  const categories = apiCategories.length > 0
+    ? apiCategories.map(convertDbCategoryToFrontend)
+    : defaultCategories;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -128,11 +166,6 @@ export default function Home() {
   const shopStreetProducts = products.slice(0, 3);
   const topOneProducts = products.slice(0, 3);
   const youMayLikeProducts = products.slice(0, 10);
-  
-  // Filter products by category if selected
-  const filteredProducts = activeCategory
-    ? products.filter(p => p.categoryId === activeCategory)
-    : products;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -266,19 +299,35 @@ export default function Home() {
           {/* Left category sidebar */}
           <aside className="w-44 shrink-0 hidden lg:block">
             <div className="bg-white rounded shadow-sm overflow-hidden">
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-gray-50 last:border-0 ${
-                    activeCategory === cat.id
-                      ? 'bg-red-500 text-white font-medium'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-red-500'
-                  }`}
-                >
-                  {getCategoryName(cat.name, language)}
-                </button>
-              ))}
+              {categoriesLoading ? (
+                <div className="p-4 text-center text-gray-500">{language === 'zh' ? '加載中...' : 'Loading...'}</div>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setActiveCategory(null)}
+                    className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-gray-50 ${
+                      activeCategory === null
+                        ? 'bg-red-500 text-white font-medium'
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-red-500'
+                    }`}
+                  >
+                    {language === 'zh' ? '全部分類' : 'All Categories'}
+                  </button>
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setActiveCategory(cat.id)}
+                      className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-gray-50 last:border-0 ${
+                        activeCategory === cat.id
+                          ? 'bg-red-500 text-white font-medium'
+                          : 'text-gray-700 hover:bg-gray-50 hover:text-red-500'
+                      }`}
+                    >
+                      {getCategoryName(cat.name, language)}
+                    </button>
+                  ))}
+                </>
+              )}
             </div>
           </aside>
 
@@ -324,16 +373,22 @@ export default function Home() {
                 </Link>
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {recommendedProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-                {/* Placeholder cards */}
-                <div className="bg-gray-50 border border-dashed border-gray-200 rounded flex items-center justify-center min-h-[180px] text-gray-300 text-sm">
-                  {language === 'zh' ? '更多商品' : 'More Products'}
-                </div>
-                <div className="bg-gray-50 border border-dashed border-gray-200 rounded flex items-center justify-center min-h-[180px] text-gray-300 text-sm">
-                  {language === 'zh' ? '敬請期待' : 'Coming Soon'}
-                </div>
+                {productsLoading ? (
+                  <div className="col-span-full text-center text-gray-500 py-8">{language === 'zh' ? '加載商品中...' : 'Loading products...'}</div>
+                ) : (
+                  <>
+                    {recommendedProducts.map((product) => (
+                      <ProductCard key={product.id} product={product} />
+                    ))}
+                    {/* Placeholder cards */}
+                    <div className="bg-gray-50 border border-dashed border-gray-200 rounded flex items-center justify-center min-h-[180px] text-gray-300 text-sm">
+                      {language === 'zh' ? '更多商品' : 'More Products'}
+                    </div>
+                    <div className="bg-gray-50 border border-dashed border-gray-200 rounded flex items-center justify-center min-h-[180px] text-gray-300 text-sm">
+                      {language === 'zh' ? '敬請期待' : 'Coming Soon'}
+                    </div>
+                  </>
+                )}
               </div>
             </section>
 
@@ -519,7 +574,7 @@ export default function Home() {
 
       {/* Right floating buttons */}
       <div className="fixed right-4 bottom-20 flex flex-col gap-2 z-40">
-          <button className="w-12 h-12 bg-white border border-gray-200 shadow-md rounded flex flex-col items-center justify-center gap-0.5 hover:border-red-400 hover:text-red-500 transition-colors group">
+        <button className="w-12 h-12 bg-white border border-gray-200 shadow-md rounded flex flex-col items-center justify-center gap-0.5 hover:border-red-400 hover:text-red-500 transition-colors group">
           <MessageCircle size={16} className="text-gray-500 group-hover:text-red-500" />
           <span className="text-xs text-gray-500 group-hover:text-red-500 leading-none">{language === 'zh' ? '服務' : 'Service'}</span>
         </button>
