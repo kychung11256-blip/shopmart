@@ -5,15 +5,17 @@ export interface Product {
   id: number;
   name: string;
   price: number;
-  originalPrice?: number;
-  image: string;
-  category: string;
+  originalPrice?: number | null;
+  image?: string | null;
+  categoryId?: number | null;
+  category?: string; // For backward compatibility
   sold: number;
-  rating: number;
-  description?: string;
+  rating?: number | null;
+  description?: string | null;
   stock: number;
-  status: 'active' | 'inactive' | 'out_of_stock';
-  createdAt: string;
+  status: 'active' | 'inactive' | 'deleted' | 'out_of_stock';
+  createdAt: string | Date;
+  updatedAt?: string | Date;
 }
 
 export interface Category {

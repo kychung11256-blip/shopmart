@@ -8,11 +8,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { ShoppingCart, Search, User, ChevronRight, Phone, MessageCircle, ArrowUp, Heart, MapPin, Globe, LogOut } from 'lucide-react';
-import { products, categories } from '@/lib/data';
+import { products as defaultProducts, categories as defaultCategories } from '@/lib/data';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { t } from '@/lib/translations';
 import { getProductName, getCategoryName } from '@/lib/data-translations';
+import { trpc } from '@/lib/trpc';
 import type { Product } from '@/lib/data';
 
 // Unsplash product images for categories
@@ -99,6 +100,14 @@ export default function Home() {
   const { language, toggleLanguage } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
   const [, navigate] = useLocation();
+  
+  // Fetch products from API
+  const { data: apiProducts = [] } = trpc.products.list.useQuery({ limit: 100 });
+  const { data: apiCategories = [] } = trpc.categories.list.useQuery();
+  
+  // Use API data if available, otherwise use default data
+  const products = apiProducts.length > 0 ? apiProducts : defaultProducts;
+  const categories = apiCategories.length > 0 ? apiCategories : defaultCategories;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -119,6 +128,11 @@ export default function Home() {
   const shopStreetProducts = products.slice(0, 3);
   const topOneProducts = products.slice(0, 3);
   const youMayLikeProducts = products.slice(0, 10);
+  
+  // Filter products by category if selected
+  const filteredProducts = activeCategory
+    ? products.filter(p => p.categoryId === activeCategory)
+    : products;
 
   return (
     <div className="min-h-screen bg-gray-50">

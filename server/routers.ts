@@ -1,0 +1,234 @@
+import { COOKIE_NAME } from "@shared/const";
+import { getSessionCookieOptions } from "./_core/cookies";
+import { systemRouter } from "./_core/systemRouter";
+import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
+import { z } from "zod";
+import { getDb } from "./db";
+import { products, categories, orders, orderItems, cart, InsertProduct, InsertOrder, InsertOrderItem, InsertCartItem } from "../drizzle/schema";
+import { eq, and, desc, asc } from "drizzle-orm";
+
+export const appRouter = router({
+  system: systemRouter,
+  auth: router({
+    me: publicProcedure.query(opts => opts.ctx.user),
+    logout: publicProcedure.mutation(({ ctx }) => {
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      return {
+        success: true,
+      } as const;
+    }),
+  }),
+
+  // Products router
+  products: router({
+    list: publicProcedure
+      .input(z.object({
+        categoryId: z.number().optional(),
+        limit: z.number().default(20),
+        offset: z.number().default(0),
+      }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return [];
+        try {
+          if (input.categoryId) {
+            return await db.select().from(products).where(and(eq(products.status, 'active'), eq(products.categoryId, input.categoryId))).limit(input.limit).offset(input.offset);
+          }
+          return await db.select().from(products).where(eq(products.status, 'active')).limit(input.limit).offset(input.offset);
+        } catch (error) {
+          console.error("[API] Error fetching products:", error);
+          return [];
+        }
+      }),
+    getById: publicProcedure
+      .input(z.number())
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return null;
+        try {
+          const result = await db.select().from(products).where(eq(products.id, input)).limit(1);
+          return result[0] || null;
+        } catch (error) {
+          console.error("[API] Error fetching product:", error);
+          return null;
+        }
+      }),
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string(),
+        description: z.string().optional(),
+        price: z.number(),
+        originalPrice: z.number().optional(),
+        categoryId: z.number().optional(),
+        image: z.string().optional(),
+        stock: z.number().default(0),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          const newProduct: InsertProduct = {
+            ...input,
+            price: Math.round(input.price * 100),
+            originalPrice: input.originalPrice ? Math.round(input.originalPrice * 100) : undefined,
+          };
+          const result = await db.insert(products).values(newProduct);
+          return { success: true };
+        } catch (error) {
+          console.error("[API] Error creating product:", error);
+          throw error;
+        }
+      }),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        description: z.string().optional(),
+        price: z.number().optional(),
+        originalPrice: z.number().optional(),
+        categoryId: z.number().optional(),
+        image: z.string().optional(),
+        stock: z.number().optional(),
+        status: z.enum(['active', 'inactive', 'deleted']).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          const { id, ...updates } = input;
+          const updateData: any = { ...updates };
+          if (updates.price) updateData.price = Math.round(updates.price * 100);
+          if (updates.originalPrice) updateData.originalPrice = Math.round(updates.originalPrice * 100);
+          await db.update(products).set(updateData).where(eq(products.id, id));
+          return { success: true };
+        } catch (error) {
+          console.error("[API] Error updating product:", error);
+          throw error;
+        }
+      }),
+    delete: protectedProcedure
+      .input(z.number())
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          await db.update(products).set({ status: 'deleted' }).where(eq(products.id, input));
+          return { success: true };
+        } catch (error) {
+          console.error("[API] Error deleting product:", error);
+          throw error;
+        }
+      }),
+  }),
+
+  // Categories router
+  categories: router({
+    list: publicProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      try {
+        return await db.select().from(categories).where(eq(categories.status, 'active')).orderBy(asc(categories.order));
+      } catch (error) {
+        console.error("[API] Error fetching categories:", error);
+        return [];
+      }
+    }),
+  }),
+
+  // Orders router
+  orders: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+      try {
+        if (ctx.user?.role === 'admin') {
+          return await db.select().from(orders).orderBy(desc(orders.createdAt));
+        }
+        return await db.select().from(orders).where(eq(orders.userId, ctx.user?.id || 0)).orderBy(desc(orders.createdAt));
+      } catch (error) {
+        console.error("[API] Error fetching orders:", error);
+        return [];
+      }
+    }),
+    create: protectedProcedure
+      .input(z.object({
+        items: z.array(z.object({ productId: z.number(), quantity: z.number() })),
+        shippingAddress: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          const orderNumber = `ORD-${Date.now()}`;
+          let totalPrice = 0;
+          for (const item of input.items) {
+            const product = await db.select().from(products).where(eq(products.id, item.productId)).limit(1);
+            if (product[0]) totalPrice += product[0].price * item.quantity;
+          }
+          const newOrder: InsertOrder = {
+            orderNumber,
+            userId: ctx.user?.id || 0,
+            totalPrice,
+            shippingAddress: input.shippingAddress,
+          };
+          const orderResult = await db.insert(orders).values(newOrder);
+          return { success: true, orderNumber };
+        } catch (error) {
+          console.error("[API] Error creating order:", error);
+          throw error;
+        }
+      }),
+  }),
+
+  // Cart router
+  cart: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+      try {
+        return await db.select().from(cart).where(eq(cart.userId, ctx.user?.id || 0));
+      } catch (error) {
+        console.error("[API] Error fetching cart:", error);
+        return [];
+      }
+    }),
+    add: protectedProcedure
+      .input(z.object({ productId: z.number(), quantity: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          const existing = await db.select().from(cart).where(and(eq(cart.userId, ctx.user?.id || 0), eq(cart.productId, input.productId))).limit(1);
+          if (existing[0]) {
+            await db.update(cart).set({ quantity: existing[0].quantity + input.quantity }).where(eq(cart.id, existing[0].id));
+          } else {
+            const newItem: InsertCartItem = { userId: ctx.user?.id || 0, productId: input.productId, quantity: input.quantity };
+            await db.insert(cart).values(newItem);
+          }
+          return { success: true };
+        } catch (error) {
+          console.error("[API] Error adding to cart:", error);
+          throw error;
+        }
+      }),
+    remove: protectedProcedure
+      .input(z.number())
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          await db.delete(cart).where(eq(cart.id, input));
+          return { success: true };
+        } catch (error) {
+          console.error("[API] Error removing from cart:", error);
+          throw error;
+        }
+      }),
+  }),
+});
+
+export type AppRouter = typeof appRouter;
