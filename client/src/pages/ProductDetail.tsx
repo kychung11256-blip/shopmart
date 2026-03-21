@@ -40,23 +40,21 @@ export default function ProductDetail() {
   // 使用 TRPC 獲取商品詳情
   const { data: apiProduct, isLoading } = trpc.products.getById.useQuery(productId);
   
-  // 轉換為前端格式或使用默認數據
+  // 轉換為前端格式（不使用本地後備數據，確保與數據庫同步）
   const product = apiProduct 
     ? convertDbProductToFrontend(apiProduct)
-    : defaultProducts.find(p => p.id === productId) || defaultProducts[0];
+    : null;
 
-  // 獲取相關商品
+  // 獲取相關商品（如果商品存在）
   const { data: relatedApiProducts = [] } = trpc.products.list.useQuery({ 
-    categoryId: product.categoryId || undefined,
+    categoryId: product?.categoryId || undefined,
     limit: 4 
   });
   
-  const relatedProducts = relatedApiProducts.length > 0
-    ? relatedApiProducts
-        .map(convertDbProductToFrontend)
-        .filter(p => p.id !== product.id)
-        .slice(0, 4)
-    : defaultProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+  const relatedProducts = relatedApiProducts
+    .map(convertDbProductToFrontend)
+    .filter(p => product && p.id !== product.id)
+    .slice(0, 4);
 
   const [qty, setQty] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -77,6 +75,7 @@ export default function ProductDetail() {
 
     try {
       setIsAddingToCart(true);
+      if (!product) throw new Error('Product not found');
       await addToCartMutation.mutateAsync({
         productId: product.id,
         quantity: qty,
@@ -98,6 +97,7 @@ export default function ProductDetail() {
     
     try {
       setIsAddingToCart(true);
+      if (!product) throw new Error('Product not found');
       await addToCartMutation.mutateAsync({
         productId: product.id,
         quantity: qty,
@@ -109,6 +109,21 @@ export default function ProductDetail() {
       setIsAddingToCart(false);
     }
   };
+
+  // 如果商品不存在，顯示錯誤頁面
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">Product Not Found</h1>
+          <p className="text-gray-600 mb-6">The product you're looking for doesn't exist or has been deleted.</p>
+          <Link href="/" className="inline-block bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600">
+            Back to Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const discountPercent = product.originalPrice && product.originalPrice > product.price
     ? Math.round((1 - product.price / product.originalPrice) * 100)
@@ -359,11 +374,11 @@ export default function ProductDetail() {
               <table className="w-full text-sm">
                 <tbody className="divide-y divide-gray-50">
                   {[
-                    { label: language === 'zh' ? '分類' : 'Category', value: product.categoryId || 'N/A' },
-                    { label: language === 'zh' ? '評分' : 'Rating', value: `${product.rating || 0} / 5.0` },
-                    { label: language === 'zh' ? '總銷售' : 'Total Sold', value: product.sold.toString() },
-                    { label: language === 'zh' ? '庫存' : 'Stock', value: product.stock.toString() },
-                    { label: language === 'zh' ? '狀態' : 'Status', value: product.status },
+                    { label: language === 'zh' ? '分類' : 'Category', value: product?.categoryId || 'N/A' },
+                    { label: language === 'zh' ? '評分' : 'Rating', value: `${product?.rating || 0} / 5.0` },
+                    { label: language === 'zh' ? '總銷售' : 'Total Sold', value: product?.sold.toString() || '0' },
+                    { label: language === 'zh' ? '庫存' : 'Stock', value: product?.stock.toString() || '0' },
+                    { label: language === 'zh' ? '狀態' : 'Status', value: product?.status || 'unknown' },
                   ].map((spec) => (
                     <tr key={spec.label}>
                       <td className="py-2.5 text-gray-500 w-40">{spec.label}</td>

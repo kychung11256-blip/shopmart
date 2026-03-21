@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { ShoppingCart, Search, User, Trash2, Plus, Minus, ChevronRight, ArrowLeft, Globe, LogOut } from 'lucide-react';
-import { products as defaultProducts } from '@/lib/data';
+// 不再使用本地硬編碼商品數據，確保與數據庫同步
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -74,15 +74,19 @@ export default function Cart() {
 
     // 將 API 購物車項目與商品信息合併
     const convertedProducts = allProducts.map(convertDbProductToFrontend);
-    const items: CartItem[] = apiCartItems.map((cartItem: any) => {
-      const product = convertedProducts.find(p => p.id === cartItem.productId);
-      return {
-        id: cartItem.id, // 保存購物車項目 ID
-        product: product || defaultProducts[0],
-        qty: cartItem.quantity,
-        selected: true,
-      };
-    });
+    const items: CartItem[] = apiCartItems
+      .map((cartItem: any) => {
+        const product = convertedProducts.find(p => p.id === cartItem.productId);
+        // 如果找不到商品，跳過此項（不使用本地後備數據）
+        if (!product) return null;
+        return {
+          id: cartItem.id, // 保存購物車項目 ID
+          product: product,
+          qty: cartItem.quantity,
+          selected: true,
+        } as CartItem;
+      })
+      .filter((item): item is CartItem => item !== null);
 
     setCartItems(items);
     setIsLoading(false);

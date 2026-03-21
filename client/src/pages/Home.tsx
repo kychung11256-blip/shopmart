@@ -142,14 +142,10 @@ export default function Home() {
   const { data: apiProducts = [], isLoading: productsLoading } = trpc.products.list.useQuery({ limit: 100 });
   const { data: apiCategories = [], isLoading: categoriesLoading } = trpc.categories.list.useQuery();
   
-  // 轉換 API 數據為前端格式
-  const products = apiProducts.length > 0 
-    ? apiProducts.map(convertDbProductToFrontend)
-    : defaultProducts;
+  // 轉換 API 數據為前端格式（不使用本地後備數據，確保與數據庫同步）
+  const products = apiProducts.map(convertDbProductToFrontend);
   
-  const categories = apiCategories.length > 0
-    ? apiCategories.map(convertDbCategoryToFrontend)
-    : defaultCategories;
+  const categories = apiCategories.map(convertDbCategoryToFrontend);
 
   useEffect(() => {
     const timer = setInterval(() => {
