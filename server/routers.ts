@@ -54,6 +54,21 @@ export const appRouter = router({
           return null;
         }
       }),
+    listAll: adminProcedure
+      .input(z.object({
+        limit: z.number().default(200),
+        offset: z.number().default(0),
+      }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return [];
+        try {
+          return await db.select().from(products).limit(input.limit).offset(input.offset);
+        } catch (error) {
+          console.error("[API] Error fetching all products:", error);
+          return [];
+        }
+      }),
     create: adminProcedure
       .input(z.object({
         name: z.string(),
@@ -98,9 +113,12 @@ export const appRouter = router({
         try {
           const { id, ...updates } = input;
           const updateData: any = { ...updates };
-          if (updates.price) updateData.price = Math.round(updates.price * 100);
-          if (updates.originalPrice) updateData.originalPrice = Math.round(updates.originalPrice * 100);
+          // 使用 !== undefined 檢查，確保 0 值也能被轉換
+          if (updates.price !== undefined) updateData.price = Math.round(updates.price * 100);
+          if (updates.originalPrice !== undefined) updateData.originalPrice = Math.round(updates.originalPrice * 100);
+          console.log('[API] Updating product', id, 'with data:', updateData);
           await db.update(products).set(updateData).where(eq(products.id, id));
+          console.log('[API] Product updated successfully');
           return { success: true };
         } catch (error) {
           console.error("[API] Error updating product:", error);

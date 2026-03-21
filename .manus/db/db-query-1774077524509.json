@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, name, price, originalPrice, status FROM products WHERE id = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT id, name, price, originalPrice, status FROM products WHERE id = 1;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL",
+      "status": "active"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tprice\toriginalPrice\tstatus\n1\tTest Product\t9999\tNULL\tactive\n",
+  "stderr": "",
+  "execution_time_ms": 1597
+}
