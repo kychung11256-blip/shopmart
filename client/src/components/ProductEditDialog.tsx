@@ -38,7 +38,7 @@ export default function ProductEditDialog({ isOpen, product, onClose, onSave }: 
   React.useEffect(() => {
     if (product) {
       setFormData(product);
-      setImagePreview(product.image);
+      setImagePreview(product.image || null);
     }
   }, [product, isOpen]);
 
@@ -275,7 +275,7 @@ export default function ProductEditDialog({ isOpen, product, onClose, onSave }: 
               <input
                 type="number"
                 name="rating"
-                value={formData.rating}
+                value={formData.rating || 0}
                 onChange={handleInputChange}
                 step="0.1"
                 min="0"
@@ -304,7 +304,7 @@ export default function ProductEditDialog({ isOpen, product, onClose, onSave }: 
             <label className="block text-sm font-medium text-gray-700 mb-1">Created Date</label>
             <input
               type="text"
-              value={formData.createdAt}
+              value={formData.createdAt instanceof Date ? formData.createdAt.toLocaleDateString() : (typeof formData.createdAt === 'string' ? formData.createdAt : '')}
               disabled
               className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
             />

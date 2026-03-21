@@ -17,7 +17,7 @@ function ProductCard({ product }: { product: Product }) {
     <div className="product-card bg-white border border-gray-100 rounded overflow-hidden group cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
       <div className="relative overflow-hidden" style={{ paddingTop: '100%' }}>
         <img
-          src={product.image}
+          src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop'}
           alt={product.name}
           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop'; }}
@@ -38,7 +38,7 @@ function ProductCard({ product }: { product: Product }) {
         <p className="text-sm text-gray-700 line-clamp-2 min-h-[2.5rem] leading-tight">{product.name}</p>
         <div className="flex items-center gap-1 mt-1">
           {[1,2,3,4,5].map(s => (
-            <Star key={s} size={10} className={s <= Math.floor(product.rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'} />
+            <Star key={s} size={10} className={s <= Math.floor(product.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'} />
           ))}
           <span className="text-xs text-gray-400 ml-1">({product.sold})</span>
         </div>
@@ -73,7 +73,7 @@ export default function Products() {
     if (sortBy === 'price_asc') return a.price - b.price;
     if (sortBy === 'price_desc') return b.price - a.price;
     if (sortBy === 'popular') return b.sold - a.sold;
-    if (sortBy === 'rating') return b.rating - a.rating;
+    if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
     return 0;
   });
 

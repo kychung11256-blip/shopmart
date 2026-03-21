@@ -187,7 +187,7 @@ export default function Cart() {
                       className="w-4 h-4 accent-red-500 shrink-0 mt-1 sm:mt-0"
                     />
                     <img
-                      src={item.product.image}
+                      src={item.product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'}
                       alt={item.product.name}
                       className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded shrink-0"
                       onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'; }}

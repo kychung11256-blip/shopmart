@@ -134,7 +134,7 @@ export default function AdminProducts() {
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-3">
                       <img
-                        src={product.image}
+                        src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'}
                         alt={product.name}
                         className="w-12 h-12 rounded-lg object-cover border border-gray-100"
                         onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'; }}
@@ -146,19 +146,19 @@ export default function AdminProducts() {
                     </div>
                   </td>
                   <td className="px-5 py-3">
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">{product.category}</span>
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">{product.category || 'Uncategorized'}</span>
                   </td>
                   <td className="px-5 py-3">
                     <div>
-                      <span className="text-sm font-semibold text-red-500">${product.price.toFixed(2)}</span>
-                      {product.originalPrice && product.originalPrice > product.price && (
-                        <p className="text-xs text-gray-400 line-through">${product.originalPrice.toFixed(2)}</p>
+                      <span className="text-sm font-semibold text-red-500">${(product.price || 0).toFixed(2)}</span>
+                      {product.originalPrice && product.originalPrice > (product.price || 0) && (
+                        <p className="text-xs text-gray-400 line-through">${(product.originalPrice || 0).toFixed(2)}</p>
                       )}
                     </div>
                   </td>
                   <td className="px-5 py-3">
-                    <span className={`text-sm font-medium ${product.stock < 10 ? 'text-red-500' : 'text-gray-700'}`}>
-                      {product.stock}
+                    <span className={`text-sm font-medium ${(product.stock || 0) < 10 ? 'text-red-500' : 'text-gray-700'}`}>
+                      {product.stock || 0}
                     </span>
                   </td>
                   <td className="px-5 py-3 text-sm text-gray-600">{product.sold}</td>

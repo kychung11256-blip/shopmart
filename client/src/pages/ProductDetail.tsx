@@ -82,7 +82,7 @@ export default function ProductDetail() {
             <div className="w-80 shrink-0">
               <div className="relative rounded-lg overflow-hidden border border-gray-100" style={{ paddingTop: '100%' }}>
                 <img
-                  src={product.image}
+                  src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'}
                   alt={product.name}
                   className="absolute inset-0 w-full h-full object-cover"
                   onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'; }}
@@ -96,7 +96,7 @@ export default function ProductDetail() {
               <div className="flex gap-2 mt-3">
                 {[product.image, product.image, product.image].map((img, idx) => (
                   <div key={idx} className="w-16 h-16 rounded border-2 border-gray-100 overflow-hidden cursor-pointer hover:border-red-400 transition-colors">
-                    <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'; }} />
+                    <img src={img || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'; }} />
                   </div>
                 ))}
               </div>
@@ -109,9 +109,9 @@ export default function ProductDetail() {
               <div className="flex items-center gap-4 mt-3">
                 <div className="flex items-center gap-1">
                   {[1,2,3,4,5].map(s => (
-                    <Star key={s} size={14} className={s <= Math.floor(product.rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'} />
+                    <Star key={s} size={14} className={s <= Math.floor(product.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'} />
                   ))}
-                  <span className="text-sm text-gray-500 ml-1">{product.rating}</span>
+                  <span className="text-sm text-gray-500 ml-1">{product.rating || 0}</span>
                 </div>
                 <span className="text-sm text-gray-400">{product.sold} sold</span>
                 <span className="text-sm text-gray-400">Stock: {product.stock}</span>
@@ -262,7 +262,7 @@ export default function ProductDetail() {
                 <Link key={p.id} href={`/product/${p.id}`}>
                   <div className="product-card border border-gray-100 rounded overflow-hidden group cursor-pointer">
                     <div className="relative overflow-hidden" style={{ paddingTop: '100%' }}>
-                      <img src={p.image} alt={p.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      <img src={p.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop'} alt={p.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop'; }} />
                     </div>
                     <div className="p-3">

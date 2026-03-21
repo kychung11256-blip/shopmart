@@ -349,7 +349,7 @@ export default function Dashboard() {
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-3">
                       <img
-                        src={product.image}
+                        src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'}
                         alt={product.name}
                         className="w-10 h-10 rounded object-cover"
                         onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'; }}

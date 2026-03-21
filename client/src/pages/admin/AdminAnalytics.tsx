@@ -116,7 +116,7 @@ export default function AdminAnalytics() {
                   {idx + 1}
                 </span>
                 <img
-                  src={product.image}
+                  src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'}
                   alt={product.name}
                   className="w-10 h-10 rounded object-cover shrink-0"
                   onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'; }}

@@ -56,7 +56,7 @@ function ProductCard({ product }: { product: Product }) {
     <div className="product-card bg-white border border-gray-100 rounded overflow-hidden group cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
       <div className="relative overflow-hidden" style={{ paddingTop: '100%' }}>
         <img
-          src={product.image}
+          src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop'}
           alt={product.name}
           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           onError={(e) => {
@@ -352,7 +352,7 @@ export default function Home() {
                     <div key={product.id} className="group cursor-pointer">
                       <div className="relative overflow-hidden rounded" style={{ paddingTop: '100%' }}>
                         <img
-                          src={product.image}
+                          src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop'}
                           alt={product.name}
                           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop'; }}
@@ -379,7 +379,7 @@ export default function Home() {
                       <div className="relative shrink-0">
                         <div className="w-16 h-16 rounded overflow-hidden">
                           <img
-                            src={product.image}
+                            src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'}
                             alt={product.name}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'; }}
