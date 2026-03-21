@@ -22,6 +22,25 @@ export const appRouter = router({
 
   // Products router
   products: router({
+    uploadImage: adminProcedure
+      .input(z.object({
+        base64: z.string(),
+        fileName: z.string(),
+        mimeType: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          const { storagePut } = await import('./storage');
+          const buffer = Buffer.from(input.base64, 'base64');
+          const key = `products/${Date.now()}-${input.fileName}`;
+          const { url } = await storagePut(key, buffer, input.mimeType);
+          console.log('[API] Image uploaded successfully:', url);
+          return { success: true, url };
+        } catch (error) {
+          console.error('[API] Error uploading image:', error);
+          throw error;
+        }
+      }),
     list: publicProcedure
       .input(z.object({
         categoryId: z.number().optional(),

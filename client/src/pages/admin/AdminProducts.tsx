@@ -1,17 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { AdminLayout } from './Dashboard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Edit2, Trash2, Plus, Save, X } from 'lucide-react';
+import { Edit2, Trash2, Plus, Save, X, Upload } from 'lucide-react';
 import type { Product } from '@/lib/data';
 
 export default function AdminProducts() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<Partial<Product> | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
@@ -44,6 +45,8 @@ export default function AdminProducts() {
       toast.error(`Error: ${error.message}`);
     },
   });
+
+  const uploadImageMutation = trpc.products.uploadImage.useMutation();
 
   const deleteMutation = trpc.products.delete.useMutation({
     onSuccess: () => {
@@ -101,6 +104,43 @@ export default function AdminProducts() {
   const handleCancel = () => {
     setEditingId(null);
     setEditingData(null);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const base64 = (event.target?.result as string).split(',')[1];
+          const result = await uploadImageMutation.mutateAsync({
+            base64,
+            fileName: file.name,
+            mimeType: file.type,
+          });
+          setEditingData({ ...editingData, image: result.url });
+          toast.success('Image uploaded successfully');
+        } catch (error) {
+          console.error('[AdminProducts] Error uploading image:', error);
+          toast.error('Failed to upload image');
+        } finally {
+          setIsUploading(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('[AdminProducts] Error reading file:', error);
+      toast.error('Failed to read file');
+      setIsUploading(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -253,13 +293,16 @@ export default function AdminProducts() {
                   </td>
                   <td className="px-6 py-4 col-span-2">
                     <div className="space-y-2">
-                      <Input
-                        type="text"
-                        value={editingData.image || ''}
-                        onChange={(e) => setEditingData({ ...editingData, image: e.target.value })}
-                        placeholder="Image URL (e.g., https://...)"
-                        className="w-full"
-                      />
+                      <div className="flex gap-2">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          disabled={isUploading}
+                          className="flex-1"
+                        />
+                        {isUploading && <span className="text-sm text-gray-500">Uploading...</span>}
+                      </div>
                       {editingData.image && (
                         <div className="w-16 h-16 rounded border border-gray-200 overflow-hidden">
                           <img src={editingData.image} alt="preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/64')} />
@@ -351,13 +394,16 @@ export default function AdminProducts() {
                     </td>
                     <td className="px-6 py-4 col-span-2">
                       <div className="space-y-2">
-                        <Input
-                          type="text"
-                          value={editingData.image || ''}
-                          onChange={(e) => setEditingData({ ...editingData, image: e.target.value })}
-                          placeholder="Image URL (e.g., https://...)"
-                          className="w-full"
-                        />
+                        <div className="flex gap-2">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            disabled={isUploading}
+                            className="flex-1"
+                          />
+                          {isUploading && <span className="text-sm text-gray-500">Uploading...</span>}
+                        </div>
                         {editingData.image && (
                           <div className="w-16 h-16 rounded border border-gray-200 overflow-hidden">
                             <img src={editingData.image} alt="preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/64')} />
