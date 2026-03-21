@@ -106,7 +106,7 @@ describe('Products API', () => {
       });
       expect.fail('Should have thrown an error');
     } catch (error: any) {
-      expect(error.code).toBe('UNAUTHORIZED');
+      expect(error.code).toBe('FORBIDDEN'); // adminProcedure returns FORBIDDEN for non-admin
     }
   });
 

@@ -17,6 +17,7 @@ import { trpc } from '@/lib/trpc';
 import type { Product } from '@/lib/data';
 
 interface CartItem {
+  id?: number; // 購物車項目 ID（用於刪除）
   product: Product;
   qty: number;
   selected: boolean;
@@ -46,12 +47,16 @@ export default function Cart() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [removingIds, setRemovingIds] = useState<Set<number>>(new Set()); // 追蹤正在刪除的項目
   const { language, toggleLanguage } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
 
   // 使用 TRPC 獲取購物車數據
-  const { data: apiCartItems = [], isLoading: cartLoading } = trpc.cart.list.useQuery();
+  const { data: apiCartItems = [], isLoading: cartLoading, refetch: refetchCart } = trpc.cart.list.useQuery();
   const { data: allProducts = [] } = trpc.products.list.useQuery({ limit: 200 });
+
+  // TRPC 變更操作
+  const removeCartMutation = trpc.cart.remove.useMutation();
 
   // 初始化購物車
   useEffect(() => {
@@ -74,6 +79,7 @@ export default function Cart() {
     const items: CartItem[] = apiCartItems.map((cartItem: any) => {
       const product = convertedProducts.find(p => p.id === cartItem.productId);
       return {
+        id: cartItem.id, // 保存購物車項目 ID
         product: product || defaultProducts[0],
         qty: cartItem.quantity,
         selected: true,
@@ -99,9 +105,40 @@ export default function Cart() {
     }));
   };
 
-  const handleRemove = (id: number) => {
-    setCartItems(prev => prev.filter(item => item.product.id !== id));
-    toast.success(language === 'zh' ? '已移除商品' : 'Item removed from cart');
+  // 修復：調用 API 刪除購物車項目
+  const handleRemove = async (cartItemId: number | undefined, productId: number) => {
+    if (!cartItemId) {
+      // 如果沒有購物車項目 ID，直接從本地狀態刪除
+      setCartItems(prev => prev.filter(item => item.product.id !== productId));
+      toast.success(language === 'zh' ? '已移除商品' : 'Item removed from cart');
+      return;
+    }
+
+    try {
+      // 標記為正在刪除
+      setRemovingIds(prev => new Set(prev).add(cartItemId));
+
+      // 調用 API 刪除購物車項目
+      await removeCartMutation.mutateAsync(cartItemId);
+
+      // 從本地狀態刪除
+      setCartItems(prev => prev.filter(item => item.product.id !== productId));
+
+      // 重新獲取購物車數據以確保同步
+      await refetchCart();
+
+      toast.success(language === 'zh' ? '已移除商品' : 'Item removed from cart');
+    } catch (error: any) {
+      toast.error(error.message || (language === 'zh' ? '移除失敗' : 'Failed to remove item'));
+      console.error('Error removing cart item:', error);
+    } finally {
+      // 取消標記
+      setRemovingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(cartItemId);
+        return newSet;
+      });
+    }
   };
 
   const handleToggleSelect = (id: number) => {
@@ -240,12 +277,13 @@ export default function Cart() {
               {/* Items */}
               <div className="space-y-2 sm:space-y-3">
                 {cartItems.map((item) => (
-                  <div key={item.product.id} className="bg-white rounded-lg shadow-sm p-2 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                  <div key={item.product.id} className={`bg-white rounded-lg shadow-sm p-2 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 transition-opacity ${removingIds.has(item.id || 0) ? 'opacity-50' : ''}`}>
                     <input
                       type="checkbox"
                       checked={item.selected}
                       onChange={() => handleToggleSelect(item.product.id)}
                       className="w-4 h-4 accent-red-500 shrink-0 mt-1 sm:mt-0"
+                      disabled={removingIds.has(item.id || 0)}
                     />
                     <img
                       src={item.product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'}
@@ -256,75 +294,94 @@ export default function Cart() {
                     <div className="flex-1 min-w-0">
                       <p className="text-xs sm:text-sm text-gray-700 line-clamp-2">{item.product.name}</p>
                       <p className="text-xs text-gray-400 mt-1">{item.product.categoryId || 'N/A'}</p>
-                    </div>
-                    
-                    {/* Quantity and price - responsive layout */}
-                    <div className="w-full sm:w-auto flex items-center justify-between sm:flex-col gap-2 sm:gap-0">
-                      <div className="flex items-center gap-1 sm:gap-2">
-                        <button onClick={() => handleQtyChange(item.product.id, -1)} className="w-6 h-6 sm:w-7 sm:h-7 border border-gray-200 rounded flex items-center justify-center hover:border-red-400 transition-colors">
-                          <Minus size={12} />
-                        </button>
-                        <span className="w-6 text-center text-xs sm:text-sm font-medium">{item.qty}</span>
-                        <button onClick={() => handleQtyChange(item.product.id, 1)} className="w-6 h-6 sm:w-7 sm:h-7 border border-gray-200 rounded flex items-center justify-center hover:border-red-400 transition-colors">
-                          <Plus size={12} />
-                        </button>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-red-500 font-bold text-sm sm:text-base">${(item.product.price * item.qty).toFixed(2)}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-sm font-semibold text-red-500">${(item.product.price || 0).toFixed(2)}</span>
                         {item.product.originalPrice && item.product.originalPrice > item.product.price && (
-                          <p className="text-xs text-gray-400 line-through">${(item.product.originalPrice * item.qty).toFixed(2)}</p>
+                          <span className="text-xs text-gray-400 line-through">${(item.product.originalPrice || 0).toFixed(2)}</span>
                         )}
                       </div>
                     </div>
-                    
-                    <button onClick={() => handleRemove(item.product.id)} className="text-gray-300 hover:text-red-500 transition-colors shrink-0">
-                      <Trash2 size={16} />
-                    </button>
+
+                    {/* Quantity and actions */}
+                    <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                      <div className="flex items-center border border-gray-200 rounded">
+                        <button
+                          onClick={() => handleQtyChange(item.product.id, -1)}
+                          className="p-1 text-gray-500 hover:text-red-500 transition-colors disabled:opacity-50"
+                          disabled={item.qty === 1 || removingIds.has(item.id || 0)}
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <span className="px-2 text-xs sm:text-sm font-medium">{item.qty}</span>
+                        <button
+                          onClick={() => handleQtyChange(item.product.id, 1)}
+                          className="p-1 text-gray-500 hover:text-red-500 transition-colors disabled:opacity-50"
+                          disabled={removingIds.has(item.id || 0)}
+                        >
+                          <Plus size={14} />
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() => handleRemove(item.id, item.product.id)}
+                        className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                        disabled={removingIds.has(item.id || 0)}
+                        title={language === 'zh' ? '刪除' : 'Delete'}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+
+                    {/* Subtotal */}
+                    <div className="text-right w-full sm:w-auto">
+                      <p className="text-xs text-gray-500">{language === 'zh' ? '小計' : 'Subtotal'}</p>
+                      <p className="text-sm font-semibold text-red-500">${(item.product.price * item.qty).toFixed(2)}</p>
+                    </div>
                   </div>
                 ))}
               </div>
-
-              <Link href="/">
-                <button className="mt-3 sm:mt-4 flex items-center gap-2 text-xs sm:text-sm text-gray-500 hover:text-red-500 transition-colors">
-                  <ArrowLeft size={14} />
-                  {language === 'zh' ? '繼續購物' : 'Continue Shopping'}
-                </button>
-              </Link>
             </div>
 
-            {/* Order summary - responsive */}
-            <div className="w-full lg:w-64 shrink-0">
-              <div className="bg-white rounded-lg shadow-sm p-3 sm:p-5 sticky top-20">
-                <h3 className="font-semibold text-gray-700 mb-3 sm:mb-4 text-sm sm:text-base">{language === 'zh' ? '訂單摘要' : 'Order Summary'}</h3>
-                <div className="space-y-2 text-xs sm:text-sm">
-                  <div className="flex justify-between text-gray-600">
-                    <span>{language === 'zh' ? '小計' : 'Subtotal'} ({selectedItems.length} {language === 'zh' ? '件' : 'items'})</span>
-                    <span>${totalPrice.toFixed(2)}</span>
+            {/* Summary */}
+            <div className="w-full lg:w-80 shrink-0">
+              <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 sticky top-24">
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4">{language === 'zh' ? '訂單摘要' : 'Order Summary'}</h3>
+
+                <div className="space-y-3 mb-4 pb-4 border-b border-gray-100">
+                  <div className="flex justify-between text-xs sm:text-sm">
+                    <span className="text-gray-600">{language === 'zh' ? '小計' : 'Subtotal'}</span>
+                    <span className="font-medium">${totalPrice.toFixed(2)}</span>
                   </div>
                   {savings > 0 && (
-                    <div className="flex justify-between text-green-500">
-                      <span>{language === 'zh' ? '節省' : 'You save'}</span>
-                      <span>-${savings.toFixed(2)}</span>
+                    <div className="flex justify-between text-xs sm:text-sm">
+                      <span className="text-green-600">{language === 'zh' ? '節省' : 'Savings'}</span>
+                      <span className="font-medium text-green-600">-${savings.toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-gray-600">
-                    <span>{language === 'zh' ? '運費' : 'Shipping'}</span>
-                    <span>{language === 'zh' ? '免費' : 'Free'}</span>
-                  </div>
-                  <div className="border-t border-gray-100 pt-2 flex justify-between font-semibold text-gray-800">
-                    <span>{language === 'zh' ? '總計' : 'Total'}</span>
-                    <span className="text-red-500">${totalPrice.toFixed(2)}</span>
+                  <div className="flex justify-between text-xs sm:text-sm">
+                    <span className="text-gray-600">{language === 'zh' ? '運費' : 'Shipping'}</span>
+                    <span className="font-medium text-green-600">{language === 'zh' ? '免費' : 'FREE'}</span>
                   </div>
                 </div>
+
+                <div className="flex justify-between text-base sm:text-lg font-bold mb-6">
+                  <span>{language === 'zh' ? '總計' : 'Total'}</span>
+                  <span className="text-red-500">${totalPrice.toFixed(2)}</span>
+                </div>
+
                 <button
                   onClick={handleCheckout}
-                  className="w-full mt-4 bg-red-500 hover:bg-red-600 text-white py-2.5 sm:py-3 rounded font-medium transition-colors text-xs sm:text-sm"
+                  className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-2 sm:py-3 rounded transition-colors text-sm sm:text-base mb-3"
+                  disabled={selectedItems.length === 0}
                 >
                   {language === 'zh' ? '結帳' : 'Checkout'}
                 </button>
-                <button className="w-full mt-2 border border-gray-200 hover:border-gray-300 text-gray-700 py-2 sm:py-2.5 rounded font-medium transition-colors text-xs sm:text-sm">
-                  {language === 'zh' ? '繼續購物' : 'Continue Shopping'}
-                </button>
+
+                <Link href="/products">
+                  <button className="w-full border border-red-500 text-red-500 hover:bg-red-50 font-medium py-2 sm:py-3 rounded transition-colors text-sm sm:text-base">
+                    {language === 'zh' ? '繼續購物' : 'Continue Shopping'}
+                  </button>
+                </Link>
               </div>
             </div>
           </div>

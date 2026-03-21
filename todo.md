@@ -86,6 +86,9 @@
 - [x] trpc.categories.list - 獲取分類列表
 - [x] trpc.cart.list - 獲取購物車項目
 
+## 🐛 Bug 修復
+- [x] 購物車商品刪除後返回主頁時商品仍然存在 - 已修復購物車狀態同步
+
 ## Future Enhancements (Optional)
 - [ ] 實現購物車持久化（保存到數據庫）
 - [ ] 實現用戶收藏功能
