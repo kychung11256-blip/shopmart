@@ -59,19 +59,6 @@ export default function Login() {
     }
   };
 
-  const handleAdminLogin = async () => {
-    setIsLoading(true);
-    try {
-      await login('admin@example.com', 'admin123');
-      toast.success(language === 'zh' ? '管理員登入成功！' : 'Admin login successful!');
-      navigate('/admin');
-    } catch (error) {
-      toast.error(language === 'zh' ? '管理員登入失敗' : 'Admin login failed');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
@@ -218,22 +205,7 @@ export default function Login() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={handleAdminLogin}
-                  disabled={isLoading}
-                  className="w-full border-2 border-red-500 text-red-500 hover:bg-red-50 disabled:opacity-50 py-2.5 rounded font-medium transition-colors text-sm"
-                >
-                  🔐 {language === 'zh' ? '管理員儀表板登入' : 'Admin Dashboard Login'}
-                </button>
-                <p className="text-center text-xs text-gray-400 mt-2">
-                  {language === 'zh' ? '僅供商店管理員使用' : 'For store administrators only'}
-                </p>
-                <p className="text-center text-xs text-gray-400 mt-2">
-                  {language === 'zh' ? '測試帳戶: admin@example.com / admin123' : 'Test account: admin@example.com / admin123'}
-                </p>
-              </div>
+
             </div>
           </div>
         </div>
