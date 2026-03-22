@@ -176,4 +176,6 @@
 
 - [x] 診斷購買時的錯誤碼 10001 - 發現使用了兩套不同的認證系統
 - [x] 修復 Checkout 頁面使用正確的 template auth hook - 改為使用 useAuth from @/_core/hooks/useAuth
+- [x] 為本地登入添加後端 API - 創建 auth.localLogin 程序，建立真正的 session cookie
+- [x] 更新 Login 頁面使用新的本地登入 API - 改為調用 trpc.auth.localLogin
 - [ ] 測試修復後的購買流程

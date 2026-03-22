@@ -1,10 +1,12 @@
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure, adminProcedure } from "./_core/trpc";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { getDb } from "./db";
-import { products, categories, orders, orderItems, cart, InsertProduct, InsertOrder, InsertOrderItem, InsertCartItem } from "../drizzle/schema";
+import type { User } from "../drizzle/schema";
+import { products, categories, orders, orderItems, cart, users, InsertProduct, InsertOrder, InsertOrderItem, InsertCartItem } from "../drizzle/schema";
 import { eq, and, desc, asc } from "drizzle-orm";
 
 export const appRouter = router({
@@ -18,6 +20,81 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+    // Local login for development/testing
+    localLogin: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        password: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+
+        // Hardcoded test users for local development
+        let user: User | null = null;
+        if (input.email === 'admin@example.com' && input.password === 'admin123') {
+          const existing = await db.select().from(users).where(eq(users.email, 'admin@example.com')).limit(1);
+          if (existing.length > 0) {
+            user = existing[0];
+          } else {
+            // Create admin user if doesn't exist
+            await db.insert(users).values({
+              openId: 'local-admin-001',
+              email: 'admin@example.com',
+              name: 'Admin User',
+              role: 'admin',
+              loginMethod: 'local',
+            });
+            const result = await db.select().from(users).where(eq(users.email, 'admin@example.com')).limit(1);
+            user = result[0] || null;
+          }
+        } else if (input.email === 'user@example.com' && input.password === 'user123') {
+          const existing = await db.select().from(users).where(eq(users.email, 'user@example.com')).limit(1);
+          if (existing.length > 0) {
+            user = existing[0];
+          } else {
+            // Create regular user if doesn't exist
+            await db.insert(users).values({
+              openId: 'local-user-001',
+              email: 'user@example.com',
+              name: 'Regular User',
+              role: 'user',
+              loginMethod: 'local',
+            });
+            const result = await db.select().from(users).where(eq(users.email, 'user@example.com')).limit(1);
+            user = result[0] || null;
+          }
+        } else {
+          throw new Error('Invalid email or password');
+        }
+
+        if (!user) {
+          throw new Error('Failed to create or retrieve user');
+        }
+
+        // Create session token and set cookie
+        const { sdk } = await import('./_core/sdk');
+        const sessionToken = await sdk.createSessionToken(user.openId, {
+          name: user.name || '',
+          expiresInMs: 365 * 24 * 60 * 60 * 1000, // 1 year
+        });
+
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, sessionToken, {
+          ...cookieOptions,
+          maxAge: 365 * 24 * 60 * 60 * 1000,
+        });
+
+        return {
+          success: true,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          },
+        };
+      }),
   }),
 
   // Products router

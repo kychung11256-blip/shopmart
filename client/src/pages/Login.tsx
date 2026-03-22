@@ -7,19 +7,19 @@ import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { ShoppingCart, Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { trpc } from '@/lib/trpc';
 
 export default function Login() {
   const [, navigate] = useLocation();
-  const { login, register } = useAuth();
   const { language } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [tab, setTab] = useState<'login' | 'register'>('login');
+
+  const localLoginMutation = trpc.auth.localLogin.useMutation();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,11 +30,15 @@ export default function Login() {
     
     setIsLoading(true);
     try {
-      await login(email, password);
-      toast.success(language === 'zh' ? '登入成功！' : 'Login successful!');
-      navigate('/');
-    } catch (error) {
-      toast.error(language === 'zh' ? '郵箱或密碼錯誤' : 'Invalid email or password');
+      const result = await localLoginMutation.mutateAsync({ email, password });
+      if (result.success) {
+        toast.success(language === 'zh' ? '登入成功！' : 'Login successful!');
+        await trpc.useUtils().auth.me.invalidate();
+        navigate('/');
+      }
+    } catch (error: any) {
+      const errorMessage = error?.message || (language === 'zh' ? '郵箱或密碼錯誤' : 'Invalid email or password');
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -42,21 +46,7 @@ export default function Login() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !name) {
-      toast.error(language === 'zh' ? '請填寫所有欄位' : 'Please fill in all fields');
-      return;
-    }
-    
-    setIsLoading(true);
-    try {
-      await register(email, password, name);
-      toast.success(language === 'zh' ? '註冊成功！' : 'Registration successful!');
-      navigate('/');
-    } catch (error) {
-      toast.error(language === 'zh' ? '註冊失敗' : 'Registration failed');
-    } finally {
-      setIsLoading(false);
-    }
+    toast.error(language === 'zh' ? '暫不支持本地註冊，請使用測試帳戶' : 'Local registration not supported. Please use test account');
   };
 
   return (
@@ -112,20 +102,7 @@ export default function Login() {
               </h2>
 
               <form onSubmit={tab === 'login' ? handleLogin : handleRegister} className="space-y-4">
-                {tab === 'register' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'zh' ? '姓名' : 'Full Name'}
-                    </label>
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder={language === 'zh' ? '輸入您的姓名' : 'Enter your name'}
-                      className="w-full border border-gray-200 rounded px-4 py-2.5 text-sm outline-none focus:border-red-400 transition-colors"
-                    />
-                  </div>
-                )}
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {language === 'zh' ? '郵箱' : 'Email'}
