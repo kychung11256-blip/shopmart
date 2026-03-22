@@ -9,7 +9,7 @@ import { useLocation } from 'wouter';
 
 export default function Checkout() {
   const [, navigate] = useLocation();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
   const [shippingAddress, setShippingAddress] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -49,18 +49,24 @@ export default function Checkout() {
         items: cartItems.map(item => ({
           productId: item.productId,
           quantity: item.quantity,
-          price: 0, // Will be calculated on server
         })),
         shippingAddress,
       });
 
+      if (!orderResult.success) {
+        throw new Error('Failed to create order');
+      }
+
+      // Extract order ID from order number (format: ORD-{timestamp})
+      const orderId = parseInt(orderResult.orderNumber.split('-')[1]) || 1;
+
       // Create Stripe checkout session
       const sessionResult = await createCheckoutSessionMutation.mutateAsync({
-        orderId: parseInt(orderResult.orderNumber.split('-')[1]) || 1,
+        orderId,
         items: cartItems.map(item => ({
           productId: item.productId,
           quantity: item.quantity,
-          price: 0,
+          price: item.quantity * 10, // Placeholder price
           name: `Product ${item.productId}`,
         })),
         shippingAddress,
@@ -72,13 +78,26 @@ export default function Checkout() {
         window.open(sessionResult.url, '_blank');
         toast.success('Redirecting to payment...');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Checkout error:', error);
-      toast.error('Failed to process checkout');
+      const errorMessage = error?.message || 'Failed to process checkout';
+      toast.error(errorMessage);
     } finally {
       setIsProcessing(false);
     }
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 size={40} className="animate-spin mx-auto mb-4 text-red-500" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
