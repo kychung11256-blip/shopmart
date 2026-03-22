@@ -15,6 +15,13 @@
       "when": 1774068883552,
       "tag": "0001_gray_next_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1774187283351,
+      "tag": "0002_loose_iron_monger",
+      "breakpoints": true
     }
   ]
 }

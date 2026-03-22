@@ -332,6 +332,156 @@ export const appRouter = router({
         }
       }),
   }),
+
+  // Orders router
+  orders: router({
+    create: protectedProcedure
+      .input(z.object({
+        items: z.array(z.object({
+          productId: z.number(),
+          quantity: z.number(),
+          price: z.number(),
+        })),
+        shippingAddress: z.string(),
+        totalPrice: z.number(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          const newOrder: InsertOrder = {
+            orderNumber,
+            userId: ctx.user?.id || 0,
+            totalPrice: input.totalPrice,
+            shippingAddress: input.shippingAddress,
+            status: 'pending',
+            paymentStatus: 'unpaid',
+          };
+          const result = await db.insert(orders).values(newOrder);
+          const orderId = (result as any).insertId as number;
+          
+          // Insert order items
+          for (const item of input.items) {
+            const orderItem: InsertOrderItem = {
+              orderId,
+              productId: item.productId,
+              quantity: item.quantity,
+              price: item.price,
+            };
+            await db.insert(orderItems).values(orderItem);
+          }
+          
+          return { orderId, orderNumber };
+        } catch (error) {
+          console.error('[API] Error creating order:', error);
+          throw error;
+        }
+      }),
+    list: protectedProcedure
+      .query(async ({ ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          const userOrders = await db.select().from(orders).where(eq(orders.userId, ctx.user?.id || 0)).orderBy(desc(orders.createdAt));
+          return userOrders;
+        } catch (error) {
+          console.error('[API] Error fetching orders:', error);
+          throw error;
+        }
+      }),
+    getById: protectedProcedure
+      .input(z.number())
+      .query(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          const order = await db.select().from(orders).where(and(eq(orders.id, input), eq(orders.userId, ctx.user?.id || 0))).limit(1);
+          if (!order[0]) throw new Error('Order not found');
+          
+          const items = await db.select().from(orderItems).where(eq(orderItems.orderId, input));
+          return { ...order[0], items };
+        } catch (error) {
+          console.error('[API] Error fetching order:', error);
+          throw error;
+        }
+      }),
+    updatePaymentStatus: adminProcedure
+      .input(z.object({
+        orderId: z.number(),
+        paymentStatus: z.enum(['unpaid', 'paid', 'refunded']),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          await db.update(orders).set({ paymentStatus: input.paymentStatus }).where(eq(orders.id, input.orderId));
+          return { success: true };
+        } catch (error) {
+          console.error('[API] Error updating payment status:', error);
+          throw error;
+        }
+      }),
+  }),
+
+  // Stripe payment router
+  payments: router({
+    createCheckoutSession: protectedProcedure
+      .input(z.object({
+        orderId: z.number(),
+        items: z.array(z.object({
+          productId: z.number(),
+          quantity: z.number(),
+          price: z.number(),
+          name: z.string(),
+        })),
+        shippingAddress: z.string(),
+        totalPrice: z.number(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        try {
+          const stripe = (await import('stripe')).default;
+          const stripeClient = new stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2023-10-16' });
+          
+          const session = await stripeClient.checkout.sessions.create({
+            payment_method_types: ['card'],
+            mode: 'payment',
+            customer_email: ctx.user?.email,
+            client_reference_id: ctx.user?.id.toString(),
+            metadata: {
+              orderId: input.orderId.toString(),
+              userId: ctx.user?.id.toString(),
+              customerEmail: ctx.user?.email || '',
+              customerName: ctx.user?.name || '',
+            },
+            line_items: input.items.map(item => ({
+              price_data: {
+                currency: 'usd',
+                product_data: {
+                  name: item.name,
+                },
+                unit_amount: item.price,
+              },
+              quantity: item.quantity,
+            })),
+            success_url: `${ctx.req.headers.origin || 'http://localhost:3000'}/orders?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${ctx.req.headers.origin || 'http://localhost:3000'}/checkout`,
+            allow_promotion_codes: true,
+          });
+          
+          // Save session ID to order
+          const db = await getDb();
+          if (db) {
+            await db.update(orders).set({ stripeSessionId: session.id }).where(eq(orders.id, input.orderId));
+          }
+          
+          return { sessionId: session.id, url: session.url };
+        } catch (error) {
+          console.error('[API] Error creating checkout session:', error);
+          throw error;
+        }
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
