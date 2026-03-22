@@ -20,6 +20,7 @@ export default function Login() {
   const [tab, setTab] = useState<'login' | 'register'>('login');
 
   const localLoginMutation = trpc.auth.localLogin.useMutation();
+  const utils = trpc.useUtils();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +34,7 @@ export default function Login() {
       const result = await localLoginMutation.mutateAsync({ email, password });
       if (result.success) {
         toast.success(language === 'zh' ? '登入成功！' : 'Login successful!');
-        await trpc.useUtils().auth.me.invalidate();
+        await utils.auth.me.invalidate();
         navigate('/');
       }
     } catch (error: any) {
@@ -46,7 +47,7 @@ export default function Login() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.error(language === 'zh' ? '暫不支持本地註冊，請使用測試帳戶' : 'Local registration not supported. Please use test account');
+    toast.info(language === 'zh' ? '請使用上方的登入方式' : 'Please use the login method above');
   };
 
   return (
@@ -168,19 +169,7 @@ export default function Login() {
                 </button>
               </form>
 
-              <div className="mt-6 pt-6 border-t border-gray-100">
-                <p className="text-center text-sm text-gray-500 mb-4">
-                  {language === 'zh' ? '或使用以下方式繼續' : 'Or continue with'}
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  <button className="border border-gray-200 rounded py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-                    <span>🌐</span> Google
-                  </button>
-                  <button className="border border-gray-200 rounded py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-                    <span>📘</span> Facebook
-                  </button>
-                </div>
-              </div>
+
 
 
             </div>
