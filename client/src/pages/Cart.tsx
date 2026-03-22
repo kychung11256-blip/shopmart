@@ -11,7 +11,7 @@ import { ShoppingCart, Search, User, Trash2, Plus, Minus, ChevronRight, ArrowLef
 // 不再使用本地硬編碼商品數據，確保與數據庫同步
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/_core/hooks/useAuth';
 import { t } from '@/lib/translations';
 import { trpc } from '@/lib/trpc';
 import type { Product } from '@/lib/data';

@@ -179,3 +179,15 @@
 - [x] 為本地登入添加後端 API - 創建 auth.localLogin 程序，建立真正的 session cookie
 - [x] 更新 Login 頁面使用新的本地登入 API - 改為調用 trpc.auth.localLogin
 - [ ] 測試修復後的購買流程
+
+
+## 🔄 統一認證系統（完全移除舊 AuthContext）
+
+- [x] 更新 Home 頁面使用新的 useAuth hook
+- [x] 更新 Cart 頁面使用新的 useAuth hook
+- [x] 更新 Products 頁面使用新的 useAuth hook
+- [x] 更新 ProductDetail 頁面使用新的 useAuth hook
+- [x] 更新 Checkout 頁面使用新的 useAuth hook
+- [x] 移除 App.tsx 中的舊 AuthProvider
+- [x] 刪除 AuthContext.tsx 文件
+- [x] 測試完整登入流程 - 所有 33 個測試通過

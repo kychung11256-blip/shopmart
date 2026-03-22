@@ -12,7 +12,7 @@ import { Link, useLocation } from 'wouter';
 import { ShoppingCart, Search, User, ChevronRight, Phone, MessageCircle, ArrowUp, Heart, MapPin, Globe, LogOut } from 'lucide-react';
 import { products as defaultProducts, categories as defaultCategories } from '@/lib/data';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/_core/hooks/useAuth';
 import { t } from '@/lib/translations';
 import { getProductName, getCategoryName } from '@/lib/data-translations';
 import { trpc } from '@/lib/trpc';
@@ -126,16 +126,17 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
-  // 從 TRPC 獲取購物車數據
-  const { data: cartItems = [] } = trpc.cart.list.useQuery();
-  
-  // 計算購物車項目總數
-  const cartCount = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { language, toggleLanguage } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
+  
+  // 從 TRPC 獲取購物車數據（已登入用戶才能查詢）
+  const { data: cartItems = [] } = trpc.cart.list.useQuery(undefined, { enabled: isAuthenticated });
+  
+  // 計算購物車項目總數
+  const cartCount = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
   const [, navigate] = useLocation();
   
   // 使用 TRPC 獲取商品和分類數據
@@ -242,7 +243,7 @@ export default function Home() {
                 </span>
               )}
             </Link>
-            {isAuthenticated && user ? (
+            {user ? (
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}

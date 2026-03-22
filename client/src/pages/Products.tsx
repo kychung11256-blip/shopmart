@@ -9,7 +9,7 @@ import { Link, useLocation } from 'wouter';
 import { ShoppingCart, Search, User, ChevronRight, Filter, SlidersHorizontal, Heart, Star, Globe, LogOut } from 'lucide-react';
 import { products as defaultProducts, categories as defaultCategories } from '@/lib/data';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import type { Product } from '@/lib/data';
 import { toast } from 'sonner';

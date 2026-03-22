@@ -9,7 +9,7 @@ import { Link, useParams } from 'wouter';
 import { ShoppingCart, Search, User, Star, Heart, Share2, ChevronRight, Plus, Minus, Truck, Shield, RefreshCw, Globe, LogOut } from 'lucide-react';
 import { products as defaultProducts } from '@/lib/data';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 import type { Product } from '@/lib/data';
