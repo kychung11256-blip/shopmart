@@ -52,12 +52,11 @@ export default function Checkout() {
           price: 0, // Will be calculated on server
         })),
         shippingAddress,
-        totalPrice,
       });
 
       // Create Stripe checkout session
       const sessionResult = await createCheckoutSessionMutation.mutateAsync({
-        orderId: orderResult.orderId,
+        orderId: parseInt(orderResult.orderNumber.split('-')[1]) || 1,
         items: cartItems.map(item => ({
           productId: item.productId,
           quantity: item.quantity,

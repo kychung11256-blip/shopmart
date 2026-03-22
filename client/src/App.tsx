@@ -19,6 +19,8 @@ import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import Login from "./pages/Login";
+import Checkout from "./pages/Checkout";
+import OrderConfirmation from "./pages/OrderConfirmation";
 
 // Admin pages
 import Dashboard from "./pages/admin/Dashboard";
@@ -38,6 +40,8 @@ function Router() {
       <Route path="/product/:id" component={ProductDetail} />
       <Route path="/cart" component={Cart} />
       <Route path="/login" component={Login} />
+      <Route path="/checkout" component={Checkout} />
+      <Route path="/orders/confirmation" component={OrderConfirmation} />
 
       {/* Admin routes */}
       <Route path="/admin" component={Dashboard} />
