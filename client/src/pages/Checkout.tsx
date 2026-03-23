@@ -28,11 +28,20 @@ function PaymentForm({ clientSecret, onSuccess }: { clientSecret: string; onSucc
     setIsProcessing(true);
 
     try {
+      // Step 1: Submit the form data to Stripe
+      const submitResult = await elements.submit();
+      if (submitResult.error) {
+        toast.error(submitResult.error.message || 'Form submission failed');
+        setIsProcessing(false);
+        return;
+      }
+
+      // Step 2: Confirm the payment
       const { error } = await stripe.confirmPayment({
         elements,
         clientSecret,
         confirmParams: {
-          return_url: `${window.location.origin}/order-confirmation`,
+          return_url: `${window.location.origin}/orders/confirmation`,
         },
       });
 
