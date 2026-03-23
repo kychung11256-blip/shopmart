@@ -95,66 +95,7 @@ export const appRouter = router({
           },
         };
       }),
-    // Local registration for development/testing
-    localRegister: publicProcedure
-      .input(z.object({
-        email: z.string().email(),
-        password: z.string().min(6),
-        name: z.string().min(1),
-      }))
-      .mutation(async ({ input, ctx }) => {
-        const db = await getDb();
-        if (!db) throw new Error('Database not available');
 
-        // Check if user already exists
-        const existing = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
-        if (existing.length > 0) {
-          throw new TRPCError({
-            code: 'CONFLICT',
-            message: 'Email already registered',
-          });
-        }
-
-        // Create new user
-        const openId = `local-user-${Date.now()}`;
-        await db.insert(users).values({
-          openId,
-          email: input.email,
-          name: input.name,
-          role: 'user',
-          loginMethod: 'local',
-        });
-
-        const result = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
-        const user = result[0];
-
-        if (!user) {
-          throw new Error('Failed to create user');
-        }
-
-        // Create session token and set cookie
-        const { sdk } = await import('./_core/sdk');
-        const sessionToken = await sdk.createSessionToken(user.openId, {
-          name: user.name || '',
-          expiresInMs: 365 * 24 * 60 * 60 * 1000, // 1 year
-        });
-
-        const cookieOptions = getSessionCookieOptions(ctx.req);
-        ctx.res.cookie(COOKIE_NAME, sessionToken, {
-          ...cookieOptions,
-          maxAge: 365 * 24 * 60 * 60 * 1000,
-        });
-
-        return {
-          success: true,
-          user: {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-          },
-        };
-      }),
   }),
 
   // Products router

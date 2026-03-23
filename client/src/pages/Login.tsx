@@ -17,10 +17,8 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [tab, setTab] = useState<'login' | 'register'>('login');
 
   const localLoginMutation = trpc.auth.localLogin.useMutation();
-  const registerMutation = trpc.auth.localRegister.useMutation();
   const utils = trpc.useUtils();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -46,36 +44,7 @@ export default function Login() {
     }
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) {
-      toast.error(language === 'zh' ? '請輸入郵箱和密碼' : 'Please enter email and password');
-      return;
-    }
-    if (password.length < 6) {
-      toast.error(language === 'zh' ? '密碼至少需要 6 個字符' : 'Password must be at least 6 characters');
-      return;
-    }
-    
-    setIsLoading(true);
-    try {
-      const result = await registerMutation.mutateAsync({ 
-        email, 
-        password,
-        name: email.split('@')[0]
-      });
-      if (result.success) {
-        toast.success(language === 'zh' ? '註冊成功！' : 'Registration successful!');
-        await utils.auth.me.invalidate();
-        navigate('/');
-      }
-    } catch (error: any) {
-      const errorMessage = error?.message || (language === 'zh' ? '註冊失敗，請重試' : 'Registration failed, please try again');
-      toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -97,39 +66,14 @@ export default function Login() {
       <div className="flex-1 flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            {/* Tabs */}
-            <div className="flex border-b border-gray-100">
-              <button
-                onClick={() => setTab('login')}
-                className={`flex-1 py-4 text-sm font-medium transition-colors ${
-                  tab === 'login'
-                    ? 'text-red-500 border-b-2 border-red-500'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {language === 'zh' ? '登入' : 'Sign In'}
-              </button>
-              <button
-                onClick={() => setTab('register')}
-                className={`flex-1 py-4 text-sm font-medium transition-colors ${
-                  tab === 'register'
-                    ? 'text-red-500 border-b-2 border-red-500'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {language === 'zh' ? '註冊' : 'Register'}
-              </button>
-            </div>
+
 
             <div className="p-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                {tab === 'login' 
-                  ? (language === 'zh' ? '歡迎回來' : 'Welcome back')
-                  : (language === 'zh' ? '建立帳戶' : 'Create account')
-                }
+                {language === 'zh' ? '歡迎回來' : 'Welcome back'}
               </h2>
 
-              <form onSubmit={tab === 'login' ? handleLogin : handleRegister} className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4">
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -169,17 +113,15 @@ export default function Login() {
                   </div>
                 </div>
 
-                {tab === 'login' && (
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 text-sm text-gray-600">
-                      <input type="checkbox" className="rounded" />
-                      {language === 'zh' ? '記住我' : 'Remember me'}
-                    </label>
-                    <a href="#" className="text-sm text-red-500 hover:underline">
-                      {language === 'zh' ? '忘記密碼？' : 'Forgot password?'}
-                    </a>
-                  </div>
-                )}
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 text-sm text-gray-600">
+                    <input type="checkbox" className="rounded" />
+                    {language === 'zh' ? '記住我' : 'Remember me'}
+                  </label>
+                  <a href="#" className="text-sm text-red-500 hover:underline">
+                    {language === 'zh' ? '忘記密碼？' : 'Forgot password?'}
+                  </a>
+                </div>
 
                 <button
                   type="submit"
@@ -188,10 +130,7 @@ export default function Login() {
                 >
                   {isLoading 
                     ? (language === 'zh' ? '加載中...' : 'Loading...')
-                    : (tab === 'login' 
-                        ? (language === 'zh' ? '登入' : 'Sign In')
-                        : (language === 'zh' ? '建立帳戶' : 'Create Account')
-                      )
+                    : (language === 'zh' ? '登入' : 'Sign In')
                   }
                 </button>
               </form>
