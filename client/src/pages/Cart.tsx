@@ -114,7 +114,7 @@ export default function Cart() {
       }
       setIsLoading(false);
     }
-  }, [isAuthenticated, apiCartItems, allProducts, cartLoading]);
+   }, [isAuthenticated, cartLoading]);
 
   const selectedItems = cartItems.filter(item => item.selected);
   const totalPrice = selectedItems.reduce((sum, item) => sum + item.product.price * item.qty, 0);
@@ -197,7 +197,8 @@ export default function Cart() {
       toast.error(language === 'zh' ? '請選擇至少一件商品' : 'Please select at least one item');
       return;
     }
-    toast.success(language === 'zh' ? '進行結帳...' : 'Proceeding to checkout...');
+    // Navigate to checkout page
+    navigate('/checkout');
   };
 
   return (

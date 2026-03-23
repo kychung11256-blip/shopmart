@@ -442,6 +442,72 @@ export const appRouter = router({
 
   // Stripe payment router
   payments: router({
+    // Create Payment Intent for Payment Element
+    createPaymentIntent: protectedProcedure
+      .input(z.object({
+        orderId: z.number(),
+        items: z.array(z.object({
+          productId: z.number(),
+          quantity: z.number(),
+          price: z.number(),
+          name: z.string(),
+        })),
+        shippingAddress: z.string(),
+        totalPrice: z.number(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        try {
+          const { getConfig } = await import('./db');
+          const stripeSecretKey = await getConfig('STRIPE_SECRET_KEY') || process.env.STRIPE_SECRET_KEY;
+          
+          if (!stripeSecretKey) {
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Stripe API key is not configured. Please ask an administrator to configure Stripe keys.',
+            });
+          }
+          
+          const stripe = (await import('stripe')).default;
+          const stripeClient = new stripe(stripeSecretKey);
+          
+          // Create Payment Intent
+          const paymentIntent = await stripeClient.paymentIntents.create({
+            amount: Math.round(input.totalPrice * 100), // Amount in cents
+            currency: 'usd',
+            receipt_email: ctx.user?.email || undefined,
+            metadata: {
+              orderId: input.orderId.toString(),
+              userId: ctx.user?.id.toString(),
+              customerEmail: ctx.user?.email || '',
+              customerName: ctx.user?.name || '',
+              shippingAddress: input.shippingAddress,
+            },
+            automatic_payment_methods: {
+              enabled: true,
+            },
+          });
+          
+          // Save Payment Intent ID to order
+          const db = await getDb();
+          if (db) {
+            await db.update(orders).set({ 
+              stripePaymentIntentId: paymentIntent.id,
+              status: 'pending'
+            }).where(eq(orders.id, input.orderId));
+          }
+          
+          return { 
+            clientSecret: paymentIntent.client_secret,
+            paymentIntentId: paymentIntent.id,
+          };
+        } catch (error: any) {
+          console.error('[API] Error creating payment intent:', error?.message || error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to create payment intent: ${error?.message || 'Unknown error'}`,
+          });
+        }
+      }),
     createCheckoutSession: protectedProcedure
       .input(z.object({
         orderId: z.number(),
@@ -538,6 +604,14 @@ export const appRouter = router({
       return {
         secretKeyConfigured: !!secretKey,
         publishableKeyConfigured: !!publishableKey,
+      };
+    }),
+    // Public: Get Stripe Publishable Key for frontend
+    getStripePublishableKey: publicProcedure.query(async () => {
+      const { getConfig } = await import('./db');
+      const publishableKey = await getConfig('VITE_STRIPE_PUBLISHABLE_KEY') || process.env.VITE_STRIPE_PUBLISHABLE_KEY;
+      return {
+        data: publishableKey || null,
       };
     }),
   }),

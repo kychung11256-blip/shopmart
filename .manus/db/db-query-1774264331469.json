@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO config (`key`, `value`, `description`, `createdAt`, `updatedAt`) VALUES ('VITE_STRIPE_PUBLISHABLE_KEY', 'pk_test_51TDeQb1kcAmsdTwrWkVdTqnUxPuki9seubEC8UrqvvBfYbtdysE2bTzWZVX9c8lZRIsF2FFGaQ6EZkn93TYvRxO400X6LMiVEd', 'Stripe Publishable Key', NOW(), NOW());",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute INSERT INTO config (`key`, `value`, `description`, `createdAt`, `updatedAt`) VALUES ('VITE_STRIPE_PUBLISHABLE_KEY', 'pk_test_51TDeQb1kcAmsdTwrWkVdTqnUxPuki9seubEC8UrqvvBfYbtdysE2bTzWZVX9c8lZRIsF2FFGaQ6EZkn93TYvRxO400X6LMiVEd', 'Stripe Publishable Key', NOW(), NOW());",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1588
+}

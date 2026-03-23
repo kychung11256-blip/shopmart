@@ -1,0 +1,10 @@
+{
+  "query": "INSERT INTO config (key, value, description, createdAt, updatedAt) VALUES \n('STRIPE_SECRET_KEY', 'sk_test_51TDeQb1kcAmsdTwrc1gDOYqJnrzlx3okksXFMVyjgRwB4voCus5lT1SnZZkNLItDor3BdaQ9FZr0yZsygpe2rjuD00v4Klb6fZ', 'Stripe Secret Key', NOW(), NOW()),\n('VITE_STRIPE_PUBLISHABLE_KEY', 'pk_test_51TDeQb1kcAmsdTwrWkVdTqnUxPuki9seubEC8UrqvvBfYbtdysE2bTzWZVX9c8lZRIsF2FFGaQ6EZkn93TYvRxO400X6LMiVEd', 'Stripe Publishable Key', NOW(), NOW())\nON DUPLICATE KEY UPDATE \nvalue = VALUES(value), \nupdatedAt = NOW();",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute INSERT INTO config (key, value, description, createdAt, updatedAt) VALUES \n('STRIPE_SECRET_KEY', 'sk_test_51TDeQb1kcAmsdTwrc1gDOYqJnrzlx3okksXFMVyjgRwB4voCus5lT1SnZZkNLItDor3BdaQ9FZr0yZsygpe2rjuD00v4Klb6fZ', 'Stripe Secret Key', NOW(), NOW()),\n('VITE_STRIPE_PUBLISHABLE_KEY', 'pk_test_51TDeQb1kcAmsdTwrWkVdTqnUxPuki9seubEC8UrqvvBfYbtdysE2bTzWZVX9c8lZRIsF2FFGaQ6EZkn93TYvRxO400X6LMiVEd', 'Stripe Publishable Key', NOW(), NOW())\nON DUPLICATE KEY UPDATE \nvalue = VALUES(value), \nupdatedAt = NOW();",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 1 column 23 near \"key, value, description, createdAt, updatedAt) VALUES ",
+    "('STRIPE_SECRET_KEY', 'sk_test_51TDeQb1kcAmsdTwrc1gDOYqJnrzlx3okksXFMVyjgRwB4voCus5lT1SnZZkNLItDor3BdaQ9FZr0yZsygpe2rjuD00v4Klb6fZ', 'Stripe Secret Key', NOW(), NOW()),",
+    "('VITE_STRIPE_PUBLISHABLE_KEY', 'pk_test_51TDeQb1kcAmsdTwrWkVdTqnUxPuki9seubEC8UrqvvBfYbtdysE2bTzWZVX9c8lZRIsF2FFGaQ6EZkn93TYvRxO400X6LMiVEd',"
+  ]
+}

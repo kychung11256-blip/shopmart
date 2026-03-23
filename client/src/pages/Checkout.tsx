@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
@@ -6,12 +6,72 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+
+// Stripe Promise - will be initialized with publishable key
+let stripePromise: ReturnType<typeof loadStripe> | null = null;
+
+function PaymentForm({ clientSecret, onSuccess }: { clientSecret: string; onSuccess: () => void }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!stripe || !elements) {
+      toast.error('Payment system not ready');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const { error } = await stripe.confirmPayment({
+        elements,
+        clientSecret,
+        confirmParams: {
+          return_url: `${window.location.origin}/order-confirmation`,
+        },
+      });
+
+      if (error) {
+        toast.error(error.message || 'Payment failed');
+      } else {
+        onSuccess();
+      }
+    } catch (err: any) {
+      console.error('Payment error:', err);
+      toast.error('Payment processing failed');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <PaymentElement />
+      <Button
+        type="submit"
+        disabled={isProcessing || !stripe || !elements}
+        className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
+      >
+        {isProcessing && <Loader2 size={20} className="animate-spin" />}
+        {isProcessing ? 'Processing Payment...' : 'Pay Now'}
+      </Button>
+    </form>
+  );
+}
 
 export default function Checkout() {
   const [, navigate] = useLocation();
   const { user, isAuthenticated, loading } = useAuth();
   const [shippingAddress, setShippingAddress] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const [stripePromiseState, setStripePromiseState] = useState<Awaited<ReturnType<typeof loadStripe>> | null>(null);
 
   // Get cart items
   const { data: cartItems = [] } = trpc.cart.list.useQuery(undefined, {
@@ -20,7 +80,23 @@ export default function Checkout() {
 
   // Mutations
   const createOrderMutation = trpc.orders.create.useMutation();
-  const createCheckoutSessionMutation = trpc.payments.createCheckoutSession.useMutation();
+  const createPaymentIntentMutation = trpc.payments.createPaymentIntent.useMutation();
+  const stripeKeyQuery = trpc.config.getStripePublishableKey.useQuery();
+
+  // Initialize Stripe
+  useEffect(() => {
+    const initStripe = async () => {
+      try {
+        if (stripeKeyQuery.data?.data) {
+          const stripe = await loadStripe(stripeKeyQuery.data.data);
+          setStripePromiseState(stripe);
+        }
+      } catch (error) {
+        console.error('Failed to load Stripe:', error);
+      }
+    };
+    initStripe();
+  }, [stripeKeyQuery.data]);
 
   // Calculate total
   const totalPrice = cartItems.reduce((sum, item) => sum + (item.quantity * (item.price || 0)), 0);
@@ -60,8 +136,8 @@ export default function Checkout() {
       // Extract order ID from order number (format: ORD-{timestamp})
       const orderId = parseInt(orderResult.orderNumber.split('-')[1]) || 1;
 
-      // Create Stripe checkout session
-      const sessionResult = await createCheckoutSessionMutation.mutateAsync({
+      // Create Payment Intent
+      const paymentResult = await createPaymentIntentMutation.mutateAsync({
         orderId,
         items: cartItems.map(item => ({
           productId: item.productId,
@@ -73,19 +149,22 @@ export default function Checkout() {
         totalPrice,
       });
 
-      // Redirect to Stripe checkout
-      if (sessionResult.url) {
-        // Store order ID in session storage for confirmation page
-        sessionStorage.setItem('lastOrderId', orderId.toString());
-        window.location.href = sessionResult.url;
-      }
+      setClientSecret(paymentResult.clientSecret);
+      setPaymentIntentId(paymentResult.paymentIntentId);
+      sessionStorage.setItem('lastOrderId', orderId.toString());
     } catch (error: any) {
       console.error('Checkout error:', error);
       const errorMessage = error?.message || 'Failed to process checkout';
       toast.error(errorMessage);
-    } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    toast.success('Payment successful! Redirecting to confirmation...');
+    setTimeout(() => {
+      navigate('/order-confirmation');
+    }, 1500);
   };
 
   // Show loading state
@@ -123,6 +202,59 @@ export default function Checkout() {
     );
   }
 
+  // Show payment form if client secret is available
+  if (clientSecret && stripePromiseState) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          <button
+            onClick={() => {
+              setClientSecret(null);
+              setPaymentIntentId(null);
+            }}
+            className="flex items-center gap-2 text-red-500 hover:text-red-600 mb-6"
+          >
+            <ArrowLeft size={20} />
+            Back to Order
+          </button>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2">
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-2xl font-bold mb-6">Complete Payment</h2>
+                <Elements stripe={stripePromiseState} options={{ clientSecret }}>
+                  <PaymentForm clientSecret={clientSecret} onSuccess={handlePaymentSuccess} />
+                </Elements>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-6 h-fit">
+              <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span>${totalPrice.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Shipping</span>
+                  <span>$0.00</span>
+                </div>
+                <div className="border-t pt-3 flex justify-between font-bold text-lg">
+                  <span>Total</span>
+                  <span className="text-red-500">${totalPrice.toFixed(2)}</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 text-center">
+                Your payment is processed securely
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show checkout form
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto">
@@ -200,7 +332,7 @@ export default function Checkout() {
               </div>
             </div>
             <p className="text-xs text-gray-500 text-center">
-              You will be redirected to Stripe to complete payment
+              Secure payment powered by Stripe
             </p>
           </div>
         </div>
