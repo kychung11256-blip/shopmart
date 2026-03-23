@@ -1,0 +1,60 @@
+{
+  "query": "SELECT id, orderNumber, userId, totalPrice, status, paymentStatus, shippingAddress, createdAt FROM orders ORDER BY id DESC LIMIT 5",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT id, orderNumber, userId, totalPrice, status, paymentStatus, shippingAddress, createdAt FROM orders ORDER BY id DESC LIMIT 5",
+  "rows": [
+    {
+      "id": "390022",
+      "orderNumber": "ORD-1774297826588",
+      "userId": "1",
+      "totalPrice": "4000",
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "shippingAddress": "100 Main Street, New York, NY 10001, USA",
+      "createdAt": "2026-03-23 20:30:26"
+    },
+    {
+      "id": "390021",
+      "orderNumber": "ORD-1774297457373",
+      "userId": "810009",
+      "totalPrice": "1000",
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "shippingAddress": "hhh",
+      "createdAt": "2026-03-23 20:24:17"
+    },
+    {
+      "id": "390020",
+      "orderNumber": "ORD-1774297264668",
+      "userId": "810009",
+      "totalPrice": "1000",
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "shippingAddress": "eeee",
+      "createdAt": "2026-03-23 20:21:05"
+    },
+    {
+      "id": "390019",
+      "orderNumber": "ORD-1774296821262",
+      "userId": "1",
+      "totalPrice": "4000",
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "shippingAddress": "555 Market Street, San Francisco, CA 94103, USA",
+      "createdAt": "2026-03-23 20:13:41"
+    },
+    {
+      "id": "390018",
+      "orderNumber": "ORD-1774296611043",
+      "userId": "810009",
+      "totalPrice": "1000",
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "shippingAddress": "1111111",
+      "createdAt": "2026-03-23 20:10:11"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\torderNumber\tuserId\ttotalPrice\tstatus\tpaymentStatus\tshippingAddress\tcreatedAt\n390022\tORD-1774297826588\t1\t4000\tpending\tunpaid\t100 Main Street, New York, NY 10001, USA\t2026-03-23 20:30:26\n390021\tORD-1774297457373\t810009\t1000\tpending\tunpaid\thhh\t2026-03-23 20:24:17\n390020\tORD-1774297264668\t810009\t1000\tpending\tunpaid\teeee\t2026-03-23 20:21:05\n390019\tORD-1774296821262\t1\t4000\tpending\tunpaid\t555 Market Street, San Francisco, CA 94103, USA\t2026-03-23 20:13:41\n390018\tORD-1774296611043\t810009\t1000\tpending\tunpaid\t1111111\t2026-03-23 20:10:11\n",
+  "stderr": "",
+  "execution_time_ms": 1751
+}
