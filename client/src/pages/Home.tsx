@@ -125,19 +125,19 @@ function ProductCard({ product }: { product: Product }) {
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<number | null>(null);
+  const [activeCategory, setActiveCategory] = useState<number | null>(1);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { language, toggleLanguage } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
+  const [, navigate] = useLocation();
   
-  // 從 TRPC 獲取購物車數據（已登入用戶才能查詢）
+  // 使用 TRPC 獲取購物車數據
   const { data: cartItems = [] } = trpc.cart.list.useQuery(undefined, { enabled: isAuthenticated });
   
   // 計算購物車項目總數
   const cartCount = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
-  const [, navigate] = useLocation();
   
   // 使用 TRPC 獲取商品和分類數據
   const { data: apiProducts = [], isLoading: productsLoading } = trpc.products.list.useQuery({ limit: 100 });
@@ -145,7 +145,6 @@ export default function Home() {
   
   // 轉換 API 數據為前端格式（不使用本地後備數據，確保與數據庫同步）
   const products = apiProducts.map(convertDbProductToFrontend);
-  
   const categories = apiCategories.map(convertDbCategoryToFrontend);
 
   useEffect(() => {
@@ -307,7 +306,7 @@ export default function Home() {
                   <button
                     onClick={() => setActiveCategory(null)}
                     className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-gray-50 ${
-                      activeCategory === null
+                      activeCategory === null || activeCategory === 0
                         ? 'bg-red-500 text-white font-medium'
                         : 'text-gray-700 hover:bg-gray-50 hover:text-red-500'
                     }`}
@@ -405,7 +404,7 @@ export default function Home() {
                 </div>
                 <div className="p-3 grid grid-cols-2 gap-2">
                   {shopStreetProducts.map((product) => (
-                    <div key={product.id} className="group cursor-pointer">
+                    <div key={product.id} className="group cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
                       <div className="relative overflow-hidden rounded" style={{ paddingTop: '100%' }}>
                         <img
                           src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop'}
@@ -431,7 +430,7 @@ export default function Home() {
                 </div>
                 <div className="p-3 space-y-2">
                   {topOneProducts.map((product, idx) => (
-                    <div key={product.id} className="flex items-center gap-3 group cursor-pointer hover:bg-gray-50 rounded p-1 transition-colors">
+                    <div key={product.id} className="flex items-center gap-3 group cursor-pointer hover:bg-gray-50 rounded p-1 transition-colors" onClick={() => navigate(`/product/${product.id}`)}>
                       <div className="relative shrink-0">
                         <div className="w-16 h-16 rounded overflow-hidden">
                           <img
