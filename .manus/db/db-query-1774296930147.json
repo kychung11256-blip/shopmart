@@ -1,0 +1,60 @@
+{
+  "query": "SELECT id, orderNumber, userId, totalPrice, status, paymentStatus, shippingAddress, createdAt FROM orders ORDER BY createdAt DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT id, orderNumber, userId, totalPrice, status, paymentStatus, shippingAddress, createdAt FROM orders ORDER BY createdAt DESC LIMIT 5;",
+  "rows": [
+    {
+      "id": "390019",
+      "orderNumber": "ORD-1774296821262",
+      "userId": "1",
+      "totalPrice": "4000",
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "shippingAddress": "555 Market Street, San Francisco, CA 94103, USA",
+      "createdAt": "2026-03-23 20:13:41"
+    },
+    {
+      "id": "390018",
+      "orderNumber": "ORD-1774296611043",
+      "userId": "810009",
+      "totalPrice": "1000",
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "shippingAddress": "1111111",
+      "createdAt": "2026-03-23 20:10:11"
+    },
+    {
+      "id": "390017",
+      "orderNumber": "ORD-1774296461932",
+      "userId": "810009",
+      "totalPrice": "1000",
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "shippingAddress": "ddd",
+      "createdAt": "2026-03-23 20:07:42"
+    },
+    {
+      "id": "390016",
+      "orderNumber": "ORD-1774296006101",
+      "userId": "1",
+      "totalPrice": "4000",
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "shippingAddress": "789 Pine Road, Seattle, WA 98101, USA",
+      "createdAt": "2026-03-23 20:00:06"
+    },
+    {
+      "id": "390015",
+      "orderNumber": "ORD-1774295791184",
+      "userId": "1",
+      "totalPrice": "4000",
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "shippingAddress": "456 Oak Avenue, Los Angeles, CA 90001, USA",
+      "createdAt": "2026-03-23 19:56:31"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\torderNumber\tuserId\ttotalPrice\tstatus\tpaymentStatus\tshippingAddress\tcreatedAt\n390019\tORD-1774296821262\t1\t4000\tpending\tunpaid\t555 Market Street, San Francisco, CA 94103, USA\t2026-03-23 20:13:41\n390018\tORD-1774296611043\t810009\t1000\tpending\tunpaid\t1111111\t2026-03-23 20:10:11\n390017\tORD-1774296461932\t810009\t1000\tpending\tunpaid\tddd\t2026-03-23 20:07:42\n390016\tORD-1774296006101\t1\t4000\tpending\tunpaid\t789 Pine Road, Seattle, WA 98101, USA\t2026-03-23 20:00:06\n390015\tORD-1774295791184\t1\t4000\tpending\tunpaid\t456 Oak Avenue, Los Angeles, CA 90001, USA\t2026-03-23 19:56:31\n",
+  "stderr": "",
+  "execution_time_ms": 1668
+}

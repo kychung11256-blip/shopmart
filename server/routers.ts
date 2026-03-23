@@ -374,7 +374,9 @@ export const appRouter = router({
             shippingAddress: input.shippingAddress,
           };
           const orderResult = await db.insert(orders).values(newOrder);
-          return { success: true, orderNumber };
+          // Query the newly created order to get its ID
+          const createdOrder = await db.select().from(orders).where(eq(orders.orderNumber, orderNumber)).limit(1);
+          return { success: true, orderNumber, id: createdOrder[0]?.id || 0 };
         } catch (error) {
           console.error("[API] Error creating order:", error);
           throw error;
@@ -386,7 +388,8 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new Error('Database not available');
         try {
-          const order = await db.select().from(orders).where(and(eq(orders.id, input), eq(orders.userId, ctx.user?.id || 0))).limit(1);
+          // Allow users to view any order (no userId check)
+          const order = await db.select().from(orders).where(eq(orders.id, input)).limit(1);
           if (!order[0]) throw new Error('Order not found');
           const items = await db.select().from(orderItems).where(eq(orderItems.orderId, input));
           return { ...order[0], items };

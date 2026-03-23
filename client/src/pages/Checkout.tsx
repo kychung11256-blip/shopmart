@@ -143,8 +143,8 @@ export default function Checkout() {
         throw new Error('Failed to create order');
       }
 
-      // Extract order ID from order number (format: ORD-{timestamp})
-      const orderId = parseInt(orderResult.orderNumber.split('-')[1]) || 1;
+      // Get order ID from the response
+      const orderId = orderResult.id || 1;
       // Create Payment Intent (pass totalPrice in cents for Stripe)
       const paymentResult = await createPaymentIntentMutation.mutateAsync({
         orderId,
@@ -171,8 +171,13 @@ export default function Checkout() {
 
   const handlePaymentSuccess = () => {
     toast.success('Payment successful! Redirecting to confirmation...');
+    const orderId = sessionStorage.getItem('lastOrderId');
     setTimeout(() => {
-      navigate('/order-confirmation');
+      if (orderId) {
+        navigate(`/orders/confirmation?orderId=${orderId}`);
+      } else {
+        navigate('/orders/confirmation');
+      }
     }, 1500);
   };
 

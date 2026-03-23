@@ -1,0 +1,24 @@
+{
+  "query": "SELECT * FROM orders WHERE id = 390016;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT * FROM orders WHERE id = 390016;",
+  "rows": [
+    {
+      "id": "390016",
+      "orderNumber": "ORD-1774296006101",
+      "userId": "1",
+      "totalPrice": "4000",
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "shippingAddress": "789 Pine Road, Seattle, WA 98101, USA",
+      "notes": "NULL",
+      "createdAt": "2026-03-23 20:00:06",
+      "updatedAt": "2026-03-23 20:00:09",
+      "stripePaymentIntentId": "pi_3TEEdx1kcAmsdTwr0jBZE3Ot",
+      "stripeSessionId": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\torderNumber\tuserId\ttotalPrice\tstatus\tpaymentStatus\tshippingAddress\tnotes\tcreatedAt\tupdatedAt\tstripePaymentIntentId\tstripeSessionId\n390016\tORD-1774296006101\t1\t4000\tpending\tunpaid\t789 Pine Road, Seattle, WA 98101, USA\tNULL\t2026-03-23 20:00:06\t2026-03-23 20:00:09\tpi_3TEEdx1kcAmsdTwr0jBZE3Ot\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1645
+}
