@@ -14,12 +14,15 @@ export default function OrderConfirmation() {
   const { language } = useLanguage();
   const [orderId, setOrderId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasMarkedAsPaid, setHasMarkedAsPaid] = useState(false);
+  const markAsPaidMutation = trpc.orders.markAsPaid.useMutation();
 
   // Get order ID from session storage or URL
   useEffect(() => {
     // Check if this is a return from Stripe
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get('session_id');
+    const redirectStatus = params.get('redirect_status');
     
     let id: number | null = null;
     
@@ -48,12 +51,36 @@ export default function OrderConfirmation() {
 
     setOrderId(id);
     setIsLoading(false);
-  }, [navigate, language]);
+    
+    // If payment was successful and we haven't marked as paid yet, do it now
+    if (redirectStatus === 'succeeded' && id && !hasMarkedAsPaid) {
+      console.log(`[OrderConfirmation] Payment succeeded for order ${id}, marking as paid...`);
+      setHasMarkedAsPaid(true);
+      markAsPaidMutation.mutate(id, {
+        onSuccess: () => {
+          console.log(`[OrderConfirmation] Order ${id} marked as paid successfully`);
+          toast.success(language === 'zh' ? '訂單已更新為已支付' : 'Order marked as paid');
+        },
+        onError: (error) => {
+          console.error(`[OrderConfirmation] Error marking order ${id} as paid:`, error);
+          toast.error(language === 'zh' ? '更新訂單狀態失敗' : 'Failed to update order status');
+        },
+      });
+    }
+  }, [navigate, language, hasMarkedAsPaid, markAsPaidMutation]);
 
-  // Fetch order details
-  const { data: order, isLoading: orderLoading } = trpc.orders.getById.useQuery(orderId || 0, {
+  // Fetch order details (will refetch when order is marked as paid)
+  const { data: order, isLoading: orderLoading, refetch: refetchOrder } = trpc.orders.getById.useQuery(orderId || 0, {
     enabled: !!orderId && isAuthenticated,
   });
+  
+  // Refetch order when payment is marked as paid
+  useEffect(() => {
+    if (markAsPaidMutation.isSuccess) {
+      console.log('[OrderConfirmation] Refetching order after marking as paid...');
+      refetchOrder();
+    }
+  }, [markAsPaidMutation.isSuccess, refetchOrder]);
 
   if (!isAuthenticated) {
     return (
@@ -172,11 +199,14 @@ export default function OrderConfirmation() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-1">{language === 'zh' ? '狀態' : 'Status'}</p>
-              <p className="text-lg font-bold capitalize text-green-600">
-                {language === 'zh' 
-                  ? (order.paymentStatus === 'paid' ? '已支付' : order.paymentStatus === 'unpaid' ? '未支付' : '已退款')
-                  : order.paymentStatus}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-lg font-bold capitalize text-green-600">
+                  {language === 'zh' 
+                    ? (order.paymentStatus === 'paid' ? '已支付' : order.paymentStatus === 'unpaid' ? '未支付' : '已退款')
+                    : order.paymentStatus}
+                </p>
+                {markAsPaidMutation.isPending && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>}
+              </div>
             </CardContent>
           </Card>
 

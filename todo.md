@@ -67,3 +67,12 @@
 - [x] 配置 Stripe API Key - 已完成（sk_test_... 和 pk_test_...）
 - [x] 修譩支付 URL 返回問題 - 已修譩（/order-confirmation）
 - [x] 所有 33 個測試通過 - 沒有錯誤
+
+## ✅ 支付狀態自動更新修復
+
+- [x] 診斷支付狀態未更新問題 - 發現 OrderConfirmation 沒有調用 markAsPaid API
+- [x] 修改 OrderConfirmation.tsx 以檢測支付成功參數 - 添加 redirect_status 檢測
+- [x] 在支付成功時自動調用 markAsPaid API - 已實現
+- [x] 添加自動重新查詢訂單數據功能 - 支付狀態立即更新顯示
+- [x] 完整測試支付流程 - 驗證支付成功後訂單狀態自動從「未支付」更新為「已支付」
+- [x] 驗證訂單確認頁面正確顯示最新狀態 - 已驗證成功
