@@ -386,7 +386,19 @@ export const appRouter = router({
       const db = await getDb();
       if (!db) return [];
       try {
-        return await db.select().from(cart).where(eq(cart.userId, ctx.user?.id || 0));
+        const cartItems = await db.select().from(cart).where(eq(cart.userId, ctx.user?.id || 0));
+        const itemsWithProducts = await Promise.all(
+          cartItems.map(async (item) => {
+            const productResult = await db.select().from(products).where(eq(products.id, item.productId)).limit(1);
+            const product = productResult[0];
+            return {
+              ...item,
+              price: product?.price || 0,
+              productName: product?.name || 'Unknown Product',
+            };
+          })
+        );
+        return itemsWithProducts;
       } catch (error) {
         console.error("[API] Error fetching cart:", error);
         return [];

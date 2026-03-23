@@ -23,7 +23,7 @@ export default function Checkout() {
   const createCheckoutSessionMutation = trpc.payments.createCheckoutSession.useMutation();
 
   // Calculate total
-  const totalPrice = cartItems.reduce((sum, item) => sum + (item.quantity * (item.productId || 0)), 0);
+  const totalPrice = cartItems.reduce((sum, item) => sum + (item.quantity * (item.price || 0)), 0);
 
   const handleCheckout = async () => {
     if (!isAuthenticated) {
@@ -66,8 +66,8 @@ export default function Checkout() {
         items: cartItems.map(item => ({
           productId: item.productId,
           quantity: item.quantity,
-          price: item.quantity * 10, // Placeholder price
-          name: `Product ${item.productId}`,
+          price: item.price || 0,
+          name: item.productName || `Product ${item.productId}`,
         })),
         shippingAddress,
         totalPrice,
@@ -163,7 +163,7 @@ export default function Checkout() {
                         <p className="font-medium">Product {item.productId}</p>
                         <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
                       </div>
-                      <p className="font-semibold">${(item.quantity * 10).toFixed(2)}</p>
+                      <p className="font-semibold">${(item.quantity * (item.price || 0)).toFixed(2)}</p>
                     </div>
                   ))}
                 </div>
