@@ -346,7 +346,7 @@ export default function Checkout() {
               </div>
             </div>
             <p className="text-xs text-gray-500 text-center">
-              Secure payment powered by Stripe
+              Secure payment powered by St
             </p>
           </div>
         </div>
