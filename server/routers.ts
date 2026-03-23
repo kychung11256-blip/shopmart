@@ -456,8 +456,17 @@ export const appRouter = router({
       }))
       .mutation(async ({ input, ctx }) => {
         try {
+          const stripeSecretKey = 'sk_test_51TDeQb1kcAmsdTwrc1gDOYqJnrzlx3okksXFMVyjgRwB4voCus5lT1SnZZkNLItDor3BdaQ9FZr0yZsygpe2rjuD00v4Klb6fZ';
+          
+          if (!stripeSecretKey) {
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Stripe API key is not configured',
+            });
+          }
+          
           const stripe = (await import('stripe')).default;
-          const stripeClient = new stripe(process.env.STRIPE_SECRET_KEY || '');
+          const stripeClient = new stripe(stripeSecretKey);
           
           const session = await stripeClient.checkout.sessions.create({
             mode: 'payment',
