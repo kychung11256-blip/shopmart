@@ -26,13 +26,15 @@ const categoryImages = [
   'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=200&h=200&fit=crop',
 ];
 
-const bannerSlides = [
+// 默認 Banner 幻燈片（備用）
+const defaultBannerSlides = [
   {
     id: 1,
     image: 'https://d2xsxph8kpxj0f.cloudfront.net/310519663458665119/8Wwg5mRcrYyNGMcAgK6gn2/banner-fashion-JeSN33rLX87SGrwxcroe5B.webp',
     title: 'New Arrivals',
     subtitle: 'Elegant Dress Collection',
     cta: 'Shop Now',
+    productId: null,
   },
   {
     id: 2,
@@ -40,6 +42,7 @@ const bannerSlides = [
     title: 'Latest Tech',
     subtitle: 'Gadgets & Electronics',
     cta: 'Explore',
+    productId: null,
   },
   {
     id: 3,
@@ -47,6 +50,7 @@ const bannerSlides = [
     title: 'Summer Sale',
     subtitle: 'Up to 50% Off',
     cta: 'Grab Deals',
+    productId: null,
   },
 ];
 
@@ -166,6 +170,18 @@ export default function Home() {
   const shopStreetProducts = products.slice(0, 3);
   const topOneProducts = products.slice(0, 3);
   const youMayLikeProducts = products.slice(0, 10);
+  
+  // 生成動態 Banner 幻燈片 - 使用熱銷商品圖片
+  const bannerSlides = topOneProducts.length > 0 
+    ? topOneProducts.map((product, idx) => ({
+        id: idx + 1,
+        image: product.image || defaultBannerSlides[idx % defaultBannerSlides.length].image,
+        title: product.name,
+        subtitle: `$${product.price.toFixed(2)}`,
+        cta: 'View Details',
+        productId: product.id,
+      }))
+    : defaultBannerSlides;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -343,9 +359,12 @@ export default function Home() {
                   <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent flex items-center">
                     <div className="ml-12 text-white">
-                      <p className="text-sm uppercase tracking-widest opacity-80">{slide.title}</p>
-                      <h2 className="text-3xl font-bold mt-1">{slide.subtitle}</h2>
-                      <button className="mt-4 bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded text-sm font-medium transition-colors">
+                      <p className="text-sm uppercase tracking-widest opacity-80">{language === 'zh' ? '熱銷商品' : 'Hot Product'}</p>
+                      <h2 className="text-3xl font-bold mt-1">{slide.title}</h2>
+                      <button 
+                        onClick={() => slide.productId && navigate(`/product/${slide.productId}`)}
+                        className="mt-4 bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded text-sm font-medium transition-colors"
+                      >
                         {slide.cta}
                       </button>
                     </div>
