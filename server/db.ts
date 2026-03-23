@@ -90,3 +90,57 @@ export async function getUserByOpenId(openId: string) {
 }
 
 // TODO: add feature queries here as your schema grows.
+
+export async function getConfig(key: string): Promise<string | null> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get config: database not available");
+    return null;
+  }
+
+  try {
+    const { config } = await import("../drizzle/schema");
+    const { eq } = await import("drizzle-orm");
+    
+    const result = await db.select().from(config).where(eq(config.key, key));
+    return result.length > 0 ? result[0].value : null;
+  } catch (error) {
+    console.error("[Database] Failed to get config:", error);
+    return null;
+  }
+}
+
+export async function setConfig(key: string, value: string, description?: string): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot set config: database not available");
+    return;
+  }
+
+  try {
+    const { config } = await import("../drizzle/schema");
+    const { eq } = await import("drizzle-orm");
+    
+    // Check if config already exists
+    const existing = await db.select().from(config).where(eq(config.key, key));
+    
+    if (existing.length > 0) {
+      // Update existing
+      await db.update(config)
+        .set({ value, description, updatedAt: new Date() })
+        .where(eq(config.key, key));
+    } else {
+      // Insert new
+      await db.insert(config).values({
+        key,
+        value,
+        description,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+  } catch (error) {
+    console.error("[Database] Failed to set config:", error);
+    throw error;
+  }
+}

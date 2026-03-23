@@ -3,10 +3,11 @@
  * Design: 深色側邊欄 + 白色內容區域
  */
 
-import { useState } from 'react';
-import { Save, Store, Bell, Shield, Globe, CreditCard } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Save, Store, Bell, Shield, Globe, CreditCard, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { AdminLayout } from './Dashboard';
 import { toast } from 'sonner';
+import { trpc } from '@/lib/trpc';
 
 export default function AdminSettings() {
   const [activeTab, setActiveTab] = useState('general');
@@ -20,6 +21,15 @@ export default function AdminSettings() {
   const [orderAlerts, setOrderAlerts] = useState(true);
   const [lowStockAlerts, setLowStockAlerts] = useState(true);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+  
+  // Stripe configuration state
+  const [stripeSecretKey, setStripeSecretKey] = useState('');
+  const [stripePublishableKey, setStripePublishableKey] = useState('');
+  const [isSavingStripe, setIsSavingStripe] = useState(false);
+  
+  // Stripe status query
+  const { data: stripeStatus } = trpc.config.getStripeStatus.useQuery();
+  const setStripeKeysMutation = trpc.config.setStripeKeys.useMutation();
 
   const tabs = [
     { id: 'general', label: 'General', icon: Store },
@@ -214,23 +224,114 @@ export default function AdminSettings() {
           {activeTab === 'payment' && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-5">Payment Settings</h2>
-              <div className="space-y-4">
-                {[
-                  { name: 'Credit Card', desc: 'Accept Visa, Mastercard, Amex', enabled: true },
-                  { name: 'PayPal', desc: 'Accept PayPal payments', enabled: true },
-                  { name: 'Stripe', desc: 'Stripe payment gateway', enabled: false },
-                  { name: 'Alipay', desc: 'Accept Alipay payments', enabled: false },
-                ].map((method) => (
-                  <div key={method.name} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg">
+              <div className="space-y-6">
+                {/* Stripe Configuration */}
+                <div className="border-t border-gray-100 pt-6">
+                  <div className="flex items-center justify-between mb-4">
                     <div>
-                      <p className="text-sm font-medium text-gray-700">{method.name}</p>
-                      <p className="text-xs text-gray-400">{method.desc}</p>
+                      <h3 className="text-base font-semibold text-gray-800">Stripe Configuration</h3>
+                      <p className="text-sm text-gray-500 mt-1">Configure your Stripe API keys for payment processing</p>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${method.enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                      {method.enabled ? 'Enabled' : 'Disabled'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {stripeStatus?.secretKeyConfigured && stripeStatus?.publishableKeyConfigured ? (
+                        <div className="flex items-center gap-1 text-green-600">
+                          <CheckCircle size={16} />
+                          <span className="text-xs font-medium">Configured</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-orange-600">
+                          <AlertCircle size={16} />
+                          <span className="text-xs font-medium">Not Configured</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                ))}
+                  
+                  <div className="space-y-4 max-w-lg">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Secret Key</label>
+                      <input
+                        type="password"
+                        value={stripeSecretKey}
+                        onChange={(e) => setStripeSecretKey(e.target.value)}
+                        placeholder="sk_test_..."
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">Your Stripe secret key (starts with sk_test_ or sk_live_)</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Publishable Key</label>
+                      <input
+                        type="text"
+                        value={stripePublishableKey}
+                        onChange={(e) => setStripePublishableKey(e.target.value)}
+                        placeholder="pk_test_..."
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">Your Stripe publishable key (starts with pk_test_ or pk_live_)</p>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        if (!stripeSecretKey.trim() || !stripePublishableKey.trim()) {
+                          toast.error('Please enter both Stripe keys');
+                          return;
+                        }
+                        
+                        setIsSavingStripe(true);
+                        try {
+                          await setStripeKeysMutation.mutateAsync({
+                            secretKey: stripeSecretKey,
+                            publishableKey: stripePublishableKey,
+                          });
+                          toast.success('Stripe keys configured successfully!');
+                          setStripeSecretKey('');
+                          setStripePublishableKey('');
+                        } catch (error: any) {
+                          toast.error(error?.message || 'Failed to save Stripe keys');
+                        } finally {
+                          setIsSavingStripe(false);
+                        }
+                      }}
+                      disabled={isSavingStripe}
+                      className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2"
+                    >
+                      {isSavingStripe ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save size={16} />
+                          Save Stripe Keys
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Other payment methods */}
+                <div>
+                  <h3 className="text-base font-semibold text-gray-800 mb-4">Payment Methods</h3>
+                  <div className="space-y-3">
+                    {[
+                      { name: 'Credit Card', desc: 'Accept Visa, Mastercard, Amex', enabled: true },
+                      { name: 'PayPal', desc: 'Accept PayPal payments', enabled: true },
+                      { name: 'Stripe', desc: 'Stripe payment gateway', enabled: stripeStatus?.secretKeyConfigured && stripeStatus?.publishableKeyConfigured },
+                      { name: 'Alipay', desc: 'Accept Alipay payments', enabled: false },
+                    ].map((method) => (
+                      <div key={method.name} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg">
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">{method.name}</p>
+                          <p className="text-xs text-gray-400">{method.desc}</p>
+                        </div>
+                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${method.enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                          {method.enabled ? 'Enabled' : 'Disabled'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           )}

@@ -105,3 +105,15 @@ export const cart = mysqlTable("cart", {
 
 export type CartItem = typeof cart.$inferSelect;
 export type InsertCartItem = typeof cart.$inferInsert;
+// Configuration table for storing API keys and settings
+export const config = mysqlTable("config", {
+  id: int("id").autoincrement().primaryKey(),
+  key: varchar("key", { length: 255 }).notNull().unique(),
+  value: text("value").notNull(),
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Config = typeof config.$inferSelect;
+export type InsertConfig = typeof config.$inferInsert;

@@ -456,12 +456,13 @@ export const appRouter = router({
       }))
       .mutation(async ({ input, ctx }) => {
         try {
-          const stripeSecretKey = 'sk_test_51TDeQb1kcAmsdTwrc1gDOYqJnrzlx3okksXFMVyjgRwB4voCus5lT1SnZZkNLItDor3BdaQ9FZr0yZsygpe2rjuD00v4Klb6fZ';
+          const { getConfig } = await import('./db');
+          const stripeSecretKey = await getConfig('STRIPE_SECRET_KEY') || process.env.STRIPE_SECRET_KEY;
           
           if (!stripeSecretKey) {
             throw new TRPCError({
               code: 'INTERNAL_SERVER_ERROR',
-              message: 'Stripe API key is not configured',
+              message: 'Stripe API key is not configured. Please ask an administrator to configure Stripe keys.',
             });
           }
           
@@ -508,6 +509,37 @@ export const appRouter = router({
           });
         }
       }),
+  }),
+  config: router({
+    // Admin-only: Set Stripe configuration
+    setStripeKeys: adminProcedure
+      .input(z.object({
+        secretKey: z.string().min(1),
+        publishableKey: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const { setConfig } = await import('./db');
+        try {
+          await setConfig('STRIPE_SECRET_KEY', input.secretKey, 'Stripe Secret Key');
+          await setConfig('VITE_STRIPE_PUBLISHABLE_KEY', input.publishableKey, 'Stripe Publishable Key');
+          return { success: true };
+        } catch (error: any) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to save Stripe keys: ${error?.message || 'Unknown error'}`,
+          });
+        }
+      }),
+    // Admin-only: Get current Stripe configuration status
+    getStripeStatus: adminProcedure.query(async () => {
+      const { getConfig } = await import('./db');
+      const secretKey = await getConfig('STRIPE_SECRET_KEY');
+      const publishableKey = await getConfig('VITE_STRIPE_PUBLISHABLE_KEY');
+      return {
+        secretKeyConfigured: !!secretKey,
+        publishableKeyConfigured: !!publishableKey,
+      };
+    }),
   }),
 });
 
