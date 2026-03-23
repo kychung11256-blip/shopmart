@@ -38,7 +38,7 @@ export default function ProductDetail() {
   const productId = parseInt(params.id || '1');
   
   // 使用 TRPC 獲取商品詳情
-  const { data: apiProduct, isLoading } = trpc.products.getById.useQuery(productId);
+  const { data: apiProduct, isLoading, error } = trpc.products.getById.useQuery(productId);
   
   // 轉換為前端格式（不使用本地後備數據，確保與數據庫同步）
   const product = apiProduct 
@@ -128,13 +128,40 @@ export default function ProductDetail() {
     }
   };
 
-  // 如果商品不存在，顯示錯誤頁面
-  if (!product) {
+  // 如果商品不存在或出錯，顯示錯誤頁面
+  if (!isLoading && !product) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-800 mb-4">Product Not Found</h1>
-          <p className="text-gray-600 mb-6">The product you're looking for doesn't exist or has been deleted.</p>
+          <p className="text-gray-600 mb-2">The product you're looking for doesn't exist or has been deleted.</p>
+          {error && <p className="text-sm text-red-500 mb-6">Error: {error.message}</p>}
+          <Link href="/" className="inline-block bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600">
+            Back to Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // 如果還在加載，顯示加載狀態
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mb-4"></div>
+          <p className="text-gray-600">Loading product details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">Error Loading Product</h1>
+          <p className="text-gray-600 mb-6">Unable to load the product. Please try again.</p>
           <Link href="/" className="inline-block bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600">
             Back to Home
           </Link>

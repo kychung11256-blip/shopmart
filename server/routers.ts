@@ -141,14 +141,31 @@ export const appRouter = router({
     getById: publicProcedure
       .input(z.number())
       .query(async ({ input }) => {
-        const db = await getDb();
-        if (!db) return null;
         try {
+          const db = await getDb();
+          if (!db) {
+            console.error('[API] Database connection failed for getById');
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Database connection failed',
+            });
+          }
           const result = await db.select().from(products).where(eq(products.id, input)).limit(1);
-          return result[0] || null;
-        } catch (error) {
-          console.error("[API] Error fetching product:", error);
-          return null;
+          if (!result || result.length === 0) {
+            console.warn(`[API] Product not found: ${input}`);
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: `Product ${input} not found`,
+            });
+          }
+          return result[0];
+        } catch (error: any) {
+          console.error('[API] Error fetching product:', error?.message || error);
+          if (error instanceof TRPCError) throw error;
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to fetch product: ${error?.message || 'Unknown error'}`,
+          });
         }
       }),
     listAll: adminProcedure
