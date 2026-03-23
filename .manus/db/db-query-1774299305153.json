@@ -1,0 +1,16 @@
+{
+  "query": "SELECT id, orderNumber, paymentStatus, status FROM orders WHERE id = 390022",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT id, orderNumber, paymentStatus, status FROM orders WHERE id = 390022",
+  "rows": [
+    {
+      "id": "390022",
+      "orderNumber": "ORD-1774297826588",
+      "paymentStatus": "unpaid",
+      "status": "pending"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\torderNumber\tpaymentStatus\tstatus\n390022\tORD-1774297826588\tunpaid\tpending\n",
+  "stderr": "",
+  "execution_time_ms": 1543
+}

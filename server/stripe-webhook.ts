@@ -80,6 +80,55 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   console.log(`[Webhook] Processing payment_intent.succeeded: ${paymentIntent.id}`);
 
-  // This is handled by checkout.session.completed, but we can add additional logic here if needed
-  return { processed: true };
+  const db = await getDb();
+  if (!db) {
+    console.error("[Webhook] Database not available");
+    throw new Error("Database not available");
+  }
+
+  try {
+    // Find order by Stripe Payment Intent ID
+    const orderResult = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.stripePaymentIntentId, paymentIntent.id))
+      .limit(1);
+
+    if (orderResult.length === 0) {
+      console.warn(`[Webhook] Order not found for payment intent: ${paymentIntent.id}`);
+      return { processed: false, reason: "Order not found" };
+    }
+
+    const order = orderResult[0];
+    console.log(`[Webhook] Updating order ${order.id} to paid status`);
+
+    // Update order payment status
+    await db
+      .update(orders)
+      .set({
+        paymentStatus: "paid",
+        status: "processing",
+        updatedAt: new Date(),
+      })
+      .where(eq(orders.id, order.id));
+
+    console.log(`[Webhook] Order ${order.id} updated to paid status`);
+
+    // Send confirmation email
+    try {
+      const customerEmail = paymentIntent.receipt_email || order.shippingAddress;
+      if (customerEmail) {
+        await sendOrderConfirmationEmail(order, customerEmail);
+        console.log(`[Webhook] Confirmation email sent`);
+      }
+    } catch (emailError) {
+      console.error("[Webhook] Failed to send confirmation email:", emailError);
+      // Don't fail the webhook if email fails
+    }
+
+    return { processed: true, orderId: order.id };
+  } catch (error) {
+    console.error("[Webhook] Error processing payment intent:", error);
+    throw error;
+  }
 }

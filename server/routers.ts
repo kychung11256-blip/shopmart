@@ -398,6 +398,27 @@ export const appRouter = router({
           throw error;
         }
       }),
+    markAsPaid: protectedProcedure
+      .input(z.number())
+      .mutation(async ({ input: orderId, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          // Update order payment status
+          await db
+            .update(orders)
+            .set({
+              paymentStatus: 'paid',
+              status: 'processing',
+              updatedAt: new Date(),
+            })
+            .where(eq(orders.id, orderId));
+          return { success: true };
+        } catch (error) {
+          console.error('[API] Error marking order as paid:', error);
+          throw error;
+        }
+      }),
   }),
 
   // Cart router

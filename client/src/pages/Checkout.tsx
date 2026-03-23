@@ -169,9 +169,21 @@ export default function Checkout() {
     }
   };
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = async () => {
     toast.success('Payment successful! Redirecting to confirmation...');
     const orderId = sessionStorage.getItem('lastOrderId');
+    
+    // Mark order as paid
+    if (orderId) {
+      try {
+        const markAsPaidMutation = trpc.orders.markAsPaid.useMutation();
+        await markAsPaidMutation.mutateAsync(parseInt(orderId));
+        console.log(`Order ${orderId} marked as paid`);
+      } catch (error) {
+        console.error('Error marking order as paid:', error);
+      }
+    }
+    
     setTimeout(() => {
       if (orderId) {
         navigate(`/orders/confirmation?orderId=${orderId}`);
