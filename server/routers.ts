@@ -433,7 +433,7 @@ export const appRouter = router({
               id: item.id,
               productId: item.productId,
               quantity: item.quantity,
-              price: product?.price || 0,
+              price: (product?.price || 0) / 100, // Convert from cents to dollars
               name: product?.name || 'Unknown Product',
             };
           })
