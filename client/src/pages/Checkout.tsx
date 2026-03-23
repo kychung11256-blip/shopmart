@@ -12,10 +12,47 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 // Stripe Promise - will be initialized with publishable key
 let stripePromise: ReturnType<typeof loadStripe> | null = null;
 
-function PaymentForm({ clientSecret, onSuccess }: { clientSecret: string; onSuccess: () => void }) {
+type PaymentFormProps = {
+  clientSecret: string;
+  onSuccess: () => void;
+};
+
+function PaymentForm({ clientSecret, onSuccess }: PaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Hide Stripe branding
+  useEffect(() => {
+    const hideStripeBranding = () => {
+      const iframes = document.querySelectorAll('iframe');
+      iframes.forEach((iframe) => {
+        try {
+          const doc = iframe.contentDocument || iframe.contentWindow?.document;
+          if (doc) {
+            const branding = doc.querySelector('[data-testid="branding"]');
+            if (branding) {
+              (branding as HTMLElement).style.display = 'none';
+            }
+            // Also try to hide by class
+            const brandingByClass = doc.querySelector('.StripeElement__branding');
+            if (brandingByClass) {
+              (brandingByClass as HTMLElement).style.display = 'none';
+            }
+          }
+        } catch (e) {
+          // Cross-origin iframe, can't access
+        }
+      });
+    };
+
+    // Initial attempt
+    hideStripeBranding();
+
+    // Try again after a delay
+    const timer = setTimeout(hideStripeBranding, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,6 +99,18 @@ function PaymentForm({ clientSecret, onSuccess }: { clientSecret: string; onSucc
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <style>{`
+        /* Hide Stripe branding by moving it off-screen */
+        .StripeElement__branding {
+          position: fixed !important;
+          bottom: -9999px !important;
+          right: -9999px !important;
+          width: 0 !important;
+          height: 0 !important;
+          overflow: hidden !important;
+          visibility: hidden !important;
+        }
+      `}</style>
       <PaymentElement />
       <Button
         type="submit"
@@ -256,7 +305,7 @@ export default function Checkout() {
             <div className="md:col-span-2">
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-2xl font-bold mb-6">Complete Payment</h2>
-                <Elements stripe={stripePromiseState} options={{ clientSecret }}>
+                <Elements stripe={stripePromiseState} options={{ clientSecret, appearance: { disableAnimations: false }, loader: 'never' }}>
                   <PaymentForm clientSecret={clientSecret} onSuccess={handlePaymentSuccess} />
                 </Elements>
               </div>

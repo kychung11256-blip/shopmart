@@ -81,3 +81,10 @@
 - [x] 修復 client_reference_id 設置 - 改為訂單 ID 而不是用戶 ID
 - [x] 改進支付完成邏輯 - 在支付成功後調用 markAsPaid 更新訂單狀態
 - [x] 修復 Checkout.tsx 的支付完成回調 - 正確調用 markAsPaid mutation
+
+## 🎨 UI 優化
+
+- [x] 隱藏 Stripe 支付表單右下角的品牌圖標 - 無法隱藏（Stripe 官方政策要求顯示品牌標識）
+  - 已嘗試 CSS 隱藏、JavaScript 移除、position fixed 等方法
+  - Stripe 品牌圖標在跨域 iframe 中，無法通過客戶端代碼訪問
+  - 建議保留品牌圖標以增強用戶對支付安全性的信任
