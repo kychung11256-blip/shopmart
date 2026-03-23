@@ -374,10 +374,7 @@ export const appRouter = router({
             shippingAddress: input.shippingAddress,
           };
           const orderResult = await db.insert(orders).values(newOrder);
-          // Get the inserted order ID
-          const insertedOrder = await db.select().from(orders).where(eq(orders.orderNumber, orderNumber)).limit(1);
-          const orderId = insertedOrder[0]?.id || 0;
-          return { success: true, orderNumber, orderId };
+          return { success: true, orderNumber };
         } catch (error) {
           console.error("[API] Error creating order:", error);
           throw error;
@@ -398,24 +395,6 @@ export const appRouter = router({
           throw error;
         }
       }),
-    markAsPaid: protectedProcedure
-      .input(z.number())
-      .mutation(async ({ input, ctx }) => {
-        const db = await getDb();
-        if (!db) throw new Error('Database not available');
-        try {
-          // Verify the order belongs to the user
-          const order = await db.select().from(orders).where(and(eq(orders.id, input), eq(orders.userId, ctx.user?.id || 0))).limit(1);
-          if (!order[0]) throw new Error('Order not found');
-          
-          // Update payment status to paid
-          await db.update(orders).set({ paymentStatus: 'paid' }).where(eq(orders.id, input));
-          return { success: true };
-        } catch (error) {
-          console.error('[API] Error marking order as paid:', error);
-          throw error;
-        }
-      }),
   }),
 
   // Cart router
@@ -430,11 +409,9 @@ export const appRouter = router({
             const productResult = await db.select().from(products).where(eq(products.id, item.productId)).limit(1);
             const product = productResult[0];
             return {
-              id: item.id,
-              productId: item.productId,
-              quantity: item.quantity,
-              price: (product?.price || 0) / 100, // Convert from cents to dollars
-              name: product?.name || 'Unknown Product',
+              ...item,
+              price: product?.price || 0,
+              productName: product?.name || 'Unknown Product',
             };
           })
         );
@@ -473,18 +450,6 @@ export const appRouter = router({
           return { success: true };
         } catch (error) {
           console.error("[API] Error removing from cart:", error);
-          throw error;
-        }
-      }),
-    clear: protectedProcedure
-      .mutation(async ({ ctx }) => {
-        const db = await getDb();
-        if (!db) throw new Error('Database not available');
-        try {
-          await db.delete(cart).where(eq(cart.userId, ctx.user?.id || 0));
-          return { success: true };
-        } catch (error) {
-          console.error("[API] Error clearing cart:", error);
           throw error;
         }
       }),
@@ -590,7 +555,7 @@ export const appRouter = router({
           const session = await stripeClient.checkout.sessions.create({
             mode: 'payment',
             customer_email: ctx.user?.email || undefined,
-            client_reference_id: input.orderId.toString(),
+            client_reference_id: ctx.user?.id.toString(),
             metadata: {
               orderId: input.orderId.toString(),
               userId: ctx.user?.id.toString(),

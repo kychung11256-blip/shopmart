@@ -14,10 +14,6 @@ export default function OrderConfirmation() {
   const { language } = useLanguage();
   const [orderId, setOrderId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasMarkedAsPaid, setHasMarkedAsPaid] = useState(false);
-  
-  // Mutation to mark order as paid
-  const markAsPaidMutation = trpc.orders.markAsPaid.useMutation();
 
   // Get order ID from session storage or URL
   useEffect(() => {
@@ -53,29 +49,11 @@ export default function OrderConfirmation() {
     setOrderId(id);
     setIsLoading(false);
   }, [navigate, language]);
-  
-  // Mark order as paid when orderId is available and we haven't done it yet
-  useEffect(() => {
-    if (orderId && !hasMarkedAsPaid && isAuthenticated) {
-      setHasMarkedAsPaid(true);
-      markAsPaidMutation.mutateAsync(orderId).catch((error) => {
-        console.error('Failed to mark order as paid:', error);
-        // Don't show error toast as this is not critical
-      });
-    }
-  }, [orderId, hasMarkedAsPaid, isAuthenticated]);
 
   // Fetch order details
-  const { data: order, isLoading: orderLoading, refetch: refetchOrder } = trpc.orders.getById.useQuery(orderId || 0, {
+  const { data: order, isLoading: orderLoading } = trpc.orders.getById.useQuery(orderId || 0, {
     enabled: !!orderId && isAuthenticated,
   });
-  
-  // Refetch order after marking as paid
-  useEffect(() => {
-    if (hasMarkedAsPaid && !markAsPaidMutation.isPending) {
-      refetchOrder();
-    }
-  }, [hasMarkedAsPaid, markAsPaidMutation.isPending, refetchOrder]);
 
   if (!isAuthenticated) {
     return (

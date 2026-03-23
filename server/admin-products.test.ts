@@ -69,14 +69,10 @@ describe('Admin Products Management', () => {
 
     expect(createResult.success).toBe(true);
 
-    // Add a small delay to ensure the product is written to the database
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // Get the product ID directly from database
-    const allProducts = await db.select().from(products);
+    // Get the product ID
+    const allProducts = await adminCaller.products.list({ limit: 100 });
     const product = allProducts.find((p: any) => p.name === 'Update Test Product');
-    expect(product).toBeDefined();
-    testProductId = product!.id;
+    testProductId = product.id;
 
     // Update the product
     const updateResult = await adminCaller.products.update({
@@ -107,14 +103,10 @@ describe('Admin Products Management', () => {
 
     expect(createResult.success).toBe(true);
 
-    // Add a small delay to ensure the product is written to the database
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // Get the product ID directly from database
-    const allProducts = await db.select().from(products);
+    // Get the product ID
+    const allProducts = await adminCaller.products.list({ limit: 100 });
     const product = allProducts.find((p: any) => p.name === 'Delete Test Product');
-    expect(product).toBeDefined();
-    const productId = product!.id;
+    const productId = product.id;
 
     // Delete the product
     const deleteResult = await adminCaller.products.delete(productId);
@@ -131,16 +123,12 @@ describe('Admin Products Management', () => {
 
     expect(createResult.success).toBe(true);
 
-    // Add a small delay to ensure the product is written to the database
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // Get the product directly from database
-    const allProducts = await db.select().from(products);
+    // Get the product
+    const allProducts = await adminCaller.products.list({ limit: 100 });
     const product = allProducts.find((p: any) => p.name === 'Price Conversion Test');
-    expect(product).toBeDefined();
     
     // Price should be stored in cents (1234500 = $12345.00)
-    expect(product!.price).toBe(1234500);
+    expect(product.price).toBe(1234500);
   });
 
   it('should list products with pagination', async () => {

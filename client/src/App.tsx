@@ -21,7 +21,6 @@ import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Checkout from "./pages/Checkout";
 import OrderConfirmation from "./pages/OrderConfirmation";
-import Orders from "./pages/Orders";
 
 // Admin pages
 import Dashboard from "./pages/admin/Dashboard";
@@ -42,7 +41,6 @@ function Router() {
       <Route path="/cart" component={Cart} />
       <Route path="/login" component={Login} />
       <Route path="/checkout" component={Checkout} />
-      <Route path="/orders" component={Orders} />
       <Route path="/orders/confirmation" component={OrderConfirmation} />
 
       {/* Admin routes */}

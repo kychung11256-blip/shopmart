@@ -45,8 +45,8 @@
 - [x] 實現 Stripe Webhook 處理 checkout.session.completed 事件 - 已完成
 - [x] 實現郵件發送功能（虛擬商品）- 已完成（模板已準備，可集成郵件服務）
 - [x] 修復訂單確認頁面並整合支付流程 - 已完成
-- [x] 實現訂單歷史頁面 - 已完成
-- [x] 完整測試支付流程（登入 → 購物 → 結帳 → 支付 → 訂單確認 → 郵件）- 已完成
+- [ ] 實現訂單歷史頁面
+- [ ] 完整測試支付流程（登入 → 購物 → 結帳 → 支付 → 訂單確認 → 郵件）
 
 
 ## 🔄 登出後登入失敗問題修復
@@ -59,32 +59,10 @@
 - [ ] 測試登出和重新登入流程
 
 
-## 🐛 支付流程關鍵 Bug 修復
+## 🐛 支付問題修譩
 
-- [x] 修復訂單 ID 提取邏輯 - 後端 orders.create 現在返回正確的 orderId
-- [x] 修復支付成功返回 URL - 從 /order-confirmation 改為 /orders/confirmation
-- [x] 修復支付完成後購物車未清空 - 添加 cart.clear API 端點
-- [x] 改進支付完成回調 - handlePaymentSuccess 現在正確清空購物車
-- [x] 修復訂單確認頁面 - 正確讀取和顯示訂單信息
+- [x] 診斷結帳時無法拉起 Stripe 支付頁面的問題 - 發現 success_url 錯誤
+- [x] 梨查後端 payments.createCheckoutSession API - 已修譩
+- [x] 配置 Stripe API Key - 已完成（sk_test_... 和 pk_test_...）
+- [x] 修譩支付 URL 返回問題 - 已修譩（/order-confirmation）
 - [x] 所有 33 個測試通過 - 沒有錯誤
-
-## 🔧 React Hooks 優化修復
-
-- [x] 修復購物車頁面無限更新循環 - 使用 useMemo 穩定 allProducts 引用
-- [x] 修復 Checkout.tsx 重複 import - 移除重複的 useState import
-- [x] 購物車頁面正常加載，無任何錯誤
-
-## 🐛 支付狀態更新 Bug
-
-- [x] 診斷 Stripe Webhook 為什麼沒有更新訂單支付狀態 - Webhook 未被觸發（測試環境限制）
-- [x] 修復訂單支付狀態更新邏輯 - 添加 orders.markAsPaid API 端點
-- [x] 修復 client_reference_id 設置 - 改為訂單 ID 而不是用戶 ID
-- [x] 改進支付完成邏輯 - 在支付成功後調用 markAsPaid 更新訂單狀態
-- [x] 修復 Checkout.tsx 的支付完成回調 - 正確調用 markAsPaid mutation
-
-## 🎨 UI 優化
-
-- [x] 隱藏 Stripe 支付表單右下角的品牌圖標 - 無法隱藏（Stripe 官方政策要求顯示品牌標識）
-  - 已嘗試 CSS 隱藏、JavaScript 移除、position fixed 等方法
-  - Stripe 品牌圖標在跨域 iframe 中，無法通過客戶端代碼訪問
-  - 建議保留品牌圖標以增強用戶對支付安全性的信任
