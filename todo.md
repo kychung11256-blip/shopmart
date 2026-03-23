@@ -73,3 +73,11 @@
 - [x] 修復購物車頁面無限更新循環 - 使用 useMemo 穩定 allProducts 引用
 - [x] 修復 Checkout.tsx 重複 import - 移除重複的 useState import
 - [x] 購物車頁面正常加載，無任何錯誤
+
+## 🐛 支付狀態更新 Bug
+
+- [x] 診斷 Stripe Webhook 為什麼沒有更新訂單支付狀態 - Webhook 未被觸發（測試環境限制）
+- [x] 修復訂單支付狀態更新邏輯 - 添加 orders.markAsPaid API 端點
+- [x] 修復 client_reference_id 設置 - 改為訂單 ID 而不是用戶 ID
+- [x] 改進支付完成邏輯 - 在支付成功後調用 markAsPaid 更新訂單狀態
+- [x] 修復 Checkout.tsx 的支付完成回調 - 正確調用 markAsPaid mutation

@@ -93,6 +93,7 @@ export default function Checkout() {
   const createOrderMutation = trpc.orders.create.useMutation();
   const createPaymentIntentMutation = trpc.payments.createPaymentIntent.useMutation();
   const clearCartMutation = trpc.cart.clear.useMutation();
+  const markAsPaidMutation = trpc.orders.markAsPaid.useMutation();
   const stripeKeyQuery = trpc.config.getStripePublishableKey.useQuery();
 
   // Initialize Stripe
@@ -176,6 +177,14 @@ export default function Checkout() {
 
   const handlePaymentSuccess = async () => {
     try {
+      // Get order ID from sessionStorage or window
+      const orderId = parseInt(sessionStorage.getItem('lastOrderId') || (window as any).__shopmart_orderId || '0');
+      
+      // Mark order as paid
+      if (orderId) {
+        await markAsPaidMutation.mutateAsync(orderId);
+      }
+      
       // Clear cart after successful payment
       await clearCartMutation.mutateAsync();
       toast.success('Payment successful! Redirecting to confirmation...');
@@ -183,8 +192,8 @@ export default function Checkout() {
         navigate('/orders/confirmation');
       }, 1500);
     } catch (error) {
-      console.error('Error clearing cart:', error);
-      // Still navigate even if cart clear fails
+      console.error('Error in payment success handler:', error);
+      // Still navigate even if operations fail
       toast.success('Payment successful! Redirecting to confirmation...');
       setTimeout(() => {
         navigate('/orders/confirmation');

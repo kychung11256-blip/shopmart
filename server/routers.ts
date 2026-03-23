@@ -398,6 +398,24 @@ export const appRouter = router({
           throw error;
         }
       }),
+    markAsPaid: protectedProcedure
+      .input(z.number())
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          // Verify the order belongs to the user
+          const order = await db.select().from(orders).where(and(eq(orders.id, input), eq(orders.userId, ctx.user?.id || 0))).limit(1);
+          if (!order[0]) throw new Error('Order not found');
+          
+          // Update payment status to paid
+          await db.update(orders).set({ paymentStatus: 'paid' }).where(eq(orders.id, input));
+          return { success: true };
+        } catch (error) {
+          console.error('[API] Error marking order as paid:', error);
+          throw error;
+        }
+      }),
   }),
 
   // Cart router
@@ -570,7 +588,7 @@ export const appRouter = router({
           const session = await stripeClient.checkout.sessions.create({
             mode: 'payment',
             customer_email: ctx.user?.email || undefined,
-            client_reference_id: ctx.user?.id.toString(),
+            client_reference_id: input.orderId.toString(),
             metadata: {
               orderId: input.orderId.toString(),
               userId: ctx.user?.id.toString(),
