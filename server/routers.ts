@@ -489,7 +489,7 @@ export const appRouter = router({
           
           // Create Payment Intent
           const paymentIntent = await stripeClient.paymentIntents.create({
-            amount: Math.round(input.totalPrice * 100), // Amount in cents
+            amount: input.totalPrice, // Amount already in cents from frontend
             currency: 'usd',
             receipt_email: ctx.user?.email || undefined,
             metadata: {

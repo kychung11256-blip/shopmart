@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { Link, useParams } from 'wouter';
+import { Link, useParams, useLocation } from 'wouter';
 import { ShoppingCart, Search, User, Star, Heart, Share2, ChevronRight, Plus, Minus, Truck, Shield, RefreshCw, Globe, LogOut } from 'lucide-react';
 import { products as defaultProducts } from '@/lib/data';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -63,6 +63,7 @@ export default function ProductDetail() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const { language, toggleLanguage } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
+  const [, navigate] = useLocation();
 
   // TRPC 購物車操作
   const addToCartMutation = trpc.cart.add.useMutation();
@@ -115,12 +116,17 @@ export default function ProductDetail() {
     try {
       setIsAddingToCart(true);
       if (!product) throw new Error('Product not found');
+      
       await addToCartMutation.mutateAsync({
         productId: product.id,
         quantity: qty,
       });
-      toast.success('Proceeding to checkout...');
-      // TODO: 重定向到結帳頁面
+      
+      toast.success('Product added to cart. Redirecting to checkout...');
+      
+      setTimeout(() => {
+        navigate('/checkout');
+      }, 500);
     } catch (error: any) {
       toast.error(error.message || 'Failed to proceed to checkout');
     } finally {

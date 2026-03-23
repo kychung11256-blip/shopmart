@@ -98,8 +98,9 @@ export default function Checkout() {
     initStripe();
   }, [stripeKeyQuery.data]);
 
-  // Calculate total
-  const totalPrice = cartItems.reduce((sum, item) => sum + (item.quantity * (item.price || 0)), 0);
+  // Calculate total (prices from DB are in cents, convert to dollars for display)
+  const totalPrice = cartItems.reduce((sum, item) => sum + (item.quantity * ((item.price || 0) / 100)), 0);
+  const totalPriceInCents = Math.round(totalPrice * 100); // For Stripe API
 
   const handleCheckout = async () => {
     if (!isAuthenticated) {
@@ -135,18 +136,17 @@ export default function Checkout() {
 
       // Extract order ID from order number (format: ORD-{timestamp})
       const orderId = parseInt(orderResult.orderNumber.split('-')[1]) || 1;
-
-      // Create Payment Intent
+      // Create Payment Intent (pass totalPrice in cents for Stripe)
       const paymentResult = await createPaymentIntentMutation.mutateAsync({
         orderId,
         items: cartItems.map(item => ({
           productId: item.productId,
           quantity: item.quantity,
-          price: item.price || 0,
+          price: (item.price || 0) / 100, // Convert cents to dollars for display
           name: item.productName || `Product ${item.productId}`,
         })),
         shippingAddress,
-        totalPrice,
+        totalPrice: totalPriceInCents, // Pass in cents for Stripe
       });
 
       setClientSecret(paymentResult.clientSecret);
@@ -296,7 +296,7 @@ export default function Checkout() {
                         <p className="font-medium">Product {item.productId}</p>
                         <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
                       </div>
-                      <p className="font-semibold">${(item.quantity * (item.price || 0)).toFixed(2)}</p>
+                      <p className="font-semibold">${(item.quantity * ((item.price || 0) / 100)).toFixed(2)}</p>
                     </div>
                   ))}
                 </div>
