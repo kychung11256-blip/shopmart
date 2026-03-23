@@ -479,7 +479,7 @@ export const appRouter = router({
               },
               quantity: item.quantity,
             })),
-            success_url: `${ctx.req.headers.origin || 'http://localhost:3000'}/orders?session_id={CHECKOUT_SESSION_ID}`,
+            success_url: `${ctx.req.headers.origin || 'http://localhost:3000'}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${ctx.req.headers.origin || 'http://localhost:3000'}/checkout`,
             allow_promotion_codes: true,
           });
@@ -491,9 +491,12 @@ export const appRouter = router({
           }
           
           return { sessionId: session.id, url: session.url };
-        } catch (error) {
-          console.error('[API] Error creating checkout session:', error);
-          throw error;
+        } catch (error: any) {
+          console.error('[API] Error creating checkout session:', error?.message || error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to create checkout session: ${error?.message || 'Unknown error'}`,
+          });
         }
       }),
   }),

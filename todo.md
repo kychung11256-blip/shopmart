@@ -57,3 +57,12 @@
 - [ ] 修復登出流程
 - [ ] 修復登入流程
 - [ ] 測試登出和重新登入流程
+
+
+## 🐛 支付問題修譩
+
+- [x] 診斷結帳時無法拉起 Stripe 支付頁面的問題 - 發現 success_url 錯誤
+- [x] 梨查後端 payments.createCheckoutSession API - 已修譩
+- [x] 配置 Stripe API Key - 已完成（sk_test_... 和 pk_test_...）
+- [x] 修譩支付 URL 返回問題 - 已修譩（/order-confirmation）
+- [x] 所有 33 個測試通過 - 沒有錯誤
