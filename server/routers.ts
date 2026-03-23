@@ -430,9 +430,11 @@ export const appRouter = router({
             const productResult = await db.select().from(products).where(eq(products.id, item.productId)).limit(1);
             const product = productResult[0];
             return {
-              ...item,
+              id: item.id,
+              productId: item.productId,
+              quantity: item.quantity,
               price: product?.price || 0,
-              productName: product?.name || 'Unknown Product',
+              name: product?.name || 'Unknown Product',
             };
           })
         );
