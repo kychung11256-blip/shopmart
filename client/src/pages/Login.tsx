@@ -20,6 +20,7 @@ export default function Login() {
   const [tab, setTab] = useState<'login' | 'register'>('login');
 
   const localLoginMutation = trpc.auth.localLogin.useMutation();
+  const registerMutation = trpc.auth.localRegister.useMutation();
   const utils = trpc.useUtils();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -47,7 +48,33 @@ export default function Login() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.info(language === 'zh' ? '請使用上方的登入方式' : 'Please use the login method above');
+    if (!email || !password) {
+      toast.error(language === 'zh' ? '請輸入郵箱和密碼' : 'Please enter email and password');
+      return;
+    }
+    if (password.length < 6) {
+      toast.error(language === 'zh' ? '密碼至少需要 6 個字符' : 'Password must be at least 6 characters');
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      const result = await registerMutation.mutateAsync({ 
+        email, 
+        password,
+        name: email.split('@')[0]
+      });
+      if (result.success) {
+        toast.success(language === 'zh' ? '註冊成功！' : 'Registration successful!');
+        await utils.auth.me.invalidate();
+        navigate('/');
+      }
+    } catch (error: any) {
+      const errorMessage = error?.message || (language === 'zh' ? '註冊失敗，請重試' : 'Registration failed, please try again');
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
