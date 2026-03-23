@@ -9,6 +9,7 @@ import { ShoppingCart, Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { trpc } from '@/lib/trpc';
+import { getLoginUrl, getSignUpUrl } from '@/const';
 
 export default function Login() {
   const [, navigate] = useLocation();
@@ -135,9 +136,28 @@ export default function Login() {
                 </button>
               </form>
 
+              {/* Divider */}
+              <div className="my-6 flex items-center gap-4">
+                <div className="flex-1 h-px bg-gray-200"></div>
+                <span className="text-xs text-gray-400">{language === 'zh' ? '或' : 'OR'}</span>
+                <div className="flex-1 h-px bg-gray-200"></div>
+              </div>
 
-
-
+              {/* OAuth Buttons */}
+              <div className="space-y-3">
+                <a
+                  href={getLoginUrl()}
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded font-medium transition-colors text-center text-sm"
+                >
+                  {language === 'zh' ? '用 Manus 登入' : 'Sign In with Manus'}
+                </a>
+                <a
+                  href={getSignUpUrl()}
+                  className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded font-medium transition-colors text-center text-sm"
+                >
+                  {language === 'zh' ? '用 Manus 註冊' : 'Sign Up with Manus'}
+                </a>
+              </div>
             </div>
           </div>
         </div>
