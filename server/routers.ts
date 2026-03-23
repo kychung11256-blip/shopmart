@@ -374,7 +374,10 @@ export const appRouter = router({
             shippingAddress: input.shippingAddress,
           };
           const orderResult = await db.insert(orders).values(newOrder);
-          return { success: true, orderNumber };
+          // Get the inserted order ID
+          const insertedOrder = await db.select().from(orders).where(eq(orders.orderNumber, orderNumber)).limit(1);
+          const orderId = insertedOrder[0]?.id || 0;
+          return { success: true, orderNumber, orderId };
         } catch (error) {
           console.error("[API] Error creating order:", error);
           throw error;
@@ -450,6 +453,18 @@ export const appRouter = router({
           return { success: true };
         } catch (error) {
           console.error("[API] Error removing from cart:", error);
+          throw error;
+        }
+      }),
+    clear: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          await db.delete(cart).where(eq(cart.userId, ctx.user?.id || 0));
+          return { success: true };
+        } catch (error) {
+          console.error("[API] Error clearing cart:", error);
           throw error;
         }
       }),

@@ -90,6 +90,7 @@ export default function Checkout() {
   // Mutations
   const createOrderMutation = trpc.orders.create.useMutation();
   const createPaymentIntentMutation = trpc.payments.createPaymentIntent.useMutation();
+  const clearCartMutation = trpc.cart.clear.useMutation();
   const stripeKeyQuery = trpc.config.getStripePublishableKey.useQuery();
 
   // Initialize Stripe
@@ -139,12 +140,11 @@ export default function Checkout() {
         shippingAddress,
       });
 
-      if (!orderResult.success) {
+      if (!orderResult.success || !orderResult.orderId) {
         throw new Error('Failed to create order');
       }
 
-      // Extract order ID from order number (format: ORD-{timestamp})
-      const orderId = parseInt(orderResult.orderNumber.split('-')[1]) || 1;
+      const orderId = orderResult.orderId;
       // Create Payment Intent (pass totalPrice in cents for Stripe)
       const paymentResult = await createPaymentIntentMutation.mutateAsync({
         orderId,
@@ -169,11 +169,22 @@ export default function Checkout() {
     }
   };
 
-  const handlePaymentSuccess = () => {
-    toast.success('Payment successful! Redirecting to confirmation...');
-    setTimeout(() => {
-      navigate('/order-confirmation');
-    }, 1500);
+  const handlePaymentSuccess = async () => {
+    try {
+      // Clear cart after successful payment
+      await clearCartMutation.mutateAsync();
+      toast.success('Payment successful! Redirecting to confirmation...');
+      setTimeout(() => {
+        navigate('/orders/confirmation');
+      }, 1500);
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+      // Still navigate even if cart clear fails
+      toast.success('Payment successful! Redirecting to confirmation...');
+      setTimeout(() => {
+        navigate('/orders/confirmation');
+      }, 1500);
+    }
   };
 
   // Show loading state
