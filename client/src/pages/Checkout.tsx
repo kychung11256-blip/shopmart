@@ -37,11 +37,14 @@ function PaymentForm({ clientSecret, onSuccess }: { clientSecret: string; onSucc
       }
 
       // Step 2: Confirm the payment
+      const orderId = sessionStorage.getItem('lastOrderId');
       const { error } = await stripe.confirmPayment({
         elements,
         clientSecret,
         confirmParams: {
-          return_url: `${window.location.origin}/orders/confirmation`,
+          return_url: orderId 
+            ? `${window.location.origin}/orders/confirmation?orderId=${orderId}`
+            : `${window.location.origin}/orders/confirmation`,
         },
       });
 

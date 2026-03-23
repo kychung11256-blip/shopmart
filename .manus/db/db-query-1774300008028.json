@@ -1,0 +1,55 @@
+{
+  "query": "SELECT id, orderNumber, userId, status, paymentStatus, totalPrice, createdAt FROM orders ORDER BY createdAt DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT id, orderNumber, userId, status, paymentStatus, totalPrice, createdAt FROM orders ORDER BY createdAt DESC LIMIT 5;",
+  "rows": [
+    {
+      "id": "420002",
+      "orderNumber": "ORD-1774299821831",
+      "userId": "1",
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "totalPrice": "4000",
+      "createdAt": "2026-03-23 21:03:42"
+    },
+    {
+      "id": "420001",
+      "orderNumber": "ORD-1774299585147",
+      "userId": "810009",
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "totalPrice": "1000",
+      "createdAt": "2026-03-23 20:59:45"
+    },
+    {
+      "id": "390022",
+      "orderNumber": "ORD-1774297826588",
+      "userId": "1",
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "totalPrice": "4000",
+      "createdAt": "2026-03-23 20:30:26"
+    },
+    {
+      "id": "390021",
+      "orderNumber": "ORD-1774297457373",
+      "userId": "810009",
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "totalPrice": "1000",
+      "createdAt": "2026-03-23 20:24:17"
+    },
+    {
+      "id": "390020",
+      "orderNumber": "ORD-1774297264668",
+      "userId": "810009",
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "totalPrice": "1000",
+      "createdAt": "2026-03-23 20:21:05"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\torderNumber\tuserId\tstatus\tpaymentStatus\ttotalPrice\tcreatedAt\n420002\tORD-1774299821831\t1\tpending\tunpaid\t4000\t2026-03-23 21:03:42\n420001\tORD-1774299585147\t810009\tpending\tunpaid\t1000\t2026-03-23 20:59:45\n390022\tORD-1774297826588\t1\tpending\tunpaid\t4000\t2026-03-23 20:30:26\n390021\tORD-1774297457373\t810009\tpending\tunpaid\t1000\t2026-03-23 20:24:17\n390020\tORD-1774297264668\t810009\tpending\tunpaid\t1000\t2026-03-23 20:21:05\n",
+  "stderr": "",
+  "execution_time_ms": 1734
+}
