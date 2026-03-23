@@ -76,3 +76,16 @@
 - [x] 添加自動重新查詢訂單數據功能 - 支付狀態立即更新顯示
 - [x] 完整測試支付流程 - 驗證支付成功後訂單狀態自動從「未支付」更新為「已支付」
 - [x] 驗證訂單確認頁面正確顯示最新狀態 - 已驗證成功
+
+## 🔗 Stripe Webhook 自動更新訂單狀態
+
+- [x] 檢查現有 Webhook 實現 - 已存在基礎設置
+- [x] 實現 Stripe Webhook 端點 - /api/stripe/webhook - 已完成
+- [x] 實現事件簽名驗證 - 驗證 Stripe 請求的真實性 - 已完成
+- [x] 實現 payment_intent.succeeded 事件處理 - 自動更新訂單為「已支付」- 已完成
+- [x] 實現 charge.failed 事件處理 - 自動更新訂單為「支付失敗」- 已完成
+- [x] 實現 charge.refunded 事件處理 - 自動更新訂單為「已退款」- 已完成
+- [x] 添加 Webhook 日誌記錄 - 便於調試和監控 - 已完成
+- [x] 更新數據庫 schema - 添加 "failed" 支付狀態 - 已完成
+- [ ] 配置 Stripe Webhook 端點 - 在 Stripe Dashboard 中註冊 - 需要用戶手動配置
+- [ ] 測試 Webhook 功能 - 使用 Stripe CLI 或測試事件 - 需要用戶測試

@@ -29,6 +29,13 @@
       "when": 1774262347853,
       "tag": "0003_acoustic_silver_centurion",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1774301354359,
+      "tag": "0004_wooden_vampiro",
+      "breakpoints": true
     }
   ]
 }

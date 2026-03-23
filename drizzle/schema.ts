@@ -68,7 +68,7 @@ export const orders = mysqlTable("orders", {
   userId: int("userId").notNull(),
   totalPrice: int("totalPrice").notNull(), // Store in cents
   status: mysqlEnum("status", ["pending", "processing", "shipped", "delivered", "cancelled"]).default("pending").notNull(),
-  paymentStatus: mysqlEnum("paymentStatus", ["unpaid", "paid", "refunded"]).default("unpaid").notNull(),
+  paymentStatus: mysqlEnum("paymentStatus", ["unpaid", "paid", "refunded", "failed"]).default("unpaid").notNull(),
   stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }), // Stripe payment intent ID
   stripeSessionId: varchar("stripeSessionId", { length: 255 }), // Stripe checkout session ID
   shippingAddress: text("shippingAddress"),
