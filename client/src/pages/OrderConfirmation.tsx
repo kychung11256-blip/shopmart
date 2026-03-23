@@ -15,22 +15,40 @@ export default function OrderConfirmation() {
   const [orderId, setOrderId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Get session ID from URL
+  // Get order ID from session storage or URL
   useEffect(() => {
+    // Check if this is a return from Stripe
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get('session_id');
     
-    if (!sessionId) {
-      toast.error('No session found');
+    let id: number | null = null;
+    
+    if (sessionId) {
+      // Coming from Stripe, get order ID from session storage
+      const storedOrderId = sessionStorage.getItem('lastOrderId');
+      if (storedOrderId) {
+        id = parseInt(storedOrderId);
+        sessionStorage.removeItem('lastOrderId');
+      }
+    }
+    
+    if (!id) {
+      // Try to get from URL params
+      const urlOrderId = params.get('orderId');
+      if (urlOrderId) {
+        id = parseInt(urlOrderId);
+      }
+    }
+    
+    if (!id) {
+      toast.error(language === 'zh' ? '找不到訂單' : 'Order not found');
       navigate('/');
       return;
     }
 
-    // In a real app, you would verify the session with Stripe and get the order ID
-    // For now, we'll use a mock order ID
-    setOrderId(1);
+    setOrderId(id);
     setIsLoading(false);
-  }, [navigate]);
+  }, [navigate, language]);
 
   // Fetch order details
   const { data: order, isLoading: orderLoading } = trpc.orders.getById.useQuery(orderId || 0, {
@@ -122,7 +140,7 @@ export default function OrderConfirmation() {
               ? '感謝您的購買。您的訂單已確認。' 
               : 'Thank you for your purchase. Your order has been confirmed.'}
           </p>
-          <p className="text-2xl font-bold text-red-500">Order #{order.id}</p>
+          <p className="text-2xl font-bold text-red-500">Order #{order.orderNumber}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -155,7 +173,9 @@ export default function OrderConfirmation() {
             <CardContent>
               <p className="text-sm text-gray-600 mb-1">{language === 'zh' ? '狀態' : 'Status'}</p>
               <p className="text-lg font-bold capitalize text-green-600">
-                {language === 'zh' ? '已支付' : 'Paid'}
+                {language === 'zh' 
+                  ? (order.paymentStatus === 'paid' ? '已支付' : order.paymentStatus === 'unpaid' ? '未支付' : '已退款')
+                  : order.paymentStatus}
               </p>
             </CardContent>
           </Card>
@@ -194,12 +214,12 @@ export default function OrderConfirmation() {
                     {order.items.map((item: any, idx: number) => (
                       <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded">
                         <div>
-                          <p className="font-medium text-gray-800">Product #{item.productId}</p>
+                          <p className="font-medium text-gray-800">{item.productName || `Product #${item.productId}`}</p>
                           <p className="text-sm text-gray-600">
                             {language === 'zh' ? '數量' : 'Quantity'}: {item.quantity}
                           </p>
                         </div>
-                        <p className="font-semibold text-gray-800">${(item.price || 0).toFixed(2)}</p>
+                        <p className="font-semibold text-gray-800">${(item.price / 100).toFixed(2)}</p>
                       </div>
                     ))}
                   </div>
@@ -210,7 +230,7 @@ export default function OrderConfirmation() {
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center mb-2">
                   <p className="text-gray-600">{language === 'zh' ? '小計' : 'Subtotal'}</p>
-                  <p className="font-medium text-gray-800">${(order.totalPrice || 0).toFixed(2)}</p>
+                  <p className="font-medium text-gray-800">${(order.totalPrice / 100).toFixed(2)}</p>
                 </div>
                 <div className="flex justify-between items-center mb-2">
                   <p className="text-gray-600">{language === 'zh' ? '運費' : 'Shipping'}</p>
@@ -218,7 +238,7 @@ export default function OrderConfirmation() {
                 </div>
                 <div className="flex justify-between items-center border-t pt-2">
                   <p className="font-bold text-gray-800">{language === 'zh' ? '總計' : 'Total'}</p>
-                  <p className="text-2xl font-bold text-red-500">${(order.totalPrice || 0).toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-red-500">${(order.totalPrice / 100).toFixed(2)}</p>
                 </div>
               </div>
             </div>
@@ -229,7 +249,7 @@ export default function OrderConfirmation() {
         <Card className="mb-6 bg-blue-50 border-blue-200">
           <CardHeader>
             <CardTitle className="text-blue-900">
-              {language === 'zh' ? '上步作法' : 'What\'s Next?'}
+              {language === 'zh' ? '後續步驟' : 'What\'s Next?'}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -242,8 +262,8 @@ export default function OrderConfirmation() {
                   </p>
                   <p className="text-blue-800">
                     {language === 'zh' 
-                      ? '我們已向您的註冊郵箱發送確認郵件。' 
-                      : 'We\'ve sent a confirmation email to your registered email address.'}
+                      ? '我們已向您的郵箱發送訂單確認和虛擬商品下載鏈接。' 
+                      : 'We\'ve sent a confirmation email with your virtual product download link.'}
                   </p>
                 </div>
               </div>
@@ -251,12 +271,12 @@ export default function OrderConfirmation() {
                 <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold">2</div>
                 <div>
                   <p className="font-semibold">
-                    {language === 'zh' ? '訂單處理' : 'Order Processing'}
+                    {language === 'zh' ? '下載虛擬商品' : 'Download Virtual Product'}
                   </p>
                   <p className="text-blue-800">
                     {language === 'zh' 
-                      ? '您的訂單正在準備發貨。我們很快會更新您。' 
-                      : 'Your order is being prepared for shipment. We\'ll update you soon.'}
+                      ? '點擊郵件中的下載鏈接獲取您購買的虛擬商品。下載鏈接有效期為 30 天。' 
+                      : 'Click the download link in the email to get your virtual product. Links are valid for 30 days.'}
                   </p>
                 </div>
               </div>
@@ -264,12 +284,12 @@ export default function OrderConfirmation() {
                 <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold">3</div>
                 <div>
                   <p className="font-semibold">
-                    {language === 'zh' ? '發貨通知' : 'Shipping Notification'}
+                    {language === 'zh' ? '查看訂單歷史' : 'View Order History'}
                   </p>
                   <p className="text-blue-800">
                     {language === 'zh' 
-                      ? '訂單發貨後，您將接收追蹤號碼。' 
-                      : 'You\'ll receive a tracking number once your order ships.'}
+                      ? '您可以隨時在「我的訂單」頁面查看所有訂單和下載記錄。' 
+                      : 'You can view all your orders and download history anytime in the Orders page.'}
                   </p>
                 </div>
               </div>

@@ -7,6 +7,8 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { handleStripeWebhook } from "../stripe-webhook";
+import Stripe from "stripe";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -30,6 +32,31 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+  // Stripe webhook must be registered BEFORE express.json() to verify signatures
+  app.post(
+    "/api/stripe/webhook",
+    express.raw({ type: "application/json" }),
+    async (req, res) => {
+      const sig = req.headers["stripe-signature"] as string;
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+      if (!webhookSecret) {
+        console.error("[Webhook] STRIPE_WEBHOOK_SECRET not configured");
+        return res.status(400).json({ error: "Webhook secret not configured" });
+      }
+
+      try {
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+        const event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+        const result = await handleStripeWebhook(event);
+        res.json({ received: true, result });
+      } catch (error: any) {
+        console.error("[Webhook] Error verifying webhook:", error.message);
+        res.status(400).json({ error: error.message });
+      }
+    }
+  );
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));

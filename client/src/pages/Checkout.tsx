@@ -75,8 +75,9 @@ export default function Checkout() {
 
       // Redirect to Stripe checkout
       if (sessionResult.url) {
-        window.open(sessionResult.url, '_blank');
-        toast.success('Redirecting to payment...');
+        // Store order ID in session storage for confirmation page
+        sessionStorage.setItem('lastOrderId', orderId.toString());
+        window.location.href = sessionResult.url;
       }
     } catch (error: any) {
       console.error('Checkout error:', error);
