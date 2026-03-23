@@ -37,11 +37,13 @@ function PaymentForm({ clientSecret, onSuccess }: { clientSecret: string; onSucc
       }
 
       // Step 2: Confirm the payment
+      // Get the order ID from window object (set in handleCheckout)
+      const orderId = (window as any).__shopmart_orderId;
       const { error } = await stripe.confirmPayment({
         elements,
         clientSecret,
         confirmParams: {
-          return_url: `${window.location.origin}/orders/confirmation`,
+          return_url: `${window.location.origin}/orders/confirmation${orderId ? `?orderId=${orderId}` : ''}`,
         },
       });
 
@@ -158,9 +160,12 @@ export default function Checkout() {
         totalPrice: totalPriceInCents, // Pass in cents for Stripe
       });
 
+      // Save order ID to sessionStorage AND use URL parameter for Stripe redirect
+      sessionStorage.setItem('lastOrderId', orderId.toString());
       setClientSecret(paymentResult.clientSecret);
       setPaymentIntentId(paymentResult.paymentIntentId);
-      sessionStorage.setItem('lastOrderId', orderId.toString());
+      // Store orderId in component state so we can pass it via URL
+      (window as any).__shopmart_orderId = orderId;
     } catch (error: any) {
       console.error('Checkout error:', error);
       const errorMessage = error?.message || 'Failed to process checkout';

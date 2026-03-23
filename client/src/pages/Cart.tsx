@@ -5,7 +5,7 @@
  * API Integration: 使用 TRPC 實時同步購物車數據
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'wouter';
 import { ShoppingCart, Search, User, Trash2, Plus, Minus, ChevronRight, ArrowLeft, Globe, LogOut } from 'lucide-react';
 // 不再使用本地硬編碼商品數據，確保與數據庫同步
@@ -56,6 +56,9 @@ export default function Cart() {
     enabled: isAuthenticated, // 只在登入時才調用
   });
   const { data: allProducts = [] } = trpc.products.list.useQuery({ limit: 200 });
+  
+  // 使用 useMemo 穩定 allProducts 的引用，防止無限循環
+  const memoizedAllProducts = useMemo(() => allProducts, [allProducts.length, allProducts.map(p => p.id).join(',')]);
 
   // TRPC 變更操作
   const removeCartMutation = trpc.cart.remove.useMutation();
@@ -75,7 +78,7 @@ export default function Cart() {
         return;
       }
 
-      const convertedProducts = allProducts.map(convertDbProductToFrontend);
+      const convertedProducts = memoizedAllProducts.map(convertDbProductToFrontend);
       const items: CartItem[] = apiCartItems
         .map((cartItem: any) => {
           const product = convertedProducts.find(p => p.id === cartItem.productId);
@@ -97,7 +100,7 @@ export default function Cart() {
         const localCart = localStorage.getItem('shopmart_cart');
         if (localCart) {
           const items = JSON.parse(localCart) as CartItem[];
-          const convertedProducts = allProducts.map(convertDbProductToFrontend);
+          const convertedProducts = memoizedAllProducts.map(convertDbProductToFrontend);
           const validItems = items.filter(item => 
             convertedProducts.find(p => p.id === item.product.id)
           ).map(item => ({
@@ -114,7 +117,7 @@ export default function Cart() {
       }
       setIsLoading(false);
     }
-   }, [isAuthenticated, cartLoading]);
+   }, [isAuthenticated, cartLoading, memoizedAllProducts]);
 
   const selectedItems = cartItems.filter(item => item.selected);
   const totalPrice = selectedItems.reduce((sum, item) => sum + item.product.price * item.qty, 0);

@@ -67,3 +67,9 @@
 - [x] 改進支付完成回調 - handlePaymentSuccess 現在正確清空購物車
 - [x] 修復訂單確認頁面 - 正確讀取和顯示訂單信息
 - [x] 所有 33 個測試通過 - 沒有錯誤
+
+## 🔧 React Hooks 優化修復
+
+- [x] 修復購物車頁面無限更新循環 - 使用 useMemo 穩定 allProducts 引用
+- [x] 修復 Checkout.tsx 重複 import - 移除重複的 useState import
+- [x] 購物車頁面正常加載，無任何錯誤
