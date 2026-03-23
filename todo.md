@@ -89,3 +89,11 @@
 - [x] 更新數據庫 schema - 添加 "failed" 支付狀態 - 已完成
 - [ ] 配置 Stripe Webhook 端點 - 在 Stripe Dashboard 中註冊 - 需要用戶手動配置
 - [ ] 測試 Webhook 功能 - 使用 Stripe CLI 或測試事件 - 需要用戶測試
+
+
+## 🛒 購物車清空問題修復 - 已完成
+
+- [x] 診斷購物車清空流程 - 檢查支付成功後是否清空購物車 - 已完成
+- [x] 實現購物車清空 API - 添加 cart.clear 方法 - 已完成
+- [x] 在支付成功時調用清空 API - OrderConfirmation 中自動調用 - 已完成
+- [x] 測試完整支付流程 - 驗證支付完成後購物車已清空 - 已驗證成功

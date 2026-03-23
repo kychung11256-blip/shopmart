@@ -477,6 +477,19 @@ export const appRouter = router({
           throw error;
         }
       }),
+    clear: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          await db.delete(cart).where(eq(cart.userId, ctx.user?.id || 0));
+          console.log(`[API] Cleared cart for user ${ctx.user?.id}`);
+          return { success: true };
+        } catch (error) {
+          console.error("[API] Error clearing cart:", error);
+          throw error;
+        }
+      }),
   }),
 
 

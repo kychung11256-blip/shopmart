@@ -15,7 +15,9 @@ export default function OrderConfirmation() {
   const [orderId, setOrderId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMarkedAsPaid, setHasMarkedAsPaid] = useState(false);
+  const [hasCleared, setHasCleared] = useState(false);
   const markAsPaidMutation = trpc.orders.markAsPaid.useMutation();
+  const clearCartMutation = trpc.cart.clear.useMutation();
 
   // Get order ID from session storage or URL
   useEffect(() => {
@@ -60,6 +62,19 @@ export default function OrderConfirmation() {
         onSuccess: () => {
           console.log(`[OrderConfirmation] Order ${id} marked as paid successfully`);
           toast.success(language === 'zh' ? '訂單已更新為已支付' : 'Order marked as paid');
+          // Clear shopping cart after payment success
+          if (!hasCleared) {
+            console.log('[OrderConfirmation] Clearing shopping cart...');
+            setHasCleared(true);
+            clearCartMutation.mutate(undefined, {
+              onSuccess: () => {
+                console.log('[OrderConfirmation] Shopping cart cleared successfully');
+              },
+              onError: (error) => {
+                console.error('[OrderConfirmation] Error clearing cart:', error);
+              },
+            });
+          }
         },
         onError: (error) => {
           console.error(`[OrderConfirmation] Error marking order ${id} as paid:`, error);
@@ -67,7 +82,7 @@ export default function OrderConfirmation() {
         },
       });
     }
-  }, [navigate, language, hasMarkedAsPaid, markAsPaidMutation]);
+  }, [navigate, language, hasMarkedAsPaid, hasCleared, markAsPaidMutation, clearCartMutation]);
 
   // Fetch order details (will refetch when order is marked as paid)
   const { data: order, isLoading: orderLoading, refetch: refetchOrder } = trpc.orders.getById.useQuery(orderId || 0, {
