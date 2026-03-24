@@ -9,4 +9,7 @@ export const ENV = {
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
   stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? "",
   stripePublishableKey: process.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "",
+  starPayMerchantNo: process.env.STAR_PAY_MERCHANT_NO ?? "",
+  starPayApiKey: process.env.STAR_PAY_API_KEY ?? "",
+  starPayProducts: process.env.STAR_PAY_PRODUCTS ?? "",
 };

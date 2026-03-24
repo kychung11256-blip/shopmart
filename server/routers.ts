@@ -629,6 +629,93 @@ export const appRouter = router({
           });
         }
       }),
+    // Create Star Pay Order
+    createStarPayOrder: protectedProcedure
+      .input(z.object({
+        orderId: z.number(),
+        items: z.array(z.object({
+          productId: z.number(),
+          quantity: z.number(),
+          price: z.number(),
+          name: z.string(),
+        })),
+        shippingAddress: z.string(),
+        totalPrice: z.number(),
+        product: z.enum(['TRC20Buy', 'TRC20H5', 'USDCERC20Buy']),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        try {
+          const { createStarPayOrder, isValidStarPayProduct, formatStarPayAmount } = await import('../server/star-pay');
+          
+          // Validate product
+          if (!isValidStarPayProduct(input.product)) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: `Invalid Star Pay product: ${input.product}`,
+            });
+          }
+          
+          // Format amount (法幣保留2位小數)
+          const formattedAmount = formatStarPayAmount(input.totalPrice, false);
+          
+          // Create Star Pay order
+          const merchantRef = `ORDER-${input.orderId}-${Date.now()}`;
+          const response = await createStarPayOrder(
+            merchantRef,
+            input.product,
+            formattedAmount,
+            'en_US',
+            {
+              customer_email: ctx.user?.email,
+              customer_name: ctx.user?.name,
+            }
+          );
+          
+          // Parse Star Pay response
+          let payUrl: string | null = null;
+          if (response.code === 200 && response.params) {
+            try {
+              const params = typeof response.params === 'string' 
+                ? JSON.parse(response.params) 
+                : response.params;
+              payUrl = params.payurl || null;
+            } catch (e) {
+              console.warn('[API] Failed to parse Star Pay params:', e);
+            }
+          }
+          
+          // Save merchant ref to order
+          const db = await getDb();
+          if (db) {
+            await db.update(orders).set({ 
+              stripePaymentIntentId: merchantRef,
+              status: 'pending'
+            }).where(eq(orders.id, input.orderId));
+          }
+          
+          console.log('[API] Star Pay order created:', {
+            orderId: input.orderId,
+            merchantRef,
+            amount: formattedAmount,
+            product: input.product,
+            payUrl,
+          });
+          
+          // Return response with extracted payUrl
+          return {
+            code: response.code,
+            message: response.message,
+            url: payUrl,
+            params: response.params,
+          };
+        } catch (error: any) {
+          console.error('[API] Error creating Star Pay order:', error?.message || error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to create Star Pay order: ${error?.message || 'Unknown error'}`,
+          });
+        }
+      }),
   }),
   config: router({
     // Admin-only: Set Stripe configuration

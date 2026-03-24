@@ -4,12 +4,11 @@ import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, CreditCard } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
-// Stripe Promise - will be initialized with publishable key
 let stripePromise: ReturnType<typeof loadStripe> | null = null;
 
 function PaymentForm({ clientSecret, onSuccess }: { clientSecret: string; onSuccess: () => void }) {
@@ -28,7 +27,6 @@ function PaymentForm({ clientSecret, onSuccess }: { clientSecret: string; onSucc
     setIsProcessing(true);
 
     try {
-      // Step 1: Submit the form data to Stripe
       const submitResult = await elements.submit();
       if (submitResult.error) {
         toast.error(submitResult.error.message || 'Form submission failed');
@@ -36,7 +34,6 @@ function PaymentForm({ clientSecret, onSuccess }: { clientSecret: string; onSucc
         return;
       }
 
-      // Step 2: Confirm the payment
       const orderId = sessionStorage.getItem('lastOrderId');
       const { error } = await stripe.confirmPayment({
         elements,
@@ -84,6 +81,9 @@ export default function Checkout() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [stripePromiseState, setStripePromiseState] = useState<Awaited<ReturnType<typeof loadStripe>> | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'starpay' | null>(null);
+  const [starPayUrl, setStarPayUrl] = useState<string | null>(null);
+  const [starPayProduct, setStarPayProduct] = useState<'TRC20Buy' | 'TRC20H5' | 'USDCERC20Buy'>('TRC20Buy');
 
   // Get cart items
   const { data: cartItems = [] } = trpc.cart.list.useQuery(undefined, {
@@ -93,6 +93,7 @@ export default function Checkout() {
   // Mutations
   const createOrderMutation = trpc.orders.create.useMutation();
   const createPaymentIntentMutation = trpc.payments.createPaymentIntent.useMutation();
+  const createStarPayOrderMutation = trpc.payments.createStarPayOrder.useMutation();
   const stripeKeyQuery = trpc.config.getStripePublishableKey.useQuery();
 
   // Initialize Stripe
@@ -110,9 +111,70 @@ export default function Checkout() {
     initStripe();
   }, [stripeKeyQuery.data]);
 
-  // Calculate total (prices from DB are in cents, convert to dollars for display)
+  // Calculate total
   const totalPrice = cartItems.reduce((sum, item) => sum + (item.quantity * ((item.price || 0) / 100)), 0);
-  const totalPriceInCents = Math.round(totalPrice * 100); // For Stripe API
+  const totalPriceInCents = Math.round(totalPrice * 100);
+
+  const handleStarPayCheckout = async (product: 'TRC20Buy' | 'TRC20H5' | 'USDCERC20Buy') => {
+    if (!isAuthenticated) {
+      toast.error('Please log in to proceed');
+      return;
+    }
+
+    if (!shippingAddress.trim()) {
+      toast.error('Please enter shipping address');
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      toast.error('Your cart is empty');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // Create order
+      const orderResult = await createOrderMutation.mutateAsync({
+        items: cartItems.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+        shippingAddress,
+      });
+
+      if (!orderResult.success) {
+        throw new Error('Failed to create order');
+      }
+
+      const orderId = orderResult.id || 1;
+
+      // Create Star Pay order
+      const starPayResult = await createStarPayOrderMutation.mutateAsync({
+        orderId,
+        items: cartItems.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: (item.price || 0) / 100,
+          name: item.productName || `Product ${item.productId}`,
+        })),
+        shippingAddress,
+        totalPrice,
+        product,
+      });
+
+      setStarPayUrl(starPayResult.url);
+      setPaymentMethod('starpay');
+      setStarPayProduct(product);
+      sessionStorage.setItem('lastOrderId', orderId.toString());
+      toast.success('Star Pay payment form loaded');
+    } catch (error: any) {
+      console.error('Star Pay checkout error:', error);
+      const errorMessage = error?.message || 'Failed to process Star Pay checkout';
+      toast.error(errorMessage);
+      setIsProcessing(false);
+    }
+  };
 
   const handleCheckout = async () => {
     if (!isAuthenticated) {
@@ -146,23 +208,23 @@ export default function Checkout() {
         throw new Error('Failed to create order');
       }
 
-      // Get order ID from the response
       const orderId = orderResult.id || 1;
-      // Create Payment Intent (pass totalPrice in cents for Stripe)
+      // Create Payment Intent
       const paymentResult = await createPaymentIntentMutation.mutateAsync({
         orderId,
         items: cartItems.map(item => ({
           productId: item.productId,
           quantity: item.quantity,
-          price: (item.price || 0) / 100, // Convert cents to dollars for display
+          price: (item.price || 0) / 100,
           name: item.productName || `Product ${item.productId}`,
         })),
         shippingAddress,
-        totalPrice: totalPriceInCents, // Pass in cents for Stripe
+        totalPrice: totalPriceInCents,
       });
 
       setClientSecret(paymentResult.clientSecret);
       setPaymentIntentId(paymentResult.paymentIntentId);
+      setPaymentMethod('stripe');
       sessionStorage.setItem('lastOrderId', orderId.toString());
     } catch (error: any) {
       console.error('Checkout error:', error);
@@ -176,7 +238,6 @@ export default function Checkout() {
     toast.success('Payment successful! Redirecting to confirmation...');
     const orderId = sessionStorage.getItem('lastOrderId');
     
-    // Mark order as paid
     if (orderId) {
       try {
         const markAsPaidMutation = trpc.orders.markAsPaid.useMutation();
@@ -231,8 +292,77 @@ export default function Checkout() {
     );
   }
 
-  // Show payment form if client secret is available
-  if (clientSecret && stripePromiseState) {
+  // Show Star Pay iFrame if payment method is starpay
+  if (paymentMethod === 'starpay' && starPayUrl) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          <button
+            onClick={() => {
+              setPaymentMethod(null);
+              setStarPayUrl(null);
+            }}
+            className="flex items-center gap-2 text-red-500 hover:text-red-600 mb-6"
+          >
+            <ArrowLeft size={20} />
+            Back to Payment Method
+          </button>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2">
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-2xl font-bold mb-6">Complete Payment with Star Pay</h2>
+                <p className="text-gray-600 mb-4">
+                  You will be redirected to Star Pay to complete your payment. Your transaction is secure and encrypted.
+                </p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-blue-800">
+                    💡 <strong>Tip:</strong> You can pay with Visa, Mastercard, or other payment methods supported by Star Pay.
+                  </p>
+                </div>
+                <iframe
+                  src={starPayUrl}
+                  style={{
+                    width: '100%',
+                    height: '600px',
+                    border: 'none',
+                    borderRadius: '8px',
+                  }}
+                  title="Star Pay Payment Form"
+                />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-6 h-fit">
+              <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span>${totalPrice.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Shipping</span>
+                  <span>$0.00</span>
+                </div>
+                <div className="border-t pt-3 flex justify-between font-bold text-lg">
+                  <span>Total</span>
+                  <span className="text-red-500">${totalPrice.toFixed(2)}</span>
+                </div>
+              </div>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <p className="text-xs text-green-800">
+                  ✓ Secure payment processing
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show Stripe payment form if client secret is available
+  if (clientSecret && stripePromiseState && paymentMethod === 'stripe') {
     return (
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-4xl mx-auto">
@@ -240,11 +370,12 @@ export default function Checkout() {
             onClick={() => {
               setClientSecret(null);
               setPaymentIntentId(null);
+              setPaymentMethod(null);
             }}
             className="flex items-center gap-2 text-red-500 hover:text-red-600 mb-6"
           >
             <ArrowLeft size={20} />
-            Back to Order
+            Back to Payment Method
           </button>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -283,7 +414,7 @@ export default function Checkout() {
     );
   }
 
-  // Show checkout form
+  // Show checkout form with payment method selection
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto">
@@ -296,7 +427,6 @@ export default function Checkout() {
         </button>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Order Summary */}
           <div className="md:col-span-2">
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-2xl font-bold mb-6">Checkout</h2>
@@ -318,32 +448,77 @@ export default function Checkout() {
               {/* Order Items */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold mb-4">Order Items</h3>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {cartItems.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center border-b pb-4">
+                    <div key={item.id} className="flex justify-between items-center pb-3 border-b">
                       <div>
-                        <p className="font-medium">Product {item.productId}</p>
-                        <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                        <p className="font-medium">{item.productName}</p>
+                        <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                       </div>
-                      <p className="font-semibold">${(item.quantity * ((item.price || 0) / 100)).toFixed(2)}</p>
+                      <p className="font-semibold">${((item.price || 0) / 100 * item.quantity).toFixed(2)}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Checkout Button */}
-              <Button
-                onClick={handleCheckout}
-                disabled={isProcessing || cartItems.length === 0}
-                className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
-              >
-                {isProcessing && <Loader2 size={20} className="animate-spin" />}
-                {isProcessing ? 'Processing...' : 'Proceed to Payment'}
-              </Button>
+              {/* Payment Method Selection */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold mb-4">Payment Method</h3>
+                <div className="space-y-3">
+                  {/* Stripe Option */}
+                  <button
+                    onClick={handleCheckout}
+                    disabled={isProcessing}
+                    className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <CreditCard size={24} className="text-red-500" />
+                      <div>
+                        <p className="font-semibold">Stripe (Visa/Mastercard)</p>
+                        <p className="text-sm text-gray-600">Secure payment with Stripe</p>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Star Pay Options */}
+                  <div className="border-t pt-4">
+                    <p className="text-sm font-medium text-gray-700 mb-3">Star Pay (Crypto Payment)</p>
+                    <div className="space-y-2">
+                      {(['TRC20Buy', 'TRC20H5', 'USDCERC20Buy'] as const).map((product) => (
+                        <button
+                          key={product}
+                          onClick={() => handleStarPayCheckout(product)}
+                          disabled={isProcessing}
+                          className="w-full p-3 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                              ⚡
+                            </div>
+                            <div>
+                              <p className="font-semibold text-sm">
+                                {product === 'TRC20Buy' ? 'USDT (TRC20)' : product === 'TRC20H5' ? 'USDT H5' : 'USDC (ERC20)'}
+                              </p>
+                              <p className="text-xs text-gray-600">Pay with {product}</p>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {isProcessing && (
+                <div className="flex items-center justify-center gap-2 text-gray-600">
+                  <Loader2 size={20} className="animate-spin" />
+                  <span>Processing...</span>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Order Summary Sidebar */}
+          {/* Order Summary */}
           <div className="bg-white rounded-lg shadow p-6 h-fit">
             <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
             <div className="space-y-3 mb-6">
@@ -361,7 +536,7 @@ export default function Checkout() {
               </div>
             </div>
             <p className="text-xs text-gray-500 text-center">
-              Secure payment powered by St
+              Your payment is processed securely
             </p>
           </div>
         </div>

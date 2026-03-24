@@ -97,3 +97,16 @@
 - [x] 實現購物車清空 API - 添加 cart.clear 方法 - 已完成
 - [x] 在支付成功時調用清空 API - OrderConfirmation 中自動調用 - 已完成
 - [x] 測試完整支付流程 - 驗證支付完成後購物車已清空 - 已驗證成功
+
+
+## 🌟 Star Pay 支付網關集成
+
+- [x] 添加 Star Pay 配置到環境變數 - merchant_no, API_KEY, 支付產品 - 已完成
+- [x] 實現 Star Pay MD5 簽名生成函數 - 已完成
+- [x] 實現 Star Pay 支付 API 端點 - /api/star-pay/create-order - 已完成
+- [x] 解析 Star Pay API 響應並提取支付 URL - 已完成
+- [x] 編寫 Star Pay 單元測試 - 13 個測試全部通過 - 已完成
+- [ ] 實現 Star Pay Webhook 回調處理 - /api/star-pay/webhook
+- [ ] 更新前端支付流程 - 支持 Star Pay 支付選項
+- [ ] 測試完整支付流程 - Visa/MC → USDT/USDC
+- [ ] 驗證 Webhook 簽名和訂單狀態更新

@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { handleStripeWebhook } from "../stripe-webhook";
+import { handleStarPayWebhook } from "../star-pay-webhook";
 import Stripe from "stripe";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -54,6 +55,15 @@ async function startServer() {
         console.error("[Webhook] Error verifying webhook:", error.message);
         res.status(400).json({ error: error.message });
       }
+    }
+  );
+
+  // Star Pay webhook
+  app.post(
+    "/api/star-pay/webhook",
+    express.json(),
+    async (req, res) => {
+      await handleStarPayWebhook(req, res);
     }
   );
 
