@@ -346,29 +346,33 @@ export default function Checkout() {
                   }}
                   title="Star Pay Payment Form"
                   onLoad={(e) => {
-                    // Attempt to hide non-Visa/Mastercard payment methods inside iframe
+                    // Hide non-Visa/Mastercard payment methods inside iframe
                     try {
                       const iframeElement = e.currentTarget as HTMLIFrameElement;
                       const iframeDoc = iframeElement.contentDocument || iframeElement.contentWindow?.document;
                       if (iframeDoc) {
-                        // Hide elements containing 'usdt', 'usdc', 'crypto' keywords
-                        const elementsToHide = iframeDoc.querySelectorAll(
-                          '[class*="usdt"], [class*="usdc"], [class*="crypto"], '
-                          + '[data-payment*="usdt"], [data-payment*="usdc"], [data-payment*="crypto"]'
-                        );
-                        elementsToHide.forEach((el: Element) => {
-                          (el as HTMLElement).style.display = 'none';
-                        });
+                        // Keywords for payment methods to HIDE
+                        const hideKeywords = ['google pay', 'apple pay', 'revolut', 'p2p', 'neteller', 'wire transfer', 'bank transfer', 'usdt', 'usdc', 'crypto', 'gPay', 'aPay'];
                         
-                        // Also hide by text content
+                        // Hide by specific keywords
                         const allElements = iframeDoc.querySelectorAll('*');
                         allElements.forEach((el: Element) => {
                           const htmlEl = el as HTMLElement;
-                          const text = el.textContent?.toLowerCase() || '';
-                          if ((text.includes('usdt') || text.includes('usdc') || text.includes('crypto')) && htmlEl.offsetHeight > 0) {
-                            // Only hide if it's likely a payment method selector
-                            if (el.tagName === 'BUTTON' || el.tagName === 'DIV' || el.tagName === 'LABEL') {
-                              htmlEl.style.display = 'none';
+                          const text = htmlEl.textContent?.toLowerCase() || '';
+                          const className = htmlEl.className.toLowerCase();
+                          
+                          // Check if element contains any hide keywords
+                          const shouldHide = hideKeywords.some(keyword => 
+                            text.includes(keyword.toLowerCase()) || className.includes(keyword.toLowerCase())
+                          );
+                          
+                          if (shouldHide && htmlEl.offsetHeight > 0) {
+                            // Hide payment method elements
+                            if (el.tagName === 'BUTTON' || el.tagName === 'DIV' || el.tagName === 'LABEL' || el.tagName === 'A' || className.includes('payment') || className.includes('method')) {
+                              htmlEl.style.display = 'none !important';
+                              htmlEl.style.visibility = 'hidden';
+                              htmlEl.style.height = '0';
+                              htmlEl.style.overflow = 'hidden';
                             }
                           }
                         });
