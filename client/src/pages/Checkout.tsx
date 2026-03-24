@@ -320,6 +320,22 @@ export default function Checkout() {
                     💡 <strong>Tip:</strong> You can pay with Visa, Mastercard, or other payment methods supported by Star Pay.
                   </p>
                 </div>
+                <style>{`
+                  /* Hide non-Visa/Mastercard payment methods in Star Pay iframe */
+                  iframe[title="Star Pay Payment Form"] {
+                    display: block;
+                  }
+                  
+                  /* Hide cryptocurrency payment options */
+                  iframe[title="Star Pay Payment Form"] ~ * [data-payment-method*="crypto"],
+                  iframe[title="Star Pay Payment Form"] ~ * [data-payment-method*="usdt"],
+                  iframe[title="Star Pay Payment Form"] ~ * [data-payment-method*="usdc"],
+                  iframe[title="Star Pay Payment Form"] ~ * [class*="crypto"],
+                  iframe[title="Star Pay Payment Form"] ~ * [class*="usdt"],
+                  iframe[title="Star Pay Payment Form"] ~ * [class*="usdc"] {
+                    display: none !important;
+                  }
+                `}</style>
                 <iframe
                   src={starPayUrl}
                   style={{
@@ -329,6 +345,38 @@ export default function Checkout() {
                     borderRadius: '8px',
                   }}
                   title="Star Pay Payment Form"
+                  onLoad={(e) => {
+                    // Attempt to hide non-Visa/Mastercard payment methods inside iframe
+                    try {
+                      const iframeElement = e.currentTarget as HTMLIFrameElement;
+                      const iframeDoc = iframeElement.contentDocument || iframeElement.contentWindow?.document;
+                      if (iframeDoc) {
+                        // Hide elements containing 'usdt', 'usdc', 'crypto' keywords
+                        const elementsToHide = iframeDoc.querySelectorAll(
+                          '[class*="usdt"], [class*="usdc"], [class*="crypto"], '
+                          + '[data-payment*="usdt"], [data-payment*="usdc"], [data-payment*="crypto"]'
+                        );
+                        elementsToHide.forEach((el: Element) => {
+                          (el as HTMLElement).style.display = 'none';
+                        });
+                        
+                        // Also hide by text content
+                        const allElements = iframeDoc.querySelectorAll('*');
+                        allElements.forEach((el: Element) => {
+                          const htmlEl = el as HTMLElement;
+                          const text = el.textContent?.toLowerCase() || '';
+                          if ((text.includes('usdt') || text.includes('usdc') || text.includes('crypto')) && htmlEl.offsetHeight > 0) {
+                            // Only hide if it's likely a payment method selector
+                            if (el.tagName === 'BUTTON' || el.tagName === 'DIV' || el.tagName === 'LABEL') {
+                              htmlEl.style.display = 'none';
+                            }
+                          }
+                        });
+                      }
+                    } catch (err) {
+                      console.log('Cannot access iframe content (cross-origin):', err);
+                    }
+                  }}
                 />
               </div>
             </div>
