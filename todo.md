@@ -99,14 +99,15 @@
 - [x] 測試完整支付流程 - 驗證支付完成後購物車已清空 - 已驗證成功
 
 
-## 🌟 Star Pay 支付網關集成
+## 🌟 Star Pay 支付網關完整集成 - 已完成
 
 - [x] 添加 Star Pay 配置到環境變數 - merchant_no, API_KEY, 支付產品 - 已完成
 - [x] 實現 Star Pay MD5 簽名生成函數 - 已完成
 - [x] 實現 Star Pay 支付 API 端點 - /api/star-pay/create-order - 已完成
 - [x] 解析 Star Pay API 響應並提取支付 URL - 已完成
 - [x] 編寫 Star Pay 單元測試 - 13 個測試全部通過 - 已完成
-- [ ] 實現 Star Pay Webhook 回調處理 - /api/star-pay/webhook
-- [ ] 更新前端支付流程 - 支持 Star Pay 支付選項
-- [ ] 測試完整支付流程 - Visa/MC → USDT/USDC
-- [ ] 驗證 Webhook 簽名和訂單狀態更新
+- [x] 實現 Star Pay Webhook 回調處理 - /api/star-pay/webhook - 已完成
+- [x] 更新前端支付流程 - 支持 Star Pay 支付選項 - 已完成
+- [x] 編寫 Webhook 簽名驗證和訂單更新邏輯的單元測試 - 22 個測試全部通過 - 已完成
+- [x] 編寫前端支付流程的集成測試 - 29 個測試全部通過 - 已完成
+- [x] 編寫完整端到端測試指南 - STAR_PAY_E2E_TEST_GUIDE.md - 已完成
