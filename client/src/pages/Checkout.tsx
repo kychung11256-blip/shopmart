@@ -311,9 +311,9 @@ export default function Checkout() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2">
               <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-2xl font-bold mb-6">Complete Payment with Star Pay</h2>
+                <h2 className="text-2xl font-bold mb-6">Complete Payment</h2>
                 <p className="text-gray-600 mb-4">
-                  You will be redirected to Star Pay to complete your payment. Your transaction is secure and encrypted.
+                  You will be redirected to CI to complete your payment. Your transaction is secure and encrypted.
                 </p>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                   <p className="text-sm text-blue-800">
