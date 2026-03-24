@@ -480,30 +480,24 @@ export default function Checkout() {
                     </div>
                   </button>
 
-                  {/* Star Pay Options */}
+                  {/* Star Pay Options - Only show TRC20Buy */}
                   <div className="border-t pt-4">
-                    <p className="text-sm font-medium text-gray-700 mb-3">Star Pay (Crypto Payment)</p>
                     <div className="space-y-2">
-                      {(['TRC20Buy', 'TRC20H5', 'USDCERC20Buy'] as const).map((product) => (
-                        <button
-                          key={product}
-                          onClick={() => handleStarPayCheckout(product)}
-                          disabled={isProcessing}
-                          className="w-full p-3 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                              ⚡
-                            </div>
-                            <div>
-                              <p className="font-semibold text-sm">
-                                {product === 'TRC20Buy' ? 'USDT (TRC20)' : product === 'TRC20H5' ? 'USDT H5' : 'USDC (ERC20)'}
-                              </p>
-                              <p className="text-xs text-gray-600">Pay with {product}</p>
-                            </div>
+                      <button
+                        onClick={() => handleStarPayCheckout('TRC20Buy')}
+                        disabled={isProcessing}
+                        className="w-full p-3 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                            ⚡
                           </div>
-                        </button>
-                      ))}
+                          <div>
+                            <p className="font-semibold text-sm">USDT (TRC20) - Visa/Mastercard</p>
+                            <p className="text-xs text-gray-600">Pay with Star Pay</p>
+                          </div>
+                        </div>
+                      </button>
                     </div>
                   </div>
                 </div>
