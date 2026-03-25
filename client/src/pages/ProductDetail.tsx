@@ -112,27 +112,33 @@ export default function ProductDetail() {
   }
 
   const handleBuyNow = async () => {
-    if (!isAuthenticated) {
-      toast.error('Please login to checkout');
-      return;
-    }
-    
     try {
       setIsAddingToCart(true);
       if (!product) throw new Error('Product not found');
       
-      await addToCartMutation.mutateAsync({
-        productId: product.id,
-        quantity: qty,
-      });
-      // 使購物車數據失效，觸發重新獲取
-      await utils.cart.list.invalidate();
+      if (isAuthenticated) {
+        // 登入用戶：添加到服務器購物車
+        await addToCartMutation.mutateAsync({
+          productId: product.id,
+          quantity: qty,
+        });
+        await utils.cart.list.invalidate();
+      } else {
+        // 未登入用戶：添加到本地購物車
+        const localCart = localStorage.getItem('shopmart_cart');
+        const cartItems = localCart ? JSON.parse(localCart) : [];
+        const existingItem = cartItems.find((item: any) => item.product.id === product.id);
+        if (existingItem) {
+          existingItem.qty += qty;
+        } else {
+          cartItems.push({ product, qty, selected: true });
+        }
+        localStorage.setItem('shopmart_cart', JSON.stringify(cartItems));
+        window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { cartItems } }));
+      }
       
-      toast.success('Product added to cart. Redirecting to checkout...');
-      
-      setTimeout(() => {
-        navigate('/checkout');
-      }, 500);
+      toast.success('Redirecting to checkout...');
+      setTimeout(() => navigate('/checkout'), 500);
     } catch (error: any) {
       toast.error(error.message || 'Failed to proceed to checkout');
     } finally {
