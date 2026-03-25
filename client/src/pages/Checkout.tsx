@@ -436,7 +436,7 @@ export default function Checkout() {
                   >
                     <CreditCard size={20} className="text-red-500" />
                     <div className="text-left">
-                      <div className="font-semibold">Stripe (Visa/Mastercard)</div>
+                      <div className="font-semibold">St (Visa/Mastercard)</div>
                       <div className="text-sm text-gray-600">Pay securely with your card</div>
                     </div>
                   </button>
