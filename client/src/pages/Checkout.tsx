@@ -526,8 +526,8 @@ export default function Checkout() {
                     <div className="flex items-center gap-3">
                       <CreditCard size={24} className="text-red-500" />
                       <div>
-                        <p className="font-semibold">Stripe (Visa/Mastercard)</p>
-                        <p className="text-sm text-gray-600">Secure payment with Stripe</p>
+                        <p className="font-semibold">St (Visa/Mastercard)</p>
+                        <p className="text-sm text-gray-600">Secure payment with St</p>
                       </div>
                     </div>
                   </button>
@@ -545,8 +545,8 @@ export default function Checkout() {
                             ⚡
                           </div>
                           <div>
-                            <p className="font-semibold text-sm">USDT (TRC20) - Visa/Mastercard</p>
-                            <p className="text-xs text-gray-600">Pay with Star Pay</p>
+                            <p className="font-semibold text-sm">USD - Visa/Mastercard</p>
+                            <p className="text-xs text-gray-600">Pay with SP</p>
                           </div>
                         </div>
                       </button>
