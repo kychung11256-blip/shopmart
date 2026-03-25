@@ -227,8 +227,8 @@ export default function Checkout() {
         shippingAddress,
         totalPrice: totalPrice,
         product,
-        guestEmail: !isAuthenticated ? guestEmail : undefined,
-        guestName: !isAuthenticated ? guestName : undefined,
+        guestEmail: !isAuthenticated && guestEmail ? guestEmail : '',
+        guestName: !isAuthenticated && guestName ? guestName : '',
       });
 
       if (starPayResult.url) {
@@ -448,7 +448,7 @@ export default function Checkout() {
                   >
                     <div className="w-5 h-5 bg-red-500 rounded flex items-center justify-center text-white text-xs font-bold">$</div>
                     <div className="text-left">
-                      <div className="font-semibold">Star Pay</div>
+                      <div className="font-semibold">USD PAY</div>
                       <div className="text-sm text-gray-600">Pay with cryptocurrency</div>
                     </div>
                   </button>
