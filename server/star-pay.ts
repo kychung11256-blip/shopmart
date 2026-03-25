@@ -1,5 +1,12 @@
 import crypto from 'crypto';
+import https from 'https';
 import { ENV } from './_core/env';
+
+// 創建 HTTPS Agent，禁用 SSL 驗證（僅用於開發/測試）
+const httpsAgent = new https.Agent({
+  rejectUnauthorized: false,
+  minVersion: 'TLSv1.2',
+});
 
 /**
  * Star Pay 簽名生成
@@ -100,13 +107,23 @@ export async function createStarPayOrder(
 
   try {
     // 調用 Star Pay API
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 秒超時
+
     const response = await fetch('https://api.star-pay.vip/api/gateway/pay', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: requestParams.toString(),
-    });
+      signal: controller.signal,
+    } as any);
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`Star Pay API returned ${response.status}: ${response.statusText}`);
+    }
 
     const data = await response.json();
 
@@ -121,6 +138,12 @@ export async function createStarPayOrder(
     return data;
   } catch (error) {
     console.error('[Star Pay] API Error:', error);
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        throw new Error('Star Pay API request timeout');
+      }
+      throw new Error(`Failed to create Star Pay order: ${error.message}`);
+    }
     throw error;
   }
 }

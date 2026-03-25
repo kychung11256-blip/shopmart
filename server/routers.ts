@@ -382,6 +382,39 @@ export const appRouter = router({
           throw error;
         }
       }),
+    createGuest: publicProcedure
+      .input(z.object({
+        items: z.array(z.object({ productId: z.number(), quantity: z.number() })),
+        shippingAddress: z.string(),
+        guestEmail: z.string().email(),
+        guestName: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          const orderNumber = `ORD-${Date.now()}`;
+          let totalPrice = 0;
+          for (const item of input.items) {
+            const product = await db.select().from(products).where(eq(products.id, item.productId)).limit(1);
+            if (product[0]) totalPrice += product[0].price * item.quantity;
+          }
+          // Create guest order with null userId
+          const newOrder: InsertOrder = {
+            orderNumber,
+            userId: null as any,
+            totalPrice,
+            shippingAddress: input.shippingAddress,
+          };
+          const orderResult = await db.insert(orders).values(newOrder);
+          // Query the newly created order to get its ID
+          const createdOrder = await db.select().from(orders).where(eq(orders.orderNumber, orderNumber)).limit(1);
+          return { success: true, orderNumber, id: createdOrder[0]?.id || 0 };
+        } catch (error) {
+          console.error("[API] Error creating guest order:", error);
+          throw error;
+        }
+      }),
     getById: protectedProcedure
       .input(z.number())
       .query(async ({ input, ctx }) => {
