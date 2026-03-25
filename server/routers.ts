@@ -655,8 +655,9 @@ export const appRouter = router({
             });
           }
           
-          // Format amount (法幣保留2位小數)
-          const formattedAmount = formatStarPayAmount(input.totalPrice, false);
+          // Format amount based on product type
+          // All Star Pay products (TRC20Buy, TRC20H5, USDCERC20Buy) are crypto, use 6 decimal places
+          const formattedAmount = formatStarPayAmount(input.totalPrice, true);
           
           // Create Star Pay order
           const merchantRef = `ORDER-${input.orderId}-${Date.now()}`;
