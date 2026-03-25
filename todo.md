@@ -133,3 +133,10 @@
 - [x] 修改後端訂單創建邏輯支持遊客訂單（createGuest API）
 - [x] 為遊客訂單創建臨時用戶或標記為遊客訂單（userId 設為 null）
 - [ ] 測試遊客購買流程
+
+## 🐛 遊客購物車問題 - 已修複
+
+- [x] 診斷：未登入用戶無法立即購買，購物車更新不及時
+- [x] 實現 localStorage 購物車存儲橛制
+- [x] 修復購物車實時更新（添加到購物車後立即反映）
+- [x] 修複 Checkout.tsx 以正確載入 shopmart_cart localStorage 格式

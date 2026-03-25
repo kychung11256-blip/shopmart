@@ -99,6 +99,7 @@ export default function ProductDetail() {
         }
         
         localStorage.setItem('shopmart_cart', JSON.stringify(cartItems));
+        window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { cartItems } }));
       }
       
       toast.success(`Added ${qty} × "${product.name}" to cart!`);

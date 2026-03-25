@@ -60,6 +60,33 @@ export default function Cart() {
   // TRPC 變更操作
   const removeCartMutation = trpc.cart.remove.useMutation();
 
+  // 監聽購物車更新事件
+  useEffect(() => {
+    const handleCartUpdated = () => {
+      if (!isAuthenticated) {
+        try {
+          const localCart = localStorage.getItem('shopmart_cart');
+          if (localCart) {
+            const items = JSON.parse(localCart) as CartItem[];
+            const convertedProducts = allProducts.map(convertDbProductToFrontend);
+            const validItems = items.filter(item => 
+              convertedProducts.find(p => p.id === item.product.id)
+            ).map(item => ({
+              ...item,
+              product: convertedProducts.find(p => p.id === item.product.id)!
+            }));
+            setCartItems(validItems);
+          }
+        } catch (error) {
+          console.error('Error loading local cart:', error);
+        }
+      }
+    };
+
+    window.addEventListener('cartUpdated', handleCartUpdated);
+    return () => window.removeEventListener('cartUpdated', handleCartUpdated);
+  }, [isAuthenticated, allProducts]);
+
   // 初始化購物車 - 支持未登入用戶的本地購物車
   useEffect(() => {
     if (isAuthenticated) {
@@ -114,7 +141,7 @@ export default function Cart() {
       }
       setIsLoading(false);
     }
-   }, [isAuthenticated, cartLoading]);
+   }, [isAuthenticated, cartLoading, allProducts]);
 
   const selectedItems = cartItems.filter(item => item.selected);
   const totalPrice = selectedItems.reduce((sum, item) => sum + item.product.price * item.qty, 0);

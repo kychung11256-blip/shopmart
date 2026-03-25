@@ -112,11 +112,18 @@ export default function Checkout() {
       }));
       setCartItems(formattedItems);
     } else if (!isAuthenticated) {
-      // Load from localStorage for guests
-      const savedCart = localStorage.getItem('guestCart');
+      // Load from localStorage for guests (shopmart_cart format)
+      const savedCart = localStorage.getItem('shopmart_cart');
       if (savedCart) {
         try {
-          setCartItems(JSON.parse(savedCart));
+          const items = JSON.parse(savedCart);
+          const formattedItems: CartItem[] = items.map((item: any) => ({
+            productId: item.product.id,
+            quantity: item.qty,
+            price: Math.round(item.product.price * 100),
+            name: item.product.name,
+          }));
+          setCartItems(formattedItems);
         } catch (e) {
           console.error('Failed to parse guest cart:', e);
         }
