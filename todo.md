@@ -140,3 +140,11 @@
 - [x] 實現 localStorage 購物車存儲橛制
 - [x] 修復購物車實時更新（添加到購物車後立即反映）
 - [x] 修複 Checkout.tsx 以正確載入 shopmart_cart localStorage 格式
+
+## 📋 訂單確認頁面 - 已完成
+
+- [x] 設計訂單確認頁面的佈局（訂單摘要、感謝訊息、配送信息）
+- [x] 建立 OrderConfirmation 頁面組件（已存在並改進視覺設計）
+- [x] 實現訂單詳情查詢 API（getById、markAsPaid 已實現）
+- [ ] 添加郵件通知功能（訂單確認郵件）
+- [ ] 測試完整的支付和確認流程

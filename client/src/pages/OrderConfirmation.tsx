@@ -170,19 +170,22 @@ export default function OrderConfirmation() {
         </button>
 
         {/* Success message */}
-        <div className="bg-white rounded-lg shadow p-8 mb-6 text-center border-t-4 border-green-500">
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg shadow-lg p-8 mb-6 text-center border-t-4 border-green-500">
           <div className="flex justify-center mb-4">
-            <CheckCircle2 size={64} className="text-green-500" />
+            <div className="relative">
+              <div className="absolute inset-0 bg-green-200 rounded-full animate-pulse"></div>
+              <CheckCircle2 size={64} className="text-green-500 relative z-10" />
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            {language === 'zh' ? '支付成功！' : 'Payment Successful!'}
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+            {language === 'zh' ? '感謝您的購買！' : 'Thank You!'}
           </h1>
-          <p className="text-gray-600 mb-4">
+          <p className="text-lg text-gray-600 mb-4">
             {language === 'zh' 
-              ? '感謝您的購買。您的訂單已確認。' 
-              : 'Thank you for your purchase. Your order has been confirmed.'}
+              ? '您的訂單已確認，我們正在準備發貨。' 
+              : 'Your order has been confirmed. We\'re preparing it for shipment.'}
           </p>
-          <p className="text-2xl font-bold text-red-500">Order #{order.orderNumber}</p>
+          <p className="text-3xl font-bold text-green-600">Order #{order.orderNumber}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
