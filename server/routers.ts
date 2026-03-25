@@ -663,7 +663,7 @@ export const appRouter = router({
         }
       }),
     // Create Star Pay Order
-    createStarPayOrder: protectedProcedure
+    createStarPayOrder: publicProcedure
       .input(z.object({
         orderId: z.number(),
         items: z.array(z.object({
@@ -675,6 +675,8 @@ export const appRouter = router({
         shippingAddress: z.string(),
         totalPrice: z.number(),
         product: z.enum(['TRC20Buy', 'TRC20H5', 'USDCERC20Buy']),
+        guestEmail: z.string().email().optional(),
+        guestName: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         try {
@@ -700,8 +702,8 @@ export const appRouter = router({
             formattedAmount,
             'en_US',
             {
-              customer_email: ctx.user?.email,
-              customer_name: ctx.user?.name,
+              customer_email: ctx.user?.email || input.guestEmail || '',
+              customer_name: ctx.user?.name || input.guestName || '',
             }
           );
           

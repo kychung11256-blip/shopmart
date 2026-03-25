@@ -22,7 +22,7 @@ interface CartItem {
 function PaymentForm({ clientSecret, onSuccess }: { clientSecret: string; onSuccess: () => void }) {
   const stripe = useStripe();
   const elements = useElements();
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,10 +84,10 @@ function PaymentForm({ clientSecret, onSuccess }: { clientSecret: string; onSucc
 export default function Checkout() {
   const [, navigate] = useLocation();
   const { user, isAuthenticated, loading } = useAuth();
-  const [shippingAddress, setShippingAddress] = useState('');
-  const [guestEmail, setGuestEmail] = useState('');
-  const [guestName, setGuestName] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [shippingAddress, setShippingAddress] = useState<string>('');
+  const [guestEmail, setGuestEmail] = useState<string>('');
+  const [guestName, setGuestName] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [stripePromiseState, setStripePromiseState] = useState<Awaited<ReturnType<typeof loadStripe>> | null>(null);
@@ -95,6 +95,7 @@ export default function Checkout() {
   const [starPayUrl, setStarPayUrl] = useState<string | null>(null);
   const [starPayProduct, setStarPayProduct] = useState<'TRC20Buy' | 'TRC20H5' | 'USDCERC20Buy'>('TRC20Buy');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [showGuestForm, setShowGuestForm] = useState<boolean>(false);
 
   // Get cart items from localStorage for guests, or from tRPC for authenticated users
   const { data: authenticatedCartItems } = trpc.cart.list.useQuery(undefined, {
@@ -131,12 +132,21 @@ export default function Checkout() {
     }
   }, [isAuthenticated, authenticatedCartItems]);
 
+  // Show guest form if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated && !loading) {
+      setShowGuestForm(true);
+    }
+  }, [isAuthenticated, loading]);
+
   // Mutations
   const createOrderMutation = trpc.orders.create.useMutation();
   const createGuestOrderMutation = trpc.orders.createGuest.useMutation();
   const createPaymentIntentMutation = trpc.payments.createPaymentIntent.useMutation();
   const createStarPayOrderMutation = trpc.payments.createStarPayOrder.useMutation();
   const stripeKeyQuery = trpc.config.getStripePublishableKey.useQuery();
+
+
 
   // Initialize Stripe
   useEffect(() => {
@@ -164,7 +174,7 @@ export default function Checkout() {
     }
 
     if (!isAuthenticated && (!guestEmail.trim() || !guestName.trim())) {
-      toast.error('Please enter email and name');
+      toast.error('Please enter email and name for guest checkout');
       return;
     }
 
@@ -217,6 +227,8 @@ export default function Checkout() {
         shippingAddress,
         totalPrice: totalPrice,
         product,
+        guestEmail: !isAuthenticated ? guestEmail : undefined,
+        guestName: !isAuthenticated ? guestName : undefined,
       });
 
       if (starPayResult.url) {
@@ -242,7 +254,7 @@ export default function Checkout() {
     }
 
     if (!isAuthenticated && (!guestEmail.trim() || !guestName.trim())) {
-      toast.error('Please enter email and name');
+      toast.error('Please enter email and name for guest checkout');
       return;
     }
 

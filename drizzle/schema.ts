@@ -65,7 +65,7 @@ export type InsertCategory = typeof categories.$inferInsert;
 export const orders = mysqlTable("orders", {
   id: int("id").autoincrement().primaryKey(),
   orderNumber: varchar("orderNumber", { length: 50 }).notNull().unique(),
-  userId: int("userId").notNull(),
+  userId: int("userId"), // Nullable for guest orders
   totalPrice: int("totalPrice").notNull(), // Store in cents
   status: mysqlEnum("status", ["pending", "processing", "shipped", "delivered", "cancelled"]).default("pending").notNull(),
   paymentStatus: mysqlEnum("paymentStatus", ["unpaid", "paid", "refunded", "failed"]).default("unpaid").notNull(),
