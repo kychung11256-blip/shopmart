@@ -67,6 +67,7 @@ export default function ProductDetail() {
 
   // TRPC 購物車操作
   const addToCartMutation = trpc.cart.add.useMutation();
+  const utils = trpc.useUtils();
 
   const handleAddToCart = async () => {
     try {
@@ -79,6 +80,8 @@ export default function ProductDetail() {
           productId: product.id,
           quantity: qty,
         });
+        // 使購物車數據失效，觸發重新獲取
+        await utils.cart.list.invalidate();
       } else {
         // 未登入用戶：添加到本地購物車
         const localCart = localStorage.getItem('shopmart_cart');
@@ -121,6 +124,8 @@ export default function ProductDetail() {
         productId: product.id,
         quantity: qty,
       });
+      // 使購物車數據失效，觸發重新獲取
+      await utils.cart.list.invalidate();
       
       toast.success('Product added to cart. Redirecting to checkout...');
       
