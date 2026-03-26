@@ -395,18 +395,9 @@ export default function Home() {
                 {productsLoading ? (
                   <div className="col-span-full text-center text-gray-500 py-8">{language === 'zh' ? '加載商品中...' : 'Loading products...'}</div>
                 ) : (
-                  <>
-                    {recommendedProducts.map((product) => (
-                      <ProductCard key={product.id} product={product} />
-                    ))}
-                    {/* Placeholder cards */}
-                    <div className="bg-gray-50 border border-dashed border-gray-200 rounded flex items-center justify-center min-h-[180px] text-gray-300 text-sm">
-                      {language === 'zh' ? '更多商品' : 'More Products'}
-                    </div>
-                    <div className="bg-gray-50 border border-dashed border-gray-200 rounded flex items-center justify-center min-h-[180px] text-gray-300 text-sm">
-                      {language === 'zh' ? '敬請期待' : 'Coming Soon'}
-                    </div>
-                  </>
+                  recommendedProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))
                 )}
               </div>
             </section>
