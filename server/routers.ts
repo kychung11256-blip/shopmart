@@ -691,8 +691,10 @@ export const appRouter = router({
           }
           
           // Format amount based on product type
-          // All Star Pay products (TRC20Buy, TRC20H5, USDCERC20Buy) are crypto, use 6 decimal places
-          const formattedAmount = formatStarPayAmount(input.totalPrice, true);
+          // For crypto products: convert USD to cents (Star Pay expects integer cents for USD payment)
+          // Example: $10.00 USD -> 1000 cents
+          const amountInCents = Math.round(input.totalPrice * 100);
+          const formattedAmount = amountInCents.toString();
           
           // Create Star Pay order
           const merchantRef = `ORDER-${input.orderId}-${Date.now()}`;
@@ -732,7 +734,8 @@ export const appRouter = router({
           console.log('[API] Star Pay order created:', {
             orderId: input.orderId,
             merchantRef,
-            amount: formattedAmount,
+            originalAmount: input.totalPrice,
+            amountInCents: formattedAmount,
             product: input.product,
             payUrl,
           });
@@ -743,6 +746,7 @@ export const appRouter = router({
             message: response.message,
             url: payUrl,
             params: response.params,
+            amountInCents: formattedAmount,
           };
         } catch (error: any) {
           console.error('[API] Error creating Star Pay order:', error?.message || error);
