@@ -252,6 +252,26 @@ export const appRouter = router({
           throw error;
         }
       }),
+
+    batchDelete: adminProcedure
+      .input(z.object({
+        ids: z.array(z.number()).min(1),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          console.log('[API] Batch deleting products:', input.ids);
+          for (const id of input.ids) {
+            await db.update(products).set({ status: 'deleted' }).where(eq(products.id, id));
+          }
+          console.log('[API] Batch delete completed successfully');
+          return { success: true, deletedCount: input.ids.length };
+        } catch (error) {
+          console.error('[API] Error batch deleting products:', error);
+          throw error;
+        }
+      }),
   }),
 
   // Categories router

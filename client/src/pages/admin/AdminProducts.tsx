@@ -16,6 +16,8 @@ export default function AdminProducts() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Queries
   const { data: products = [], isLoading, refetch } = trpc.products.list.useQuery({ limit: 100 });
@@ -51,6 +53,17 @@ export default function AdminProducts() {
   const deleteMutation = trpc.products.delete.useMutation({
     onSuccess: () => {
       toast.success('Product deleted successfully');
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`Error: ${error.message}`);
+    },
+  });
+
+  const batchDeleteMutation = trpc.products.batchDelete.useMutation({
+    onSuccess: () => {
+      toast.success('Products deleted successfully');
+      setSelectedIds(new Set());
       refetch();
     },
     onError: (error) => {
@@ -153,6 +166,44 @@ export default function AdminProducts() {
     }
   };
 
+  const toggleSelection = (id: number) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredProducts.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredProducts.map(p => p.id)));
+    }
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedIds.size === 0) {
+      toast.error('Please select at least one product');
+      return;
+    }
+    
+    if (confirm(`Are you sure you want to delete ${selectedIds.size} product(s)?`)) {
+      setIsDeleting(true);
+      try {
+        await batchDeleteMutation.mutateAsync({
+          ids: Array.from(selectedIds),
+        });
+      } catch (error) {
+        console.error('[AdminProducts] Error batch deleting:', error);
+      } finally {
+        setIsDeleting(false);
+      }
+    }
+  };
+
   const handleAddNew = () => {
     setEditingId('new');
     setEditingData({
@@ -188,13 +239,25 @@ export default function AdminProducts() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold">商品管理</h1>
-            <button
-              onClick={handleAddNew}
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 flex items-center gap-2"
-            >
-              <Plus size={18} />
-              添加商品
-            </button>
+            <div className="flex gap-2">
+              {selectedIds.size > 0 && (
+                <button
+                  onClick={handleBatchDelete}
+                  disabled={isDeleting}
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-gray-400 flex items-center gap-2"
+                >
+                  <Trash2 size={18} />
+                  刪除 ({selectedIds.size})
+                </button>
+              )}
+              <button
+                onClick={handleAddNew}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 flex items-center gap-2"
+              >
+                <Plus size={18} />
+                添加商品
+              </button>
+            </div>
           </div>
 
           <div className="flex gap-4 mb-4">
@@ -235,6 +298,14 @@ export default function AdminProducts() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.size === filteredProducts.length && filteredProducts.length > 0}
+                    onChange={toggleSelectAll}
+                    className="w-4 h-4 cursor-pointer"
+                  />
+                </th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">商品</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">分類</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">價格</th>
@@ -247,6 +318,9 @@ export default function AdminProducts() {
             <tbody>
               {editingId === 'new' && editingData && (
                 <tr className="border-b bg-yellow-50">
+                  <td className="px-6 py-4">
+                    {/* Checkbox for new row */}
+                  </td>
                   <td className="px-6 py-4">
                     <Input
                       value={editingData.name || ''}
@@ -349,6 +423,9 @@ export default function AdminProducts() {
                 editingId === String(product.id) && editingData ? (
                   <tr key={String(product.id)} className="border-b bg-yellow-50">
                     <td className="px-6 py-4">
+                      {/* Checkbox for editing row */}
+                    </td>
+                    <td className="px-6 py-4">
                       <Input
                         value={editingData.name || ''}
                         onChange={(e) => setEditingData({ ...editingData, name: e.target.value })}
@@ -447,6 +524,14 @@ export default function AdminProducts() {
                   </tr>
                 ) : (
                   <tr key={String(product.id)} className="border-b hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(product.id)}
+                        onChange={() => toggleSelection(product.id)}
+                        className="w-4 h-4 cursor-pointer"
+                      />
+                    </td>
                     <td className="px-6 py-4 text-sm">{product.name}</td>
                     <td className="px-6 py-4 text-sm">{String(product.categoryId) || 'N/A'}</td>
                     <td className="px-6 py-4 text-sm text-red-600 font-semibold">${(product.price / 100).toFixed(2)}</td>
