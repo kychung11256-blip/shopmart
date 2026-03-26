@@ -3,8 +3,9 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { ArrowLeft, Loader2, CreditCard } from 'lucide-react';
+import { ArrowLeft, Loader2, CreditCard, X } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -96,11 +97,20 @@ export default function Checkout() {
   const [starPayProduct, setStarPayProduct] = useState<'TRC20Buy' | 'TRC20H5' | 'USDCERC20Buy'>('TRC20Buy');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showGuestForm, setShowGuestForm] = useState<boolean>(false);
+  const [showStarPayModal, setShowStarPayModal] = useState<boolean>(false);
+  const [starPayOrderId, setStarPayOrderId] = useState<number | null>(null);
+  const [paymentCheckInterval, setPaymentCheckInterval] = useState<NodeJS.Timeout | null>(null);
 
   // Get cart items from localStorage for guests, or from tRPC for authenticated users
   const { data: authenticatedCartItems } = trpc.cart.list.useQuery(undefined, {
     enabled: isAuthenticated,
   });
+
+  // Query to check order payment status
+  const { data: orderData, refetch: refetchOrder } = trpc.orders.getById.useQuery(
+    starPayOrderId || 0,
+    { enabled: !!starPayOrderId }
+  );
 
   useEffect(() => {
     if (isAuthenticated && authenticatedCartItems) {
@@ -139,14 +149,48 @@ export default function Checkout() {
     }
   }, [isAuthenticated, loading]);
 
+  // Monitor payment status when Star Pay modal is open
+  useEffect(() => {
+    if (showStarPayModal && starPayOrderId) {
+      // Check payment status every 2 seconds
+      const interval = setInterval(async () => {
+        await refetchOrder();
+      }, 2000);
+      setPaymentCheckInterval(interval);
+
+      return () => {
+        if (interval) clearInterval(interval);
+      };
+    }
+  }, [showStarPayModal, starPayOrderId, refetchOrder]);
+
+  // Auto-close modal and navigate when payment is completed
+  useEffect(() => {
+    if (showStarPayModal && orderData?.paymentStatus === 'paid') {
+      // Payment completed
+      setShowStarPayModal(false);
+      if (paymentCheckInterval) clearInterval(paymentCheckInterval);
+      
+      toast.success('Payment successful!');
+      
+      // Clear cart
+      if (isAuthenticated) {
+        // Cart will be cleared by the backend
+      } else {
+        localStorage.removeItem('shopmart_cart');
+      }
+      
+      // Navigate to order confirmation
+      navigate(`/orders/confirmation?orderId=${starPayOrderId}`);
+    }
+  }, [orderData?.paymentStatus, showStarPayModal, starPayOrderId, paymentCheckInterval, isAuthenticated, navigate]);
+
   // Mutations
   const createOrderMutation = trpc.orders.create.useMutation();
   const createGuestOrderMutation = trpc.orders.createGuest.useMutation();
   const createPaymentIntentMutation = trpc.payments.createPaymentIntent.useMutation();
   const createStarPayOrderMutation = trpc.payments.createStarPayOrder.useMutation();
   const stripeKeyQuery = trpc.config.getStripePublishableKey.useQuery();
-
-
 
   // Initialize Stripe
   useEffect(() => {
@@ -214,6 +258,7 @@ export default function Checkout() {
 
       const orderId = orderResult.id || 1;
       sessionStorage.setItem('lastOrderId', orderId.toString());
+      setStarPayOrderId(Number(orderId));
 
       // Create Star Pay order
       const starPayResult = await createStarPayOrderMutation.mutateAsync({
@@ -233,9 +278,9 @@ export default function Checkout() {
 
       if (starPayResult.url) {
         setStarPayUrl(starPayResult.url);
-        // Open in new tab
-        window.open(starPayResult.url, '_blank');
-        toast.success('Redirecting to payment page...');
+        // Show modal with embedded payment page instead of opening new tab
+        setShowStarPayModal(true);
+        toast.success('Opening payment page...');
       } else {
         throw new Error('Failed to get payment URL');
       }
@@ -294,6 +339,7 @@ export default function Checkout() {
 
       const orderId = orderResult.id || 1;
       sessionStorage.setItem('lastOrderId', orderId.toString());
+      setStarPayOrderId(Number(orderId));
 
       // Create Stripe payment intent
       const paymentResult = await createPaymentIntentMutation.mutateAsync({
@@ -492,6 +538,51 @@ export default function Checkout() {
           </div>
         </div>
       </div>
+
+      {/* Star Pay Payment Modal */}
+      <Dialog open={showStarPayModal} onOpenChange={(open) => {
+        if (!open) {
+          setShowStarPayModal(false);
+          if (paymentCheckInterval) clearInterval(paymentCheckInterval);
+        }
+      }}>
+        <DialogContent className="max-w-4xl w-full h-screen md:h-auto md:max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex items-center justify-between">
+            <DialogTitle>Complete Your Payment</DialogTitle>
+            <button
+              onClick={() => {
+                setShowStarPayModal(false);
+                if (paymentCheckInterval) clearInterval(paymentCheckInterval);
+              }}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X size={24} />
+            </button>
+          </DialogHeader>
+          
+          {starPayUrl ? (
+            <div className="flex-1 overflow-hidden">
+              <iframe
+                src={starPayUrl}
+                title="Star Pay Payment"
+                className="w-full h-full border-0"
+                allow="payment"
+                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-96">
+              <Loader2 size={40} className="animate-spin text-red-500" />
+            </div>
+          )}
+          
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-900">
+              ℹ️ Your payment will be processed securely. Once completed, you'll be automatically redirected to your order confirmation page.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
