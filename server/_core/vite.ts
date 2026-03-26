@@ -20,6 +20,24 @@ export async function setupVite(app: Express, server: Server) {
     appType: "custom",
   });
 
+  // CRITICAL: Add verification file handler BEFORE any other middleware
+  // This must be the very first middleware to intercept requests
+  app.use((req, res, next) => {
+    // Check if this is a verification file request
+    if (req.url && /^\/cryptomus_[a-f0-9]+\.html$/.test(req.url)) {
+      const match = req.url.match(/cryptomus_([a-f0-9]+)\.html/);
+      if (match) {
+        const token = match[1];
+        if (token === "20a47093") {
+          res.setHeader("Content-Type", "text/html; charset=utf-8");
+          res.send(`cryptomus=${token}`);
+          return;
+        }
+      }
+    }
+    next();
+  });
+
   app.use(vite.middlewares);
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
@@ -50,13 +68,29 @@ export async function setupVite(app: Express, server: Server) {
 export function serveStatic(app: Express) {
   const distPath =
     process.env.NODE_ENV === "development"
-      ? path.resolve(import.meta.dirname, "../..", "dist", "public")
+      ? path.resolve(import.meta.dirname, "../", "dist", "public")
       : path.resolve(import.meta.dirname, "public");
   if (!fs.existsSync(distPath)) {
     console.error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
+
+  // Handle verification files BEFORE serving static files
+  app.use((req, res, next) => {
+    if (req.url && /^\/cryptomus_[a-f0-9]+\.html$/.test(req.url)) {
+      const match = req.url.match(/cryptomus_([a-f0-9]+)\.html/);
+      if (match) {
+        const token = match[1];
+        if (token === "20a47093") {
+          res.setHeader("Content-Type", "text/html; charset=utf-8");
+          res.send(`cryptomus=${token}`);
+          return;
+        }
+      }
+    }
+    next();
+  });
 
   app.use(express.static(distPath));
 

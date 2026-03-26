@@ -753,6 +753,16 @@ export const appRouter = router({
         }
       }),
   }),
+  verification: router({
+    // Public: Get domain verification file content
+    getCryptomusVerification: publicProcedure.query(async () => {
+      // Return the Cryptomus verification token
+      // This endpoint can be accessed at /api/trpc/verification.getCryptomusVerification
+      return {
+        token: 'cryptomus=20a47093',
+      };
+    }),
+  }),
   config: router({
     // Admin-only: Set Stripe configuration
     setStripeKeys: adminProcedure

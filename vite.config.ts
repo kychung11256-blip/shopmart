@@ -75,8 +75,15 @@ function writeToLogFile(source: LogSource, entries: unknown[]) {
  * - Auto-trimmed when exceeding 1MB (keeps newest entries)
  */
 function vitePluginManusDebugCollector(): Plugin {
+  let server: ViteDevServer | null = null;
+
   return {
     name: "manus-debug-collector",
+
+    configResolved() {
+      // This hook is called after config is resolved
+      // We'll use configureServer to get access to the server instance
+    },
 
     transformIndexHtml(html) {
       if (process.env.NODE_ENV === "production") {
@@ -97,9 +104,27 @@ function vitePluginManusDebugCollector(): Plugin {
       };
     },
 
-    configureServer(server: ViteDevServer) {
+    configureServer(viteServer: ViteDevServer) {
+      server = viteServer;
+      
+      // Create a middleware for verification files that runs BEFORE all other middlewares
+      const verificationMiddleware = (req: any, res: any, next: any) => {
+        if (req.url && /^\/(cryptomus_[a-f0-9]+\.html)$/.test(req.url)) {
+          const filePath = path.join(PROJECT_ROOT, "client", "public", req.url.substring(1));
+          if (fs.existsSync(filePath)) {
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            res.end(fs.readFileSync(filePath, "utf-8"));
+            return;
+          }
+        }
+        next();
+      };
+      
+      // Insert verification middleware at the beginning of the stack
+      viteServer.middlewares.use(verificationMiddleware);
+      
       // POST /__manus__/logs: Browser sends logs (written directly to files)
-      server.middlewares.use("/__manus__/logs", (req, res, next) => {
+      viteServer.middlewares.use("/__manus__/logs", (req, res, next) => {
         if (req.method !== "POST") {
           return next();
         }

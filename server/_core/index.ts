@@ -33,6 +33,24 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+  
+  // CRITICAL: Add verification file handler as the VERY FIRST middleware
+  // This must be before ANY other middleware to intercept requests early
+  app.use((req, res, next) => {
+    if (req.url && /^\/cryptomus_[a-f0-9]+\.html$/.test(req.url)) {
+      const match = req.url.match(/cryptomus_([a-f0-9]+)\.html/);
+      if (match) {
+        const token = match[1];
+        if (token === "20a47093") {
+          res.setHeader("Content-Type", "text/html; charset=utf-8");
+          res.send(`cryptomus=${token}`);
+          return;
+        }
+      }
+    }
+    next();
+  });
+  
   // Stripe webhook must be registered BEFORE express.json() to verify signatures
   app.post(
     "/api/stripe/webhook",
@@ -72,6 +90,19 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  
+  // Domain verification files (e.g., Cryptomus verification)
+  app.get("/cryptomus_:token.html", (req, res) => {
+    const token = req.params.token;
+    // Only serve known verification tokens
+    if (token === "20a47093") {
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.send(`cryptomus=${token}`);
+    } else {
+      res.status(404).send("Not found");
+    }
+  });
+  
   // tRPC API
   app.use(
     "/api/trpc",
