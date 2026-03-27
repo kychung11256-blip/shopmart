@@ -103,13 +103,13 @@ export default function Checkout() {
 
   // Get cart items from localStorage for guests, or from tRPC for authenticated users
   const { data: authenticatedCartItems } = trpc.cart.list.useQuery(undefined, {
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !loading,
   });
 
   // Query to check order payment status
   const { data: orderData, refetch: refetchOrder } = trpc.orders.getById.useQuery(
     starPayOrderId || 0,
-    { enabled: !!starPayOrderId }
+    { enabled: !!starPayOrderId && isAuthenticated && !loading }
   );
 
   useEffect(() => {
@@ -148,7 +148,7 @@ export default function Checkout() {
         }
       }
     }
-  }, [isAuthenticated, authenticatedCartItems]);
+  }, [isAuthenticated, authenticatedCartItems, loading]);
 
   // Listen for localStorage changes (for guest cart updates)
   useEffect(() => {
@@ -177,7 +177,7 @@ export default function Checkout() {
 
     window.addEventListener('cartUpdated', handleCartUpdated);
     return () => window.removeEventListener('cartUpdated', handleCartUpdated);
-  }, [isAuthenticated]);
+  }, [isAuthenticated, loading]);
 
   // Show guest form if not authenticated
   useEffect(() => {
