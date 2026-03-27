@@ -114,26 +114,34 @@ export default function Checkout() {
 
   useEffect(() => {
     if (isAuthenticated && authenticatedCartItems) {
-      const formattedItems: CartItem[] = authenticatedCartItems.map((item: any) => ({
-        id: item.id,
-        productId: item.productId,
-        quantity: item.quantity,
-        price: item.price,
-        name: item.productName,
-      }));
+      const formattedItems: CartItem[] = authenticatedCartItems.map((item: any) => {
+        // Ensure price is in dollars - if it's > 100, it's likely in cents
+        const price = item.price > 100 ? item.price / 100 : item.price;
+        return {
+          id: item.id,
+          productId: item.productId,
+          quantity: item.quantity,
+          price: price,
+          name: item.productName,
+        };
+      });
       setCartItems(formattedItems);
-    } else if (!isAuthenticated) {
+      } else if (!isAuthenticated) {
       // Load from localStorage for guests (shopmart_cart format)
       const savedCart = localStorage.getItem('shopmart_cart');
       if (savedCart) {
         try {
           const items = JSON.parse(savedCart);
-          const formattedItems: CartItem[] = items.map((item: any) => ({
-            productId: item.product.id,
-            quantity: item.qty,
-            price: item.product.price,
-            name: item.product.name,
-          }));
+          const formattedItems: CartItem[] = items.map((item: any) => {
+            // Ensure price is in dollars - if it's > 100, it's likely in cents
+            const price = item.product.price > 100 ? item.product.price / 100 : item.product.price;
+            return {
+              productId: item.product.id,
+              quantity: item.qty,
+              price: price,
+              name: item.product.name,
+            };
+          });
           setCartItems(formattedItems);
         } catch (e) {
           console.error('Failed to parse guest cart:', e);
@@ -141,6 +149,35 @@ export default function Checkout() {
       }
     }
   }, [isAuthenticated, authenticatedCartItems]);
+
+  // Listen for localStorage changes (for guest cart updates)
+  useEffect(() => {
+    const handleCartUpdated = () => {
+      if (!isAuthenticated) {
+        const savedCart = localStorage.getItem('shopmart_cart');
+        if (savedCart) {
+          try {
+            const items = JSON.parse(savedCart);
+            const formattedItems: CartItem[] = items.map((item: any) => {
+              const price = item.product.price > 100 ? item.product.price / 100 : item.product.price;
+              return {
+                productId: item.product.id,
+                quantity: item.qty,
+                price: price,
+                name: item.product.name,
+              };
+            });
+            setCartItems(formattedItems);
+          } catch (e) {
+            console.error('Failed to parse guest cart:', e);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('cartUpdated', handleCartUpdated);
+    return () => window.removeEventListener('cartUpdated', handleCartUpdated);
+  }, [isAuthenticated]);
 
   // Show guest form if not authenticated
   useEffect(() => {
@@ -521,7 +558,7 @@ export default function Checkout() {
                       <div className="text-gray-600">Qty: {item.quantity}</div>
                     </div>
                     <div className="font-medium">
-                      ${((item.price / 100) * item.quantity).toFixed(2)}
+                      ${(item.price * item.quantity).toFixed(2)}
                     </div>
                   </div>
                 ))}
