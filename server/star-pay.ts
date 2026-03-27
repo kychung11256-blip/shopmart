@@ -89,6 +89,7 @@ export async function createStarPayOrder(
     language,
     extra: {
       fiat_currency: 'USD', // 法幣類型在 extra 對象中
+      // 不設置 bank_code，讓 Star Pay 使用默認值
       ...(extraData || {}),
     },
   };
@@ -107,25 +108,50 @@ export async function createStarPayOrder(
 
   try {
     // 調用 Star Pay API
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 秒超時
+    const data = await new Promise<any>((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error('Star Pay API request timeout'));
+      }, 15000); // 15 秒超時
 
-    const response = await fetch('https://api.star-pay.vip/api/gateway/pay', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: requestParams.toString(),
-      signal: controller.signal,
-    } as any);
+      const postData = requestParams.toString();
+      const options = {
+        hostname: 'api.star-pay.vip',
+        port: 443,
+        path: '/api/gateway/pay',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Length': Buffer.byteLength(postData),
+        },
+        agent: httpsAgent,
+      };
 
-    clearTimeout(timeoutId);
+      const req = https.request(options, (res) => {
+        let responseData = '';
 
-    if (!response.ok) {
-      throw new Error(`Star Pay API returned ${response.status}: ${response.statusText}`);
-    }
+        res.on('data', (chunk) => {
+          responseData += chunk;
+        });
 
-    const data = await response.json();
+        res.on('end', () => {
+          clearTimeout(timeoutId);
+          try {
+            const parsedData = JSON.parse(responseData);
+            resolve(parsedData);
+          } catch (e) {
+            reject(new Error(`Failed to parse Star Pay response: ${e}`));
+          }
+        });
+      });
+
+      req.on('error', (error) => {
+        clearTimeout(timeoutId);
+        reject(error);
+      });
+
+      req.write(postData);
+      req.end();
+    });
 
     console.log('[Star Pay] API Response:', {
       merchantRef,
@@ -133,13 +159,15 @@ export async function createStarPayOrder(
       amount,
       code: data.code,
       message: data.message,
+      params: data.params,
+      fullResponse: JSON.stringify(data),
     });
 
     return data;
   } catch (error) {
     console.error('[Star Pay] API Error:', error);
     if (error instanceof Error) {
-      if (error.name === 'AbortError') {
+      if (error.message.includes('timeout')) {
         throw new Error('Star Pay API request timeout');
       }
       throw new Error(`Failed to create Star Pay order: ${error.message}`);

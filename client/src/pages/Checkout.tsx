@@ -94,7 +94,7 @@ export default function Checkout() {
   const [stripePromiseState, setStripePromiseState] = useState<Awaited<ReturnType<typeof loadStripe>> | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'starpay' | null>(null);
   const [starPayUrl, setStarPayUrl] = useState<string | null>(null);
-  const [starPayProduct, setStarPayProduct] = useState<'TRC20Buy' | 'TRC20H5' | 'USDCERC20Buy'>('TRC20Buy');
+  const [starPayProduct, setStarPayProduct] = useState<'TRC20Buy' | 'TRC20H5' | 'USDCERC20Buy'>('USDCERC20Buy'); // Use USDCERC20Buy for fiat to crypto conversion
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showGuestForm, setShowGuestForm] = useState<boolean>(false);
   const [showStarPayModal, setShowStarPayModal] = useState<boolean>(false);
@@ -308,7 +308,7 @@ export default function Checkout() {
         })),
         shippingAddress,
         totalPrice: totalPrice,
-        product,
+        product: starPayProduct, // Use starPayProduct state instead of undefined product
         guestEmail: !isAuthenticated && guestEmail ? guestEmail : '',
         guestName: !isAuthenticated && guestName ? guestName : '',
       });

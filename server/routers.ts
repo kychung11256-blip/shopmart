@@ -711,9 +711,9 @@ export const appRouter = router({
           }
           
           // Format amount based on product type
-          // Star Pay expects amount in cents (integer) for USD
-          // Example: $10.00 USD -> 1000 (cents)
-          const formattedAmount = Math.round(input.totalPrice * 100).toString();
+          // Star Pay expects amount in USD with 2 decimal places
+          // Example: $10.00 USD -> "10.00"
+          const formattedAmount = input.totalPrice.toFixed(2);
           
           // Create Star Pay order
           const merchantRef = `ORDER-${input.orderId}-${Date.now()}`;
