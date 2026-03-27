@@ -218,3 +218,13 @@
 - [x] 修復金額格式化 - 從美分整數改為美元浮點數 ("50.00")
 - [x] 驗證 Star Pay API 現在成功返回支付 URL
 - [x] 測試支付模態框顯示正確的金額 (USD 50)
+
+
+## 🔧 遊客購買認證問題修復 - 已完成
+
+- [x] 診斷結帳頁面的認證問題 - orders.getById 需要認證
+- [x] 將 orders.getById 改為 publicProcedure
+- [x] 將 orders.markAsPaid 改為 publicProcedure
+- [x] 移除 Checkout.tsx 中的 isAuthenticated 查詢條件
+- [x] 驗證未登入用戶可以訪問結帳頁面
+- [x] 驗證遊客用戶可以進行支付流程

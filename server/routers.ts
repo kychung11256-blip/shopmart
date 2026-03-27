@@ -435,13 +435,14 @@ export const appRouter = router({
           throw error;
         }
       }),
-    getById: protectedProcedure
+    getById: publicProcedure
       .input(z.number())
       .query(async ({ input, ctx }) => {
         const db = await getDb();
         if (!db) throw new Error('Database not available');
         try {
-          // Allow users to view any order (no userId check)
+          // Allow anyone to view any order (for guest checkout support)
+          // In production, you may want to add a secret token or time-based access control
           const order = await db.select().from(orders).where(eq(orders.id, input)).limit(1);
           if (!order[0]) throw new Error('Order not found');
           const items = await db.select().from(orderItems).where(eq(orderItems.orderId, input));
@@ -451,7 +452,7 @@ export const appRouter = router({
           throw error;
         }
       }),
-    markAsPaid: protectedProcedure
+    markAsPaid: publicProcedure
       .input(z.number())
       .mutation(async ({ input: orderId, ctx }) => {
         const db = await getDb();

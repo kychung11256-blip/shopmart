@@ -107,9 +107,10 @@ export default function Checkout() {
   });
 
   // Query to check order payment status
+  // Allow both authenticated and guest users to check order status
   const { data: orderData, refetch: refetchOrder } = trpc.orders.getById.useQuery(
     starPayOrderId || 0,
-    { enabled: !!starPayOrderId && isAuthenticated && !loading }
+    { enabled: !!starPayOrderId && !loading }
   );
 
   useEffect(() => {
