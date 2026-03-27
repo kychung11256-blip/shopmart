@@ -711,9 +711,9 @@ export const appRouter = router({
           }
           
           // Format amount based on product type
-          // All Star Pay products (TRC20Buy, TRC20H5, USDCERC20Buy) are crypto, use 6 decimal places
-          // Example: $10.00 USD -> 10.000000
-          const formattedAmount = formatStarPayAmount(input.totalPrice, true);
+          // Star Pay expects amount in cents (integer) for USD
+          // Example: $10.00 USD -> 1000 (cents)
+          const formattedAmount = Math.round(input.totalPrice * 100).toString();
           
           // Create Star Pay order
           const merchantRef = `ORDER-${input.orderId}-${Date.now()}`;
