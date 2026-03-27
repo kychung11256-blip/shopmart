@@ -131,7 +131,7 @@ export default function Checkout() {
           const formattedItems: CartItem[] = items.map((item: any) => ({
             productId: item.product.id,
             quantity: item.qty,
-            price: Math.round(item.product.price * 100),
+            price: item.product.price,
             name: item.product.name,
           }));
           setCartItems(formattedItems);
@@ -208,7 +208,7 @@ export default function Checkout() {
   }, [stripeKeyQuery.data]);
 
   // Calculate total
-  const totalPrice = cartItems.reduce((sum, item) => sum + (item.quantity * (item.price / 100)), 0);
+  const totalPrice = cartItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
   const totalPriceInCents = Math.round(totalPrice * 100);
 
   const handleStarPayCheckout = async (product: 'TRC20Buy' | 'TRC20H5' | 'USDCERC20Buy') => {
@@ -305,6 +305,12 @@ export default function Checkout() {
 
     if (cartItems.length === 0) {
       toast.error('Your cart is empty');
+      return;
+    }
+
+    // Check minimum amount for Stripe ($0.50)
+    if (totalPrice < 0.50) {
+      toast.error('Minimum order amount is $0.50 USD');
       return;
     }
 
