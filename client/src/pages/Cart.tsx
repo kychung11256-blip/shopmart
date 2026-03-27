@@ -5,7 +5,7 @@
  * API Integration: 使用 TRPC 實時同步購物車數據
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'wouter';
 import { ShoppingCart, Search, User, Trash2, Plus, Minus, ChevronRight, ArrowLeft, Globe, LogOut } from 'lucide-react';
 // 不再使用本地硬編碼商品數據，確保與數據庫同步
@@ -56,6 +56,9 @@ export default function Cart() {
     enabled: isAuthenticated, // 只在登入時才調用
   });
   const { data: allProducts = [] } = trpc.products.list.useQuery({ limit: 200 });
+  
+  // 穩定 allProducts 的引用，避免無限循環
+  const memoizedProducts = useMemo(() => allProducts, [allProducts]);
 
   // TRPC 變更操作
   const removeCartMutation = trpc.cart.remove.useMutation();
@@ -85,7 +88,7 @@ export default function Cart() {
 
     window.addEventListener('cartUpdated', handleCartUpdated);
     return () => window.removeEventListener('cartUpdated', handleCartUpdated);
-  }, [isAuthenticated, allProducts]);
+  }, [isAuthenticated, memoizedProducts]);
 
   // 初始化購物車 - 支持未登入用戶的本地購物車
   useEffect(() => {
@@ -141,7 +144,7 @@ export default function Cart() {
       }
       setIsLoading(false);
     }
-   }, [isAuthenticated, cartLoading, allProducts]);
+  }, [isAuthenticated, cartLoading, memoizedProducts]);
 
   const selectedItems = cartItems.filter(item => item.selected);
   const totalPrice = selectedItems.reduce((sum, item) => sum + item.product.price * item.qty, 0);
