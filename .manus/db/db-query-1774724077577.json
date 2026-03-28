@@ -1,0 +1,20 @@
+{
+  "query": "SELECT c.*, p.name as productName, p.price FROM cart c JOIN products p ON c.productId = p.id WHERE c.userId = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT c.*, p.name as productName, p.price FROM cart c JOIN products p ON c.productId = p.id WHERE c.userId = 1;",
+  "rows": [
+    {
+      "id": "840002",
+      "userId": "1",
+      "productId": "90007",
+      "quantity": "2",
+      "createdAt": "2026-03-27 17:25:13",
+      "updatedAt": "2026-03-28 18:52:26",
+      "productName": "nft001",
+      "price": "150000"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tproductId\tquantity\tcreatedAt\tupdatedAt\tproductName\tprice\n840002\t1\t90007\t2\t2026-03-27 17:25:13\t2026-03-28 18:52:26\tnft001\t150000\n",
+  "stderr": "",
+  "execution_time_ms": 1704
+}

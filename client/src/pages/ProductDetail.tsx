@@ -67,6 +67,7 @@ export default function ProductDetail() {
 
   // TRPC 購物車操作
   const addToCartMutation = trpc.cart.add.useMutation();
+  const clearCartMutation = trpc.cart.clear.useMutation();
   const utils = trpc.useUtils();
 
   const handleAddToCart = async () => {
@@ -117,22 +118,16 @@ export default function ProductDetail() {
       if (!product) throw new Error('Product not found');
       
       if (isAuthenticated) {
-        // 登入用戶：添加到服務器購物車
+        // 登入用戶：清空購物車，只添加當前商品
+        await clearCartMutation.mutateAsync();
         await addToCartMutation.mutateAsync({
           productId: product.id,
           quantity: qty,
         });
         await utils.cart.list.invalidate();
       } else {
-        // 未登入用戶：添加到本地購物車
-        const localCart = localStorage.getItem('shopmart_cart');
-        const cartItems = localCart ? JSON.parse(localCart) : [];
-        const existingItem = cartItems.find((item: any) => item.product.id === product.id);
-        if (existingItem) {
-          existingItem.qty += qty;
-        } else {
-          cartItems.push({ product, qty, selected: true });
-        }
+        // 未登入用戶：清空本地購物車，只添加當前商品
+        const cartItems = [{ product, qty, selected: true }];
         localStorage.setItem('shopmart_cart', JSON.stringify(cartItems));
         window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { cartItems } }));
       }

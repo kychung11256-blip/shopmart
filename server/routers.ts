@@ -360,6 +360,25 @@ export const appRouter = router({
           throw error;
         }
       }),
+    batchDelete: adminProcedure
+      .input(z.array(z.number()))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          if (input.length === 0) {
+            throw new Error('No categories selected for deletion');
+          }
+          for (const id of input) {
+            await db.update(categories).set({ status: 'inactive' }).where(eq(categories.id, id));
+          }
+          console.log('[API] Batch delete completed successfully');
+          return { success: true, deletedCount: input.length };
+        } catch (error) {
+          console.error('[API] Error batch deleting categories:', error);
+          throw error;
+        }
+      }),
   }),
 
   // Orders router
@@ -555,7 +574,7 @@ export const appRouter = router({
             const product = productResult[0];
             return {
               ...item,
-              price: product?.price || 0,
+              price: product?.price ? centsToDollars(product.price) : 0,
               productName: product?.name || 'Unknown Product',
             };
           })

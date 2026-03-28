@@ -1,0 +1,58 @@
+{
+  "query": "SELECT * FROM cart LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT * FROM cart LIMIT 20;",
+  "rows": [
+    {
+      "id": "300018",
+      "userId": "1020059",
+      "productId": "90007",
+      "quantity": "5",
+      "createdAt": "2026-03-23 04:29:54",
+      "updatedAt": "2026-03-23 05:19:45"
+    },
+    {
+      "id": "630001",
+      "userId": "810009",
+      "productId": "180001",
+      "quantity": "2",
+      "createdAt": "2026-03-24 16:15:32",
+      "updatedAt": "2026-03-25 07:21:50"
+    },
+    {
+      "id": "660001",
+      "userId": "810009",
+      "productId": "90007",
+      "quantity": "1",
+      "createdAt": "2026-03-25 17:42:35",
+      "updatedAt": "2026-03-25 17:42:35"
+    },
+    {
+      "id": "660004",
+      "userId": "2160047",
+      "productId": "90007",
+      "quantity": "1",
+      "createdAt": "2026-03-25 18:17:53",
+      "updatedAt": "2026-03-25 18:17:53"
+    },
+    {
+      "id": "840002",
+      "userId": "1",
+      "productId": "90007",
+      "quantity": "2",
+      "createdAt": "2026-03-27 17:25:13",
+      "updatedAt": "2026-03-28 18:52:26"
+    },
+    {
+      "id": "870001",
+      "userId": "810009",
+      "productId": "180002",
+      "quantity": "1",
+      "createdAt": "2026-03-28 00:06:37",
+      "updatedAt": "2026-03-28 00:06:37"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tproductId\tquantity\tcreatedAt\tupdatedAt\n300018\t1020059\t90007\t5\t2026-03-23 04:29:54\t2026-03-23 05:19:45\n630001\t810009\t180001\t2\t2026-03-24 16:15:32\t2026-03-25 07:21:50\n660001\t810009\t90007\t1\t2026-03-25 17:42:35\t2026-03-25 17:42:35\n660004\t2160047\t90007\t1\t2026-03-25 18:17:53\t2026-03-25 18:17:53\n840002\t1\t90007\t2\t2026-03-27 17:25:13\t2026-03-28 18:52:26\n870001\t810009\t180002\t1\t2026-03-28 00:06:37\t2026-03-28 00:06:37\n",
+  "stderr": "",
+  "execution_time_ms": 1643
+}
