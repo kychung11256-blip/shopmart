@@ -8,6 +8,7 @@ import { getDb } from "./db";
 import type { User } from "../drizzle/schema";
 import { products, categories, orders, orderItems, cart, users, InsertProduct, InsertOrder, InsertOrderItem, InsertCartItem } from "../drizzle/schema";
 import { eq, and, desc, asc } from "drizzle-orm";
+import { convertProductsToAPI, convertProductToAPI, centsToDollars } from "./price-utils";
 
 export const appRouter = router({
   system: systemRouter,
@@ -129,10 +130,13 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) return [];
         try {
+          let result;
           if (input.categoryId) {
-            return await db.select().from(products).where(and(eq(products.status, 'active'), eq(products.categoryId, input.categoryId))).limit(input.limit).offset(input.offset);
+            result = await db.select().from(products).where(and(eq(products.status, 'active'), eq(products.categoryId, input.categoryId))).limit(input.limit).offset(input.offset);
+          } else {
+            result = await db.select().from(products).where(eq(products.status, 'active')).limit(input.limit).offset(input.offset);
           }
-          return await db.select().from(products).where(eq(products.status, 'active')).limit(input.limit).offset(input.offset);
+          return convertProductsToAPI(result);
         } catch (error) {
           console.error("[API] Error fetching products:", error);
           return [];
@@ -158,7 +162,7 @@ export const appRouter = router({
               message: `Product ${input} not found`,
             });
           }
-          return result[0];
+          return convertProductToAPI(result[0]);
         } catch (error: any) {
           console.error('[API] Error fetching product:', error?.message || error);
           if (error instanceof TRPCError) throw error;
@@ -177,7 +181,8 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) return [];
         try {
-          return await db.select().from(products).limit(input.limit).offset(input.offset);
+          const result = await db.select().from(products).limit(input.limit).offset(input.offset);
+          return convertProductsToAPI(result);
         } catch (error) {
           console.error("[API] Error fetching all products:", error);
           return [];
