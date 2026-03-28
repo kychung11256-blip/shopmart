@@ -22,6 +22,7 @@ import Login from "./pages/Login";
 import Checkout from "./pages/Checkout";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import OrderHistory from "./pages/OrderHistory";
+import NFTMarketplace from "./pages/NFTMarketplace";
 
 // Admin pages
 import Dashboard from "./pages/admin/Dashboard";
@@ -44,6 +45,7 @@ function Router() {
       <Route path="/checkout" component={Checkout} />
       <Route path="/orders" component={OrderHistory} />
       <Route path="/orders/confirmation" component={OrderConfirmation} />
+      <Route path="/nft-marketplace" component={NFTMarketplace} />
 
       {/* Admin routes */}
       <Route path="/admin" component={Dashboard} />
