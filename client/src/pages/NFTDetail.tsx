@@ -319,7 +319,7 @@ export default function NFTDetail() {
                 <div className="flex items-start justify-between">
                   <span className="text-gray-600 font-medium">{language === 'zh' ? 'NFT 合約地址' : 'Nft Token Address'}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-800 font-mono text-sm max-w-xs truncate">{nft.contractAddress.substring(0, 10)}...{nft.contractAddress.substring(-8)}</span>
+                    <span className="text-gray-800 font-mono text-sm">{nft.contractAddress}</span>
                     <button
                       onClick={() => copyToClipboard(nft.contractAddress)}
                       className="p-1 hover:bg-gray-100 rounded transition-colors"
@@ -346,7 +346,7 @@ export default function NFTDetail() {
                   <div className="flex items-start justify-between">
                     <span className="text-gray-600 font-medium">{language === 'zh' ? '創建者' : 'Creator'}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-800 font-mono text-sm max-w-xs truncate">{nft.creator.substring(0, 10)}...{nft.creator.substring(-8)}</span>
+                      <span className="text-gray-800 font-mono text-sm">{nft.creator}</span>
                       <button
                         onClick={() => copyToClipboard(nft.creator || '')}
                         className="p-1 hover:bg-gray-100 rounded transition-colors"
