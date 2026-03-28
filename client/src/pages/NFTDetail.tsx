@@ -84,40 +84,31 @@ export default function NFTDetail() {
       setIsAddingToCart(true);
       if (!nft) throw new Error('NFT not found');
       
-      if (isAuthenticated) {
-        // 登入用戶：添加到服務器購物車
-        await addToCartMutation.mutateAsync({
-          productId: nft.id,
-          quantity: qty,
-        });
+      // NFT 商品直接添加到本地購物車（購物車 API 只支持 numeric productId）
+      const cart = JSON.parse(localStorage.getItem('shopmart_cart') || '[]');
+      const existingItem = cart.find((item: any) => item.id === nft.id);
+      
+      if (existingItem) {
+        existingItem.quantity += qty;
       } else {
-        // 未登入用戶：添加到本地購物車
-        const cart = JSON.parse(localStorage.getItem('shopmart_cart') || '[]');
-        const existingItem = cart.find((item: any) => item.id === nft.id);
-        
-        if (existingItem) {
-          existingItem.quantity += qty;
-        } else {
-          cart.push({
-            id: nft.id,
-            name: nft.name,
-            price: nft.price,
-            image: nft.image,
-            quantity: qty,
-            nftData: {
-              contractAddress: nft.contractAddress,
-              tokenId: nft.tokenId,
-              chainId: nft.chainId,
-            },
-          });
-        }
-        
-        localStorage.setItem('shopmart_cart', JSON.stringify(cart));
-        window.dispatchEvent(new Event('cartUpdated'));
+        cart.push({
+          id: nft.id,
+          name: nft.name,
+          price: nft.price,
+          image: nft.image,
+          quantity: qty,
+          nftData: {
+            contractAddress: nft.contractAddress,
+            tokenId: nft.tokenId,
+            chainId: nft.chainId,
+          },
+        });
       }
       
+      localStorage.setItem('shopmart_cart', JSON.stringify(cart));
+      window.dispatchEvent(new Event('cartUpdated'));
+      
       toast.success(language === 'zh' ? '已添加到購物車' : 'Added to cart');
-      await utils.cart.list.invalidate();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to add to cart');
     } finally {
@@ -129,37 +120,29 @@ export default function NFTDetail() {
     try {
       if (!nft) throw new Error('NFT not found');
       
-      if (isAuthenticated) {
-        // 登入用戶：添加到購物車後進入結帳
-        await addToCartMutation.mutateAsync({
-          productId: nft.id,
-          quantity: qty,
-        });
+      // NFT 商品直接添加到本地購物車（購物車 API 只支持 numeric productId）
+      const cart = JSON.parse(localStorage.getItem('shopmart_cart') || '[]');
+      const existingItem = cart.find((item: any) => item.id === nft.id);
+      
+      if (existingItem) {
+        existingItem.quantity += qty;
       } else {
-        // 未登入用戶：添加到本地購物車
-        const cart = JSON.parse(localStorage.getItem('shopmart_cart') || '[]');
-        const existingItem = cart.find((item: any) => item.id === nft.id);
-        
-        if (existingItem) {
-          existingItem.quantity += qty;
-        } else {
-          cart.push({
-            id: nft.id,
-            name: nft.name,
-            price: nft.price,
-            image: nft.image,
-            quantity: qty,
-            nftData: {
-              contractAddress: nft.contractAddress,
-              tokenId: nft.tokenId,
-              chainId: nft.chainId,
-            },
-          });
-        }
-        
-        localStorage.setItem('shopmart_cart', JSON.stringify(cart));
-        window.dispatchEvent(new Event('cartUpdated'));
+        cart.push({
+          id: nft.id,
+          name: nft.name,
+          price: nft.price,
+          image: nft.image,
+          quantity: qty,
+          nftData: {
+            contractAddress: nft.contractAddress,
+            tokenId: nft.tokenId,
+            chainId: nft.chainId,
+          },
+        });
       }
+      
+      localStorage.setItem('shopmart_cart', JSON.stringify(cart));
+      window.dispatchEvent(new Event('cartUpdated'));
       
       navigate('/checkout');
     } catch (err) {

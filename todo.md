@@ -312,3 +312,9 @@
 - [x] 更新前端組件調用 API 獲取 NFT 圖片
 - [x] COCOz NFT 圖片正確顯示
 - [ ] First Wave NFT 圖片無法加載 - 需要調查圖片 URL 可訪問性
+
+## 🐛 NFT 詳情頁面立即購買功能錯誤 - 已完成
+
+- [x] 檢查購物車 API 的 productId 類型定義
+- [x] 修復 NFTDetail.tsx 中的 productId 類型轉換 - 改為使用 localStorage
+- [x] 測試立即購買功能 - 正常工作，成功跳轉到結帳頁面
