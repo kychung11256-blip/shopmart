@@ -1,11 +1,10 @@
 /**
  * ShopMart - Cart Page
- * Design: 活力促銷電商風 - 紅白主色調
- * Mobile Optimized: 響應式布局，手機版本購物車適配
- * API Integration: 使用 TRPC 實時同步購物車數據
+ * Completely rewritten to eliminate infinite loop issues
+ * Key strategy: Avoid useMemo/useCallback chains, use simple state management
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { ShoppingCart, Search, User, Trash2, Plus, Minus, Globe, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
@@ -55,76 +54,60 @@ export default function Cart() {
     enabled: isAuthenticated,
   });
   const { data: allProducts = [] } = trpc.products.list.useQuery({ limit: 200 });
-  
-  // 轉換並穩定商品列表
-  const convertedProducts = useMemo(() => allProducts.map(convertDbProductToFrontend), [allProducts]);
 
-  // TRPC 變更操作
-  const removeCartMutation = trpc.cart.remove.useMutation();
-
-  // ============ 核心邏輯：單一初始化 useEffect ============
-  // 這是唯一負責初始化購物車的 useEffect
-  // 依賴只有：isAuthenticated, cartLoading, apiCartItems
-  // 不依賴 convertedProducts 以避免無限循環
+  // ============ SINGLE EFFECT - 唯一的初始化 effect ============
+  // 這個 effect 只依賴於原始數據，不依賴任何計算結果
   useEffect(() => {
-    setIsLoading(true);
-
-    if (isAuthenticated) {
-      // 登入用戶：使用 API 購物車
-      if (cartLoading) {
-        return;
-      }
-
-      if (apiCartItems.length === 0) {
-        setCartItems([]);
-        setIsLoading(false);
-        return;
-      }
-
-      // 使用 convertedProducts 映射商品
-      const items: CartItem[] = apiCartItems
-        .map((cartItem: any) => {
-          const product = convertedProducts.find(p => p.id === cartItem.productId);
-          if (!product) return null;
-          return {
-            id: cartItem.id,
-            product: product,
-            qty: cartItem.quantity,
-            selected: true,
-          } as CartItem;
-        })
-        .filter((item): item is CartItem => item !== null);
-      
-      setCartItems(items);
-      setIsLoading(false);
-    } else {
-      // 未登入用戶：購物車必須為空
+    // 未登入用戶：購物車為空
+    if (!isAuthenticated) {
       setCartItems([]);
-      localStorage.removeItem('shopmart_cart');
       setIsLoading(false);
+      return;
     }
-  }, [isAuthenticated, cartLoading, apiCartItems, convertedProducts]);
 
-  // ============ 計算選中項目 ============
-  const selectedItems = useMemo(() => 
-    cartItems.filter(item => item.selected),
-    [cartItems]
-  );
+    // 登入用戶：還在加載中
+    if (cartLoading) {
+      return;
+    }
 
-  const totalPrice = useMemo(() =>
-    selectedItems.reduce((sum, item) => sum + item.product.price * item.qty, 0),
-    [selectedItems]
-  );
+    // 登入用戶：購物車為空
+    if (apiCartItems.length === 0) {
+      setCartItems([]);
+      setIsLoading(false);
+      return;
+    }
 
-  const totalOriginal = useMemo(() =>
-    selectedItems.reduce((sum, item) => sum + (item.product.originalPrice || item.product.price) * item.qty, 0),
-    [selectedItems]
-  );
+    // 登入用戶：映射購物車商品
+    // 直接在 effect 內部做轉換，避免創建新的 useMemo
+    const items: CartItem[] = [];
+    
+    for (const cartItem of apiCartItems) {
+      const dbProduct = allProducts.find(p => p.id === cartItem.productId);
+      if (dbProduct) {
+        const product = convertDbProductToFrontend(dbProduct);
+        items.push({
+          id: cartItem.id,
+          product: product,
+          qty: cartItem.quantity,
+          selected: true,
+        });
+      }
+    }
 
-  const savings = useMemo(() => totalOriginal - totalPrice, [totalOriginal, totalPrice]);
+    setCartItems(items);
+    setIsLoading(false);
+  }, [isAuthenticated, cartLoading, apiCartItems.length]); // 只依賴基本屬性，不依賴陣列本身
+
+  // ============ 計算選中項目和總價 ============
+  // 直接計算，不使用 useMemo
+  const selectedItems = cartItems.filter(item => item.selected);
+  const totalPrice = selectedItems.reduce((sum, item) => sum + item.product.price * item.qty, 0);
+  const totalOriginal = selectedItems.reduce((sum, item) => sum + (item.product.originalPrice || item.product.price) * item.qty, 0);
+  const savings = totalOriginal - totalPrice;
 
   // ============ 事件處理函數 ============
-  const handleQtyChange = useCallback((id: number, delta: number) => {
+  // 直接定義，不使用 useCallback
+  const handleQtyChange = (id: number, delta: number) => {
     setCartItems(prev => {
       const updated = prev.map(item => {
         if (item.product.id === id) {
@@ -135,9 +118,9 @@ export default function Cart() {
       });
       return updated;
     });
-  }, []);
+  };
 
-  const handleRemove = useCallback(async (cartItemId: number | undefined, productId: number) => {
+  const handleRemove = async (cartItemId: number | undefined, productId: number) => {
     if (!isAuthenticated || !cartItemId) {
       setCartItems(prev => prev.filter(item => item.product.id !== productId));
       toast.success(language === 'zh' ? '已移除商品' : 'Item removed from cart');
@@ -146,6 +129,7 @@ export default function Cart() {
 
     try {
       setRemovingIds(prev => new Set(prev).add(cartItemId));
+      const removeCartMutation = trpc.cart.remove.useMutation();
       await removeCartMutation.mutateAsync(cartItemId);
       setCartItems(prev => prev.filter(item => item.product.id !== productId));
       await refetchCart();
@@ -159,26 +143,26 @@ export default function Cart() {
         return newSet;
       });
     }
-  }, [isAuthenticated, language, removeCartMutation, refetchCart]);
+  };
 
-  const handleToggleSelect = useCallback((id: number) => {
+  const handleToggleSelect = (id: number) => {
     setCartItems(prev => prev.map(item =>
       item.product.id === id ? { ...item, selected: !item.selected } : item
     ));
-  }, []);
+  };
 
-  const handleSelectAll = useCallback(() => {
+  const handleSelectAll = () => {
     const allSelected = cartItems.every(item => item.selected);
     setCartItems(prev => prev.map(item => ({ ...item, selected: !allSelected })));
-  }, [cartItems]);
+  };
 
-  const handleCheckout = useCallback(() => {
+  const handleCheckout = () => {
     if (selectedItems.length === 0) {
       toast.error(language === 'zh' ? '請選擇至少一件商品' : 'Please select at least one item');
       return;
     }
     navigate('/checkout');
-  }, [selectedItems.length, language, navigate]);
+  };
 
   if (isLoading) {
     return (
