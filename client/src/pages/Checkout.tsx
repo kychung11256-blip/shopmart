@@ -306,7 +306,7 @@ export default function Checkout() {
         amount: totalPrice,
         currency: 'USD',
         customerEmail: isAuthenticated ? user?.email : guestEmail,
-        successUrl: `${window.location.origin}/orders/confirmation?orderId=${orderId}`,
+        successUrl: `${window.location.origin}/order-confirmation?orderId=${orderId}&payment=nexapay`,
         cancelUrl: `${window.location.origin}/checkout`,
       });
 
@@ -314,8 +314,6 @@ export default function Checkout() {
         setNexapayUrl(nexapayResult.checkoutUrl);
         setShowNexapayModal(true);
         toast.success('Opening Nexapay payment page...');
-        // Redirect to checkout URL in new tab
-        window.open(nexapayResult.checkoutUrl, '_blank');
       } else {
         throw new Error('Failed to get Nexapay checkout URL');
       }
@@ -707,6 +705,49 @@ export default function Checkout() {
           ) : (
             <div className="flex items-center justify-center h-96">
               <Loader2 size={40} className="animate-spin text-red-500" />
+            </div>
+          )}
+          
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-900">
+              ℹ️ Your payment will be processed securely. Once completed, you'll be automatically redirected to your order confirmation page.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Nexapay Payment Modal */}
+      <Dialog open={showNexapayModal} onOpenChange={(open) => {
+        if (!open) {
+          setShowNexapayModal(false);
+        }
+      }}>
+        <DialogContent className="max-w-4xl w-full h-screen md:h-auto md:max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex items-center justify-between">
+            <DialogTitle>Complete Your Payment</DialogTitle>
+            <button
+              onClick={() => {
+                setShowNexapayModal(false);
+              }}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X size={24} />
+            </button>
+          </DialogHeader>
+          
+          {nexapayUrl ? (
+            <div className="flex-1 overflow-hidden">
+              <iframe
+                src={nexapayUrl}
+                title="Nexapay Payment"
+                className="w-full h-full border-0"
+                allow="payment"
+                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-96">
+              <Loader2 size={40} className="animate-spin text-blue-500" />
             </div>
           )}
           

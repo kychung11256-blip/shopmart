@@ -54,8 +54,9 @@ export default function OrderConfirmation() {
     setOrderId(id);
     setIsLoading(false);
     
-    // If payment was successful and we haven't marked as paid yet, do it now
-    if (redirectStatus === 'succeeded' && id && !hasMarkedAsPaid) {
+    // If payment was successful (from Stripe or Nexapay) and we haven't marked as paid yet, do it now
+    const paymentMethod = params.get('payment');
+    if ((redirectStatus === 'succeeded' || paymentMethod === 'nexapay') && id && !hasMarkedAsPaid) {
       console.log(`[OrderConfirmation] Payment succeeded for order ${id}, marking as paid...`);
       setHasMarkedAsPaid(true);
       markAsPaidMutation.mutate(id, {
@@ -85,8 +86,9 @@ export default function OrderConfirmation() {
   }, [navigate, language, hasMarkedAsPaid, hasCleared, markAsPaidMutation, clearCartMutation]);
 
   // Fetch order details (will refetch when order is marked as paid)
+  // Allow both authenticated and guest users to view order confirmation
   const { data: order, isLoading: orderLoading, refetch: refetchOrder } = trpc.orders.getById.useQuery(orderId || 0, {
-    enabled: !!orderId && isAuthenticated,
+    enabled: !!orderId,
   });
   
   // Refetch order when payment is marked as paid
@@ -97,25 +99,7 @@ export default function OrderConfirmation() {
     }
   }, [markAsPaidMutation.isSuccess, refetchOrder]);
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <h1 className="text-2xl font-bold mb-4">
-              {language === 'zh' ? '請登入' : 'Please Log In'}
-            </h1>
-            <p className="text-gray-600 mb-6">
-              {language === 'zh' ? '您需要登入才能查看訂單。' : 'You need to log in to view your order.'}
-            </p>
-            <Button onClick={() => navigate('/')} className="bg-red-500 hover:bg-red-600">
-              {language === 'zh' ? '返回首頁' : 'Go to Home'}
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Allow both authenticated and guest users to view order confirmation
 
   if (isLoading || orderLoading) {
     return (
