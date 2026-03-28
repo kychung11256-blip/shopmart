@@ -118,11 +118,12 @@ export const config = mysqlTable("config", {
 export type Config = typeof config.$inferSelect;
 export type InsertConfig = typeof config.$inferInsert;
 
-// Thirdweb configuration table for storing API keys
+// Thirdweb configuration table for storing API keys and merchant wallet
 export const thirdwebConfig = mysqlTable("thirdweb_config", {
   id: int("id").autoincrement().primaryKey(),
   thirdwebApiKey: varchar("thirdweb_api_key", { length: 512 }),
   thirdwebSecretKey: varchar("thirdweb_secret_key", { length: 512 }),
+  merchantWalletAddress: varchar("merchant_wallet_address", { length: 255 }),
   description: text("description"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

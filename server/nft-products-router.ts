@@ -189,3 +189,61 @@ export const nftProductsRouter = {
       }
     }),
 };
+
+// Add merchant NFT products method
+export const getMerchantNFTProducts = async () => {
+  try {
+    const db = await getDb();
+    if (!db) throw new Error('Database not available');
+    
+    const config = await db.select().from(thirdwebConfig).limit(1);
+    
+    if (!config || config.length === 0 || !config[0].merchantWalletAddress) {
+      return {
+        success: true,
+        totalProducts: 0,
+        products: [],
+        message: 'No merchant wallet configured',
+      };
+    }
+    
+    const merchantWallet = config[0].merchantWalletAddress;
+    const apiKey = config[0].thirdwebApiKey;
+    const secretKey = config[0].thirdwebSecretKey;
+    
+    if (!apiKey || !secretKey) {
+      return {
+        success: true,
+        totalProducts: 0,
+        products: [],
+        message: 'Thirdweb credentials not configured',
+      };
+    }
+    
+    const nftResult = await getNFTAssetsForWallet(merchantWallet, apiKey, secretKey);
+    
+    if (!nftResult.success) {
+      throw new Error('Failed to fetch NFT assets');
+    }
+    
+    const products = nftResult.nfts.map((nft: any) => {
+      const usdValue = estimateNFTValueInUSD(nft);
+      return convertNFTToProduct(nft, usdValue);
+    });
+    
+    return {
+      success: true,
+      merchantWallet,
+      totalProducts: products.length,
+      products,
+    };
+  } catch (error: any) {
+    console.error('[NFT Products] Error fetching merchant NFT products:', error);
+    return {
+      success: false,
+      totalProducts: 0,
+      products: [],
+      error: error.message,
+    };
+  }
+};

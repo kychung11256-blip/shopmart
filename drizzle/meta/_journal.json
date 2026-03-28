@@ -50,6 +50,13 @@
       "when": 1774657976526,
       "tag": "0006_wealthy_ultimates",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1774659792410,
+      "tag": "0007_abandoned_supernaut",
+      "breakpoints": true
     }
   ]
 }

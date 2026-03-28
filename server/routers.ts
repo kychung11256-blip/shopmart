@@ -6,7 +6,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "./db";
 import type { User } from "../drizzle/schema";
-import { products, categories, orders, orderItems, cart, users, InsertProduct, InsertOrder, InsertOrderItem, InsertCartItem } from "../drizzle/schema";
+import { products, categories, orders, orderItems, cart, users, thirdwebConfig, InsertProduct, InsertOrder, InsertOrderItem, InsertCartItem } from "../drizzle/schema";
 import { eq, and, desc, asc } from "drizzle-orm";
 import { nftRouter } from "./nft-router";
 import { nftProductsRouter } from "./nft-products-router";
@@ -14,8 +14,55 @@ import { nftProductsRouter } from "./nft-products-router";
 export const appRouter = router({
   system: systemRouter,
   nft: nftRouter,
-  nftProducts: router(nftProductsRouter),
-  auth: router({
+  nftProducts: router({
+    getMerchantNFTProducts: publicProcedure.query(async () => {
+      try {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        
+        const config = await db.select().from(thirdwebConfig).limit(1);
+        
+        if (!config || config.length === 0 || !config[0].merchantWalletAddress) {
+          return { success: true, totalProducts: 0, products: [], message: 'No merchant wallet configured' };
+        }
+        
+        const merchantWallet = config[0].merchantWalletAddress;
+        const apiKey = config[0].thirdwebApiKey;
+        const secretKey = config[0].thirdwebSecretKey;
+        
+        if (!apiKey || !secretKey) {
+          return { success: true, totalProducts: 0, products: [], message: 'Thirdweb credentials not configured' };
+        }
+        
+        const response = await fetch(
+          `https://api.thirdweb.com/v1/nfts/balance/${merchantWallet}?chain_id=56`,
+          { headers: { 'x-client-id': apiKey, 'x-secret-key': secretKey } }
+        );
+        
+        if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+        
+        const data = await response.json();
+        const products = (data.nfts || []).map((nft: any, idx: number) => ({
+          id: `nft-${nft.contract}-${nft.token_id}`,
+          name: nft.display_name || `NFT #${nft.token_id}`,
+          description: `NFT from ${nft.contract_name || 'collection'}`,
+          image: nft.image || 'https://via.placeholder.com/300x300?text=NFT',
+          price: 50 + (idx * 10),
+          originalPrice: 60 + (idx * 10),
+          nftData: { contractAddress: nft.contract, tokenId: nft.token_id, chainId: 'bsc' },
+        }));
+        
+        return { success: true, totalProducts: products.length, products };
+      } catch (error: any) {
+        console.error('[API] Error fetching merchant NFT products:', error);
+        return { success: false, totalProducts: 0, products: [], error: error.message };
+      }
+    }),
+    getNFTProducts: nftProductsRouter.getNFTProducts,
+    getNFTProduct: nftProductsRouter.getNFTProduct,
+    estimateNFTValue: nftProductsRouter.estimateNFTValue,
+  }),
+  verification: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
@@ -788,6 +835,59 @@ export const appRouter = router({
         token: 'cryptomus=20a47093',
       };
     }),
+  }),
+  admin: router({
+    // Admin-only: Get NFT settings
+    getNFTSettings: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+      
+      const settings = await db.select().from(thirdwebConfig).limit(1);
+      if (settings.length === 0) {
+        return {
+          apiKey: '',
+          secretKey: '',
+          merchantWalletAddress: '',
+        };
+      }
+      
+      return {
+        apiKey: settings[0].thirdwebApiKey || '',
+        secretKey: settings[0].thirdwebSecretKey || '',
+        merchantWalletAddress: settings[0].merchantWalletAddress || '',
+      };
+    }),
+    // Admin-only: Update NFT settings
+    updateNFTSettings: adminProcedure
+      .input(z.object({
+        apiKey: z.string().optional(),
+        secretKey: z.string().optional(),
+        merchantWalletAddress: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        
+        const existing = await db.select().from(thirdwebConfig).limit(1);
+        
+        if (existing.length === 0) {
+          await db.insert(thirdwebConfig).values({
+            thirdwebApiKey: input.apiKey,
+            thirdwebSecretKey: input.secretKey,
+            merchantWalletAddress: input.merchantWalletAddress,
+          });
+        } else {
+          await db.update(thirdwebConfig)
+            .set({
+              thirdwebApiKey: input.apiKey || existing[0].thirdwebApiKey,
+              thirdwebSecretKey: input.secretKey || existing[0].thirdwebSecretKey,
+              merchantWalletAddress: input.merchantWalletAddress || existing[0].merchantWalletAddress,
+            })
+            .where(eq(thirdwebConfig.id, existing[0].id));
+        }
+        
+        return { success: true };
+      }),
   }),
   config: router({
     // Admin-only: Set Stripe configuration
