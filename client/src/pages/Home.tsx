@@ -6,6 +6,26 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { trpc } from '@/lib/trpc';
 import type { Product } from '@/lib/data';
 
+// 圖片代理 URL 生成函數
+function getProxyImageUrl(imageUrl: string | null | undefined): string {
+  if (!imageUrl) {
+    return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop';
+  }
+  
+  // 如果是 data URL（SVG 佔位符），直接返回
+  if (imageUrl.startsWith('data:')) {
+    return imageUrl;
+  }
+  
+  // 如果是本地 URL，直接返回
+  if (imageUrl.startsWith('/')) {
+    return imageUrl;
+  }
+  
+  // 對於遠程 URL，使用代理端點
+  return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+}
+
 const bannerSlides = [
   {
     id: 1,
@@ -96,7 +116,7 @@ function ProductCard({ product, nftData }: { product: Product; nftData?: any }) 
     >
       <div className="relative overflow-hidden" style={{ paddingTop: '100%' }}>
         <img
-          src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop'}
+          src={getProxyImageUrl(product.image)}
           alt={product.name}
           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           onError={handleImageError}
@@ -135,8 +155,20 @@ export default function Home() {
   const [, navigate] = useLocation();
   
   // 使用 TRPC 獲取 NFT 商品（商家庫存）
-  const { data: nftProductsData, isLoading: nftLoading } = trpc.nftProducts.getMerchantNFTProducts.useQuery();
+  // 每次頁面加載時強制重新獲取，禁用快取
+  const { data: nftProductsData, isLoading: nftLoading } = trpc.nftProducts.getMerchantNFTProducts.useQuery(undefined, {
+    refetchOnMount: 'stale',
+    refetchOnWindowFocus: 'stale',
+    staleTime: 0, // 禁用快取，總是視為過期
+  });
   const nftProducts = (nftProductsData?.products || []).map(convertNFTProductToFrontend);
+
+  // 在頁面加載時強制重新獲取 NFT 商品
+  const utils = trpc.useUtils();
+  useEffect(() => {
+    // 清除快取，強制重新獲取
+    utils.nftProducts.getMerchantNFTProducts.invalidate();
+  }, [utils]);
 
   useEffect(() => {
     const timer = setInterval(() => {

@@ -91,6 +91,53 @@ async function startServer() {
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   
+  // Image proxy endpoint - bypass hotlink protection
+  app.get("/api/proxy-image", async (req, res) => {
+    try {
+      const imageUrl = req.query.url as string;
+      
+      if (!imageUrl) {
+        return res.status(400).json({ error: "Missing 'url' query parameter" });
+      }
+      
+      // Validate URL to prevent SSRF attacks
+      try {
+        new URL(imageUrl);
+      } catch {
+        return res.status(400).json({ error: "Invalid URL" });
+      }
+      
+      // Fetch the image with proper headers
+      const response = await fetch(imageUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Referer': 'https://shopmart.manus.space/',
+          'Accept': 'image/*',
+        },
+        timeout: 10000,
+      });
+      
+      if (!response.ok) {
+        return res.status(response.status).json({ error: `Failed to fetch image: ${response.status}` });
+      }
+      
+      // Get content type
+      const contentType = response.headers.get('content-type') || 'image/jpeg';
+      
+      // Set response headers
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      
+      // Stream the image
+      const buffer = await response.arrayBuffer();
+      res.send(Buffer.from(buffer));
+    } catch (error: any) {
+      console.error('[Image Proxy] Error:', error);
+      res.status(500).json({ error: 'Failed to proxy image' });
+    }
+  });
+  
   // Domain verification files (e.g., Cryptomus verification)
   app.get("/cryptomus_:token.html", (req, res) => {
     const token = req.params.token;

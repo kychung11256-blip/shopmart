@@ -12,6 +12,26 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 
+// 圖片代理 URL 生成函數
+function getProxyImageUrl(imageUrl: string | null | undefined): string {
+  if (!imageUrl) {
+    return 'https://via.placeholder.com/400x400?text=NFT';
+  }
+  
+  // 如果是 data URL（SVG 佔位符），直接返回
+  if (imageUrl.startsWith('data:')) {
+    return imageUrl;
+  }
+  
+  // 如果是本地 URL，直接返回
+  if (imageUrl.startsWith('/')) {
+    return imageUrl;
+  }
+  
+  // 對於遠程 URL，使用代理端點
+  return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+}
+
 interface NFTDetail {
   id: string;
   name: string;
@@ -291,7 +311,7 @@ export default function NFTDetail() {
             <div className="bg-white rounded-lg shadow-sm overflow-hidden sticky top-20">
               <div className="aspect-square bg-gray-100 flex items-center justify-center">
                 <img
-                  src={nft.image}
+                  src={getProxyImageUrl(nft.image)}
                   alt={nft.name}
                   className="w-full h-full object-cover"
                   onError={(e) => {
