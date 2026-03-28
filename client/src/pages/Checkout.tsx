@@ -470,18 +470,19 @@ export default function Checkout() {
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-2xl font-bold mb-6">Checkout</h2>
 
-              {/* Shipping Address */}
+              {/* Wallet Address */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Shipping Address *
+                  Wallet Address *
                 </label>
-                <textarea
+                <input
+                  type="text"
                   value={shippingAddress}
                   onChange={(e) => setShippingAddress(e.target.value)}
-                  placeholder="Enter your shipping address"
-                  className="w-full border border-gray-300 rounded px-4 py-2 text-sm outline-none focus:border-red-500"
-                  rows={3}
+                  placeholder="Enter your wallet address (0x...)"
+                  className="w-full border border-gray-300 rounded px-4 py-2 text-sm outline-none focus:border-red-500 font-mono"
                 />
+                <p className="text-xs text-gray-500 mt-2">Your NFT will be transferred to this wallet address</p>
               </div>
 
               {/* Guest checkout fields */}

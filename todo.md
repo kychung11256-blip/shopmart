@@ -318,3 +318,10 @@
 - [x] 檢查購物車 API 的 productId 類型定義
 - [x] 修復 NFTDetail.tsx 中的 productId 類型轉換 - 改為使用 localStorage
 - [x] 測試立即購買功能 - 正常工作，成功跳轉到結帳頁面
+
+## 🔧 結帳頁面錢包地址修改 - 已完成
+
+- [x] 找到結帳頁面組件 (Checkout.tsx)
+- [x] 將「Shipping Address」改為「Wallet Address」
+- [x] 更新標籤和佔位符文本
+- [x] 測試結帳頁面顯示 - 正常工作
