@@ -43,15 +43,41 @@ export const appRouter = router({
         
         const data = await response.json();
         const nftList = data.data || [];
-        const products = nftList.map((nft: any, idx: number) => ({
-          id: `nft-${nft.contract_address}-${nft.token_id}`,
-          name: nft.name || nft.collection?.name || `NFT #${nft.token_id}`,
-          description: nft.description || `NFT from ${nft.collection?.name || 'collection'}`,
-          image: nft.image_url || 'https://via.placeholder.com/300x300?text=NFT',
-          price: 50 + (idx * 10),
-          originalPrice: 60 + (idx * 10),
-          nftData: { contractAddress: nft.contract_address, tokenId: nft.token_id, chainId: 'bsc' },
-        }));
+        
+        // Debug: Log first NFT to inspect data structure
+        if (nftList.length > 0) {
+          console.log('[API] First NFT data structure:', JSON.stringify(nftList[0], null, 2));
+        }
+        
+        const products = nftList.map((nft: any, idx: number) => {
+          // Try multiple image URL fields with fallback strategy
+          let imageUrl = nft.image_url 
+            || nft.image 
+            || nft.metadata?.image 
+            || nft.metadata?.image_url
+            || nft.collection?.image_url
+            || nft.collection?.image;
+          
+          // If no image found, generate a colorful placeholder based on token ID
+          if (!imageUrl) {
+            const colors = ['6366f1', 'ec4899', 'f59e0b', '10b981', '06b6d4', '8b5cf6'];
+            const colorIdx = (parseInt(nft.token_id) || idx) % colors.length;
+            const bgColor = colors[colorIdx];
+            const nftName = nft.name || nft.collection?.name || `NFT #${nft.token_id}`;
+            imageUrl = `https://via.placeholder.com/300x300/${bgColor}/ffffff?text=${encodeURIComponent(nftName)}`;
+            console.log(`[API] Generated placeholder for ${nftName}: ${imageUrl}`);
+          }
+          
+          return {
+            id: `nft-${nft.contract_address}-${nft.token_id}`,
+            name: nft.name || nft.collection?.name || `NFT #${nft.token_id}`,
+            description: nft.description || `NFT from ${nft.collection?.name || 'collection'}`,
+            image: imageUrl,
+            price: 50 + (idx * 10),
+            originalPrice: 60 + (idx * 10),
+            nftData: { contractAddress: nft.contract_address, tokenId: nft.token_id, chainId: 'bsc' },
+          };
+        });
         
         return { success: true, totalProducts: products.length, products };
       } catch (error: any) {

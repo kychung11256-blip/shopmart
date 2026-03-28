@@ -274,3 +274,11 @@
 - [x] 修復 NFT Marketplace 只顯示一個 NFT 的問題 - 改用 nftProducts 替代 recommendedProducts
 - [x] 修復 NFT Marketplace 的錯誤提示 - 驗證所有 3 個 NFT 商品正確顯示
 - [x] 驗證所有 3 個 NFT 商品正確顯示在 Marketplace 中
+
+## 🐛 NFT 圖片丟失問題 - 已完成
+
+- [x] 診斷後面兩個 First Wave NFT 沒有顯示真實圖片的原因 - Thirdweb API 返回 null
+- [x] 檢查 Thirdweb API 返回的 NFT 數據是否包含圖片 URL - 確認 First Wave 的 image_url 為 null
+- [x] 修復數據解析邏輯以正確提取圖片 URL - 添加彩色佔位符生成邏輯
+- [x] 添加備用圖片 URL 以改善用戶體驗 - 使用彩色背景顯示 NFT 名稱
+- [x] 驗證所有 3 個 NFT 商品都正確顯示圖片 - 所有 3 個 NFT 現已正確顯示（COCOz 真實圖片，First Wave 彩色背景）
