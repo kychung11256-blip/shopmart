@@ -164,8 +164,8 @@ export const appRouter = router({
             name: nftName,
             description: nft.name || `NFT from collection`,
             image: imageUrl,
-            price: 50 + (idx * 10),
-            originalPrice: 60 + (idx * 10),
+            price: nft.token_address === '0x233afa94a4dd2e86b7a45eb816b08bd3996df382' ? 50 : nft.token_address === '0x4cb2b5ad67241afab9ac7657f30cd377f6519e0d' ? 75 : 25,
+            originalPrice: nft.token_address === '0x233afa94a4dd2e86b7a45eb816b08bd3996df382' ? 60 : nft.token_address === '0x4cb2b5ad67241afab9ac7657f30cd377f6519e0d' ? 90 : 30,
             nftData: { contractAddress: nft.token_address, tokenId: nft.token_id, chainId: 'bsc' },
           };
         });

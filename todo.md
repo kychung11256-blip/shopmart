@@ -325,3 +325,10 @@
 - [x] 將「Shipping Address」改為「Wallet Address」
 - [x] 更新標籤和佔位符文本
 - [x] 測試結帳頁面顯示 - 正常工作
+
+## 💰 NFT 商品卡片價格顯示修改 - 已完成
+
+- [x] 找到 NFT 商品卡片組件 (ProductCard.tsx)
+- [x] 檢查 API 返回的價格數據結構
+- [x] 修改價格渲染邏輯使用動態 API 價格 - 基於合約地址
+- [x] 測試 NFT 商品卡片價格正確顯示 - COCOz $50, First Wave $75
