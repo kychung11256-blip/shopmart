@@ -43,6 +43,13 @@
       "when": 1774467256902,
       "tag": "0005_cute_gorgon",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1774657976526,
+      "tag": "0006_wealthy_ultimates",
+      "breakpoints": true
     }
   ]
 }

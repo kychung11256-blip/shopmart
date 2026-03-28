@@ -8,9 +8,11 @@ import { getDb } from "./db";
 import type { User } from "../drizzle/schema";
 import { products, categories, orders, orderItems, cart, users, InsertProduct, InsertOrder, InsertOrderItem, InsertCartItem } from "../drizzle/schema";
 import { eq, and, desc, asc } from "drizzle-orm";
+import { nftRouter } from "./nft-router";
 
 export const appRouter = router({
   system: systemRouter,
+  nft: nftRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

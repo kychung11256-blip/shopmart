@@ -228,3 +228,23 @@
 - [x] 移除 Checkout.tsx 中的 isAuthenticated 查詢條件
 - [x] 驗證未登入用戶可以訪問結帳頁面
 - [x] 驗證遊客用戶可以進行支付流程
+
+
+## 🎨 NFT 功能開發 - 進行中
+
+- [x] 創建數據庫表存儲 Thirdweb API Key 和 Secret Key
+- [x] 集成 Thirdweb Insight API 到項目
+- [x] 實現 NFT 查詢 API - 查詢錢包在 BSC 鏈上的所有 NFT 資產
+- [x] 測試 NFT 查詢功能 - 調試並驗證返回數據
+- [ ] 實現 NFT 轉移功能
+- [ ] 創建 NFT 管理前端頁面
+- [ ] 集成 Thirdweb 認證信息保存到數據庫
+
+
+## 🛍️ NFT 商城功能開發 - 進行中
+
+- [ ] 創建 NFT 商品轉換 API - 將 NFT 轉換為商品格式
+- [ ] 實現 NFT 價值轉換為美金功能
+- [ ] 修改商城首頁以支持 NFT 商品展示
+- [ ] 添加 NFT 商品圖片、名稱、價值顯示
+- [ ] 測試 NFT 商城功能 - 驗證 NFT 商品顯示正確
