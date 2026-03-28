@@ -35,21 +35,22 @@ export const appRouter = router({
         }
         
         const response = await fetch(
-          `https://api.thirdweb.com/v1/nfts/balance/${merchantWallet}?chain_id=56`,
+          `https://insight.thirdweb.com/v1/nfts/balance/${merchantWallet}?chain_id=56`,
           { headers: { 'x-client-id': apiKey, 'x-secret-key': secretKey } }
         );
         
         if (!response.ok) throw new Error(`API error: ${response.statusText}`);
         
         const data = await response.json();
-        const products = (data.nfts || []).map((nft: any, idx: number) => ({
-          id: `nft-${nft.contract}-${nft.token_id}`,
-          name: nft.display_name || `NFT #${nft.token_id}`,
-          description: `NFT from ${nft.contract_name || 'collection'}`,
-          image: nft.image || 'https://via.placeholder.com/300x300?text=NFT',
+        const nftList = data.data || [];
+        const products = nftList.map((nft: any, idx: number) => ({
+          id: `nft-${nft.contract_address}-${nft.token_id}`,
+          name: nft.name || nft.collection?.name || `NFT #${nft.token_id}`,
+          description: nft.description || `NFT from ${nft.collection?.name || 'collection'}`,
+          image: nft.image_url || 'https://via.placeholder.com/300x300?text=NFT',
           price: 50 + (idx * 10),
           originalPrice: 60 + (idx * 10),
-          nftData: { contractAddress: nft.contract, tokenId: nft.token_id, chainId: 'bsc' },
+          nftData: { contractAddress: nft.contract_address, tokenId: nft.token_id, chainId: 'bsc' },
         }));
         
         return { success: true, totalProducts: products.length, products };

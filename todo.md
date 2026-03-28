@@ -257,3 +257,13 @@
 - [x] 集成 NFT 商品轉換 - 將 NFT 轉換為商品格式顯示
 - [x] 移除預設商品 - 只顯示 NFT 庫存商品
 - [x] 測試完整流程 - 驗證首頁商品正確顯示
+
+
+## 🐛 NFT API 問題診斷 - 已完成
+
+- [x] 檢查 getMerchantNFTProducts API 端點定義
+- [x] 驗證後台配置數據是否正確保存到數據庫
+- [x] 測試 API 並修復 404 錯誤 - 修復 Thirdweb API 端點（api.thirdweb.com → insight.thirdweb.com）
+- [x] 驗證首頁 NFT 商品正確顯示 - 所有 3 個 NFT 商品現已正確顯示
+- [x] 修復 NFT 數據解析邏輯 - 適配新 API 響應格式
+- [x] 修復商品合併邏輯 - 正確顯示所有 NFT 商品

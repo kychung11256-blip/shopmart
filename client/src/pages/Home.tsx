@@ -174,8 +174,8 @@ export default function Home() {
   const dbProducts = apiProducts.map(convertDbProductToFrontend);
   const categories = apiCategories.map(convertDbCategoryToFrontend);
   
-  // 合併 NFT 商品和數據庫商品，優先顯示 NFT 商品
-  const products = nftProducts.length > 0 ? nftProducts : dbProducts;
+  // 合併 NFT 商品和數據庫商品 - 優先顯示 NFT 商品，然後是數據庫商品
+  const products = [...nftProducts, ...dbProducts];
 
   useEffect(() => {
     const timer = setInterval(() => {
