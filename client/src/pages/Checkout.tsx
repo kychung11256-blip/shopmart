@@ -100,6 +100,14 @@ export default function Checkout() {
   const [showStarPayModal, setShowStarPayModal] = useState<boolean>(false);
   const [starPayOrderId, setStarPayOrderId] = useState<number | null>(null);
   const [paymentCheckInterval, setPaymentCheckInterval] = useState<NodeJS.Timeout | null>(null);
+  const [lastTransactionId, setLastTransactionId] = useState<string | null>(null);
+  const [transferStatus, setTransferStatus] = useState<{
+    success: boolean;
+    status: string;
+    transactionHash: string | null;
+    message: string;
+    errorMessage: string | null;
+  } | null>(null);
 
   // Get cart items from localStorage for guests, or from tRPC for authenticated users
   const { data: authenticatedCartItems } = trpc.cart.list.useQuery(undefined, {
@@ -250,6 +258,37 @@ export default function Checkout() {
   const totalPriceInCents = Math.round(totalPrice * 100);
 
   const transferNFTMutation = trpc.nftProducts.transferNFT.useMutation();
+  const checkTransferStatusMutation = trpc.nftProducts.checkTransferStatus.useQuery(
+    { transactionId: lastTransactionId || '' },
+    { enabled: false }
+  );
+
+  const handleCheckStatus = async () => {
+    if (!lastTransactionId) {
+      toast.error('No transaction ID found');
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      const result = await checkTransferStatusMutation.refetch();
+      if (result.data) {
+        setTransferStatus(result.data);
+        if (result.data.success) {
+          toast.success('NFT transfer successful!');
+        } else if (result.data.message.includes('processing')) {
+          toast.info('Transfer is still processing...');
+        } else {
+          toast.error(result.data.message);
+        }
+      }
+    } catch (error: any) {
+      console.error('[Check Status] Error:', error);
+      toast.error('Failed to check transfer status');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleTestGift = async () => {
     if (!shippingAddress.trim()) {
@@ -291,13 +330,10 @@ export default function Checkout() {
       });
 
       if (result.success) {
-        toast.success(`NFT transfer initiated! Transaction: ${result.transactionHash}`);
-        // Clear cart after successful transfer
-        localStorage.removeItem('shopmart_cart');
-        setCartItems([]);
-        setTimeout(() => {
-          navigate('/');
-        }, 2000);
+        toast.success(`NFT transfer initiated! Transaction ID: ${result.transactionId}`);
+        // Store transaction ID for status checking
+        setLastTransactionId(result.transactionId);
+        setTransferStatus(null);
       } else {
         throw new Error('Transfer failed');
       }
@@ -615,7 +651,57 @@ export default function Checkout() {
                       <div className="text-sm text-yellow-600">Simulate NFT transfer</div>
                     </div>
                   </button>
+
+                  {lastTransactionId && (
+                    <button
+                      onClick={handleCheckStatus}
+                      disabled={isProcessing}
+                      className="w-full flex items-center gap-3 p-4 border-2 border-blue-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-blue-50"
+                    >
+                      <div className="text-2xl">🔍</div>
+                      <div className="text-left">
+                        <div className="font-semibold text-blue-700">Check Transfer Status</div>
+                        <div className="text-sm text-blue-600">Query transaction status</div>
+                      </div>
+                    </button>
+                  )}
                 </div>
+
+                {transferStatus && (
+                  <div className={`mt-6 p-4 rounded-lg border-2 ${
+                    transferStatus.success
+                      ? 'bg-green-50 border-green-300'
+                      : 'bg-red-50 border-red-300'
+                  }`}>
+                    <div className="flex items-start gap-3">
+                      <div className="text-2xl">{transferStatus.success ? '✅' : '❌'}</div>
+                      <div className="flex-1">
+                        <h4 className={`font-semibold ${
+                          transferStatus.success ? 'text-green-700' : 'text-red-700'
+                        }`}>
+                          {transferStatus.success ? 'Transfer Successful' : 'Transfer Failed'}
+                        </h4>
+                        <p className={`text-sm mt-1 ${
+                          transferStatus.success ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {transferStatus.message}
+                        </p>
+                        {transferStatus.transactionHash && (
+                          <div className="mt-3 bg-white rounded p-3 font-mono text-xs break-all">
+                            <p className="text-gray-600 mb-1">Transaction Hash:</p>
+                            <p className="text-gray-800">{transferStatus.transactionHash}</p>
+                          </div>
+                        )}
+                        {transferStatus.errorMessage && (
+                          <div className="mt-3 bg-white rounded p-3 text-xs">
+                            <p className="text-gray-600 mb-1">Error Details:</p>
+                            <p className="text-red-600">{transferStatus.errorMessage}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

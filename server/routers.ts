@@ -235,10 +235,99 @@ export const appRouter = router({
           return {
             success: true,
             transactionHash: result.result?.transactionHash || 'pending',
+            transactionId: result.result?.transactionId || result.result?.id || 'pending',
             message: 'NFT transfer initiated successfully',
           };
         } catch (error: any) {
           console.error('[API] Error transferring NFT:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: error.message,
+          });
+        }
+      }),
+
+    checkTransferStatus: publicProcedure
+      .input(z.object({
+        transactionId: z.string(),
+      }))
+      .query(async ({ input }) => {
+        try {
+          const db = await getDb();
+          if (!db) throw new Error('Database not available');
+          
+          const config = await db.select().from(thirdwebConfig).limit(1);
+          if (!config || config.length === 0 || !config[0].thirdwebSecretKey) {
+            throw new Error('thirdweb secret key not configured');
+          }
+          
+          const secretKey = config[0].thirdwebSecretKey;
+          const apiKey = config[0].thirdwebApiKey;
+          
+          console.log('[thirdweb] Checking transaction status:', input.transactionId);
+          
+          // Call Thirdweb API to get transaction status
+          const response = await fetch(`https://api.thirdweb.com/v1/transactions/${input.transactionId}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-secret-key': secretKey,
+              ...(apiKey && { 'x-api-key': apiKey }),
+            },
+          });
+          
+          if (!response.ok) {
+            const error = await response.text();
+            console.error('[thirdweb] Failed to get transaction status:', error);
+            throw new Error(`thirdweb API error: ${response.status} ${error}`);
+          }
+          
+          const result = await response.json();
+          console.log('[thirdweb] Transaction status response:', result);
+          
+          // Parse the response based on Thirdweb API structure
+          const tx = result.result?.transactions?.[0] || result.result || result;
+          
+          const status = tx.status || 'UNKNOWN';
+          const transactionHash = tx.transactionHash || tx.txHash || null;
+          const errorMessage = tx.errorMessage || null;
+          const onchainStatus = tx.executionResult?.onchainStatus || null;
+          
+          console.log('[thirdweb] Parsed transaction:', {
+            status,
+            transactionHash,
+            errorMessage,
+            onchainStatus,
+          });
+          
+          // Determine success/failure based on status
+          let isSuccess = false;
+          let message = '';
+          
+          if (status === 'CONFIRMED') {
+            if (onchainStatus === 'SUCCESS' || !onchainStatus) {
+              isSuccess = true;
+              message = 'NFT transfer successful';
+            } else {
+              message = `Transfer failed: ${onchainStatus}`;
+            }
+          } else if (status === 'FAILED' || status === 'CANCELLED') {
+            message = errorMessage || `Transfer ${status.toLowerCase()}`;
+          } else if (status === 'QUEUED' || status === 'SUBMITTED') {
+            message = 'Transfer is still processing';
+          } else {
+            message = `Unknown status: ${status}`;
+          }
+          
+          return {
+            success: isSuccess,
+            status,
+            transactionHash,
+            message,
+            errorMessage,
+          };
+        } catch (error: any) {
+          console.error('[API] Error checking transfer status:', error);
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: error.message,
