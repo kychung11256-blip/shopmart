@@ -73,6 +73,25 @@ function convertDbProductToFrontend(dbProduct: any): Product {
   };
 }
 
+// 轉換 NFT 商品格式為前端格式
+function convertNFTProductToFrontend(nftProduct: any): Product {
+  return {
+    id: nftProduct.id,
+    name: nftProduct.name,
+    price: nftProduct.price,
+    originalPrice: nftProduct.originalPrice,
+    image: nftProduct.image || 'https://via.placeholder.com/300x300?text=NFT',
+    categoryId: 0,
+    sold: 0,
+    rating: 0,
+    description: nftProduct.description || 'NFT Asset',
+    stock: 1,
+    status: 'active',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+}
+
 // 轉換數據庫分類格式為前端格式
 function convertDbCategoryToFrontend(dbCategory: any): any {
   return {
@@ -113,7 +132,7 @@ function ProductCard({ product }: { product: Product }) {
         )}
       </div>
       <div className="p-3">
-        <p className="text-sm text-gray-700 line-clamp-2 min-h-[2.5rem] leading-tight">{getProductName(product.id, language)}</p>
+        <p className="text-sm text-gray-700 line-clamp-2 min-h-[2.5rem] leading-tight">{product.name}</p>
         <div className="mt-2 flex items-baseline gap-2">
           <span className="price-current text-base">${product.price.toFixed(2)}</span>
           {product.originalPrice && product.originalPrice > product.price && (
@@ -143,13 +162,20 @@ export default function Home() {
   // 計算購物車項目總數
   const cartCount = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
   
+  // 使用 TRPC 獲取 NFT 商品（商家庫存）
+  const { data: nftProductsData, isLoading: nftLoading } = trpc.nftProducts.getMerchantNFTProducts.useQuery();
+  const nftProducts = (nftProductsData?.products || []).map(convertNFTProductToFrontend);
+  
   // 使用 TRPC 獲取商品和分類數據
   const { data: apiProducts = [], isLoading: productsLoading } = trpc.products.list.useQuery({ limit: 100 });
   const { data: apiCategories = [], isLoading: categoriesLoading } = trpc.categories.list.useQuery();
   
   // 轉換 API 數據為前端格式（不使用本地後備數據，確保與數據庫同步）
-  const products = apiProducts.map(convertDbProductToFrontend);
+  const dbProducts = apiProducts.map(convertDbProductToFrontend);
   const categories = apiCategories.map(convertDbCategoryToFrontend);
+  
+  // 合併 NFT 商品和數據庫商品，優先顯示 NFT 商品
+  const products = nftProducts.length > 0 ? nftProducts : dbProducts;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -258,7 +284,7 @@ export default function Home() {
                 </span>
               )}
             </Link>
-            {user ? (
+            {isAuthenticated && user ? (
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
@@ -315,35 +341,19 @@ export default function Home() {
           {/* Left category sidebar */}
           <aside className="w-44 shrink-0 hidden lg:block">
             <div className="bg-white rounded shadow-sm overflow-hidden">
-              {categoriesLoading ? (
-                <div className="p-4 text-center text-gray-500">{language === 'zh' ? '加載中...' : 'Loading...'}</div>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setActiveCategory(null)}
-                    className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-gray-50 ${
-                      activeCategory === null || activeCategory === 0
-                        ? 'bg-red-500 text-white font-medium'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-red-500'
-                    }`}
-                  >
-                    {language === 'zh' ? '全部分類' : 'All Categories'}
-                  </button>
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => setActiveCategory(cat.id)}
-                      className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-gray-50 last:border-0 ${
-                        activeCategory === cat.id
-                          ? 'bg-red-500 text-white font-medium'
-                          : 'text-gray-700 hover:bg-gray-50 hover:text-red-500'
-                      }`}
-                    >
-                      {getCategoryName(cat.name, language)}
-                    </button>
-                  ))}
-                </>
-              )}
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-gray-50 last:border-0 ${
+                    activeCategory === cat.id
+                      ? 'bg-red-500 text-white font-medium'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-red-500'
+                  }`}
+                >
+                  {getCategoryName(cat.name, language)}
+                </button>
+              ))}
             </div>
           </aside>
 
@@ -359,12 +369,9 @@ export default function Home() {
                   <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent flex items-center">
                     <div className="ml-12 text-white">
-                      <p className="text-sm uppercase tracking-widest opacity-80">{language === 'zh' ? '熱銷商品' : 'Hot Product'}</p>
-                      <h2 className="text-3xl font-bold mt-1">{slide.title}</h2>
-                      <button 
-                        onClick={() => slide.productId && navigate(`/product/${slide.productId}`)}
-                        className="mt-4 bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded text-sm font-medium transition-colors"
-                      >
+                      <p className="text-sm uppercase tracking-widest opacity-80">{slide.title}</p>
+                      <h2 className="text-3xl font-bold mt-1">{slide.subtitle}</h2>
+                      <button className="mt-4 bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded text-sm font-medium transition-colors">
                         {slide.cta}
                       </button>
                     </div>
@@ -386,120 +393,54 @@ export default function Home() {
             {/* Recommended section */}
             <section className="bg-white rounded shadow-sm mb-4">
               <div className="section-title flex items-center justify-between">
-                <span>{t('recommended', language)}</span>
-                <Link href="/products" className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1">
-                  {t('more', language)} <ChevronRight size={12} />
+                <span>{nftLoading ? 'Loading NFT Products...' : 'NFT Marketplace'}</span>
+                <Link href="/nft-marketplace" className="text-red-500 text-sm hover:underline flex items-center gap-1">
+                  More <ChevronRight size={16} />
                 </Link>
               </div>
-              <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {productsLoading ? (
-                  <div className="col-span-full text-center text-gray-500 py-8">{language === 'zh' ? '加載商品中...' : 'Loading products...'}</div>
-                ) : (
-                  recommendedProducts.map((product) => (
+              {nftLoading ? (
+                <div className="p-8 text-center text-gray-500">Loading NFT products...</div>
+              ) : nftProducts.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4">
+                  {recommendedProducts.map((product) => (
                     <ProductCard key={product.id} product={product} />
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center text-gray-500">No NFT products available</div>
+              )}
             </section>
 
-            {/* SHOP STREET + TOP ONE side by side */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              {/* SHOP STREET */}
-              <section className="bg-white rounded shadow-sm">
-                <div className="section-title flex items-center justify-between">
-                  <span className="font-bold tracking-wide">{language === 'zh' ? '購物街' : 'SHOP STREET'}</span>
-                  <Link href="/products" className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1">
-                    <ChevronRight size={14} />
-                  </Link>
-                </div>
-                <div className="p-3 grid grid-cols-2 gap-2">
-                  {shopStreetProducts.map((product) => (
-                    <div key={product.id} className="group cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
-                      <div className="relative overflow-hidden rounded" style={{ paddingTop: '100%' }}>
-                        <img
-                          src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop'}
-                          alt={product.name}
-                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop'; }}
-                        />
-                      </div>
-                      <p className="text-xs text-gray-600 mt-1 line-clamp-1">{product.name}</p>
-                      <span className="price-current text-sm">${product.price.toFixed(2)}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              {/* TOP ONE */}
-              <section className="bg-white rounded shadow-sm">
-                <div className="section-title flex items-center justify-between">
-                  <span className="font-bold tracking-wide">{language === 'zh' ? '熱銷排行' : 'TOP ONE'}</span>
-                  <Link href="/products" className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1">
-                    <ChevronRight size={14} />
-                  </Link>
-                </div>
-                <div className="p-3 space-y-2">
-                  {topOneProducts.map((product, idx) => (
-                    <div key={product.id} className="flex items-center gap-3 group cursor-pointer hover:bg-gray-50 rounded p-1 transition-colors" onClick={() => navigate(`/product/${product.id}`)}>
-                      <div className="relative shrink-0">
-                        <div className="w-16 h-16 rounded overflow-hidden">
-                          <img
-                            src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'}
-                            alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                            onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'; }}
-                          />
-                        </div>
-                        <div className={`absolute -top-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold ${
-                          idx === 0 ? 'bg-red-500' : idx === 1 ? 'bg-orange-400' : 'bg-yellow-500'
-                        }`}>
-                          {idx + 1}
-                        </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-700 line-clamp-2">{product.name}</p>
-                        <span className="price-current text-sm">${product.price.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </div>
-
-            {/* Top List */}
+            {/* Top list section */}
             <section className="bg-white rounded shadow-sm mb-4">
-              <div className="section-title flex items-center justify-between">
-                <span>{language === 'zh' ? '排行榜' : 'Top List'}</span>
-                <Link href="/products" className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1">
-                  {t('more', language)} <ChevronRight size={12} />
-                </Link>
+              <div className="section-title">
+                <span>{language === 'zh' ? '熱銷商品' : 'Hot Products'}</span>
               </div>
-              <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4">
                 {topListProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             </section>
 
-            {/* Promotions */}
+            {/* Promotion section */}
             <section className="bg-white rounded shadow-sm mb-4">
-              <div className="section-title flex items-center justify-between">
-                <span>{language === 'zh' ? '促銷活動' : 'Promotions'}</span>
-                <Link href="/products" className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1">
-                  {t('more', language)} <ChevronRight size={12} />
-                </Link>
+              <div className="section-title">
+                <span>{language === 'zh' ? '促銷商品' : 'Promotion'}</span>
               </div>
-              <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4">
                 {promotionProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             </section>
 
-            {/* You May Also Like */}
-            <section className="bg-white rounded shadow-sm mb-4">
-              <div className="section-title">{language === 'zh' ? '您可能也喜歡' : 'You May Also Like'}</div>
-              <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {/* You may like section */}
+            <section className="bg-white rounded shadow-sm">
+              <div className="section-title">
+                <span>{language === 'zh' ? '你可能喜歡' : 'You May Like'}</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4">
                 {youMayLikeProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
@@ -509,96 +450,15 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Trust badges */}
-      <div className="bg-white border-t border-gray-100 py-6 mt-4">
-        <div className="max-w-[1200px] mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { icon: '🏪', title: language === 'zh' ? '商品齊全' : 'Complete variety', desc: language === 'zh' ? '百萬商品' : 'Millions of products' },
-              { icon: '🚚', title: language === 'zh' ? '快速配送' : 'Fast delivery', desc: language === 'zh' ? '同日配送' : 'Same day shipping' },
-              { icon: '✅', title: language === 'zh' ? '正品保證' : 'Genuine product', desc: language === 'zh' ? '100%正品' : '100% authentic' },
-              { icon: '💰', title: language === 'zh' ? '天天低價' : 'Low price every day', desc: language === 'zh' ? '最優惠價格' : 'Best deals guaranteed' },
-            ].map((badge) => (
-              <div key={badge.title} className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center text-xl shrink-0">
-                  {badge.icon}
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700">{badge.title}</p>
-                  <p className="text-xs text-gray-400">{badge.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <footer className="bg-gray-800 text-gray-400 py-8">
-        <div className="max-w-[1200px] mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
-                  <ShoppingCart size={16} className="text-white" />
-                </div>
-                <span className="text-white font-bold text-lg">ShopMart</span>
-              </div>
-              <p className="text-sm">{language === 'zh' ? '您的一站式在線購物目的地，擁有數百萬種商品。' : 'Your one-stop online shopping destination with millions of products.'}</p>
-            </div>
-            <div>
-              <h4 className="text-white font-medium mb-3">{language === 'zh' ? '快速連結' : 'Quick Links'}</h4>
-              <ul className="space-y-1.5 text-sm">
-                {(language === 'zh' ? ['首頁', '商品', '分類', '促銷', '關於我們'] : ['Home', 'Products', 'Categories', 'Promotions', 'About Us']).map((link) => (
-                  <li key={link}><a href="#" className="hover:text-white transition-colors">{link}</a></li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-medium mb-3">{language === 'zh' ? '客戶服務' : 'Customer Service'}</h4>
-              <ul className="space-y-1.5 text-sm">
-                {(language === 'zh' ? ['我的帳戶', '訂單追蹤', '退貨', '常見問題', '聯繫我們'] : ['My Account', 'Order Tracking', 'Returns', 'FAQ', 'Contact Us']).map((link) => (
-                  <li key={link}><a href="#" className="hover:text-white transition-colors">{link}</a></li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-medium mb-3">{language === 'zh' ? '聯繫方式' : 'Contact'}</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <Phone size={14} />
-                  <span>400-2647-3947</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <MapPin size={14} className="mt-0.5 shrink-0" />
-                  <span>{language === 'zh' ? '西安市奇行時代廣場A座1101-04室' : 'Room 1101-04, Block A, Qihang Times Square, Xi\'an City'}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-gray-700 pt-4 text-center text-xs">
-            <p>Copyright © 2013-2024 ShopMart Network Technology Co., Ltd. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-
-      {/* Right floating buttons */}
-      <div className="fixed right-4 bottom-20 flex flex-col gap-2 z-40">
-        <button className="w-12 h-12 bg-white border border-gray-200 shadow-md rounded flex flex-col items-center justify-center gap-0.5 hover:border-red-400 hover:text-red-500 transition-colors group">
-          <MessageCircle size={16} className="text-gray-500 group-hover:text-red-500" />
-          <span className="text-xs text-gray-500 group-hover:text-red-500 leading-none">{language === 'zh' ? '服務' : 'Service'}</span>
+      {/* Back to top button */}
+      {showBackToTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-8 right-8 w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors z-40"
+        >
+          <ArrowUp size={20} />
         </button>
-
-        {showBackToTop && (
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="w-12 h-12 bg-white border border-gray-200 shadow-md rounded flex flex-col items-center justify-center gap-0.5 hover:border-red-400 hover:text-red-500 transition-colors group"
-          >
-            <ArrowUp size={16} className="text-gray-500 group-hover:text-red-500" />
-            <span className="text-xs text-gray-500 group-hover:text-red-500 leading-none">{language === 'zh' ? '頂部' : 'Top'}</span>
-          </button>
-        )}
-      </div>
+      )}
     </div>
   );
 }
