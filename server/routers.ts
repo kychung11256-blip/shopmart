@@ -10,100 +10,97 @@ import { products, categories, orders, orderItems, cart, users, thirdwebConfig, 
 import { eq, and, desc, asc } from "drizzle-orm";
 import { nftRouter } from "./nft-router";
 import { nftProductsRouter } from "./nft-products-router";
+import { MoralisAPI } from "./moralis";
 
 export const appRouter = router({
   system: systemRouter,
+  auth: router({
+    me: protectedProcedure.query(async ({ ctx }) => {
+      return {
+        id: ctx.user.id,
+        email: ctx.user.email,
+        name: ctx.user.name,
+        role: ctx.user.role,
+      };
+    }),
+    logout: protectedProcedure.mutation(async ({ ctx }) => {
+      const COOKIE_NAME = "manus-session";
+      ctx.res.clearCookie(COOKIE_NAME);
+      return { success: true };
+    }),
+  }),
   nft: nftRouter,
   nftProducts: router({
     getMerchantNFTProducts: publicProcedure.query(async () => {
       try {
+        console.log("[DEBUG] getMerchantNFTProducts called");
         const db = await getDb();
         if (!db) throw new Error('Database not available');
         
         const config = await db.select().from(thirdwebConfig).limit(1);
         
+        console.log("[DEBUG] Config from DB:", JSON.stringify(config, null, 2));
         if (!config || config.length === 0 || !config[0].merchantWalletAddress) {
           return { success: true, totalProducts: 0, products: [], message: 'No merchant wallet configured' };
         }
         
         const merchantWallet = config[0].merchantWalletAddress;
-        const apiKey = config[0].thirdwebApiKey;
-        const secretKey = config[0].thirdwebSecretKey;
+        const moralisApiKey = config[0].moralisApiKey;
         
-        if (!apiKey || !secretKey) {
-          return { success: true, totalProducts: 0, products: [], message: 'Thirdweb credentials not configured' };
+        if (!moralisApiKey) {
+          return { success: true, totalProducts: 0, products: [], message: 'Moralis API key not configured' };
         }
         
-        const response = await fetch(
-          `https://insight.thirdweb.com/v1/nfts/balance/${merchantWallet}?chain_id=56`,
-          { headers: { 'x-client-id': apiKey, 'x-secret-key': secretKey } }
-        );
+        // Initialize Moralis API
+        const moralis = new MoralisAPI(moralisApiKey);
         
-        if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+        // Get NFTs from COCOz contract
+        const cocozContractAddress = '0x233afa94a4dd2e86b7a45eb816b08bd3996df382';
+        const firstWaveContractAddress = '0x4cb2b5ad67241afab9ac7657f30cd377f6519e0d';
         
-        const data = await response.json();
-        console.log('[API] Full API response:', JSON.stringify(data, null, 2));
-        const nftList = data.data || [];
+        console.log('[Moralis] Fetching NFTs from COCOz contract...');
+        const cocozResponse = await moralis.getNFTsByContract(merchantWallet, cocozContractAddress, 'bsc');
+        console.log('[Moralis] Fetching NFTs from First Wave contract...');
+        const firstWaveResponse = await moralis.getNFTsByContract(merchantWallet, firstWaveContractAddress, 'bsc');
         
-        // Debug: Log all NFTs to inspect data structure
-        nftList.forEach((nft: any, idx: number) => {
-          console.log(`[API] NFT ${idx} full data:`, JSON.stringify(nft, null, 2));
-        });
+        // Merge NFTs from both contracts
+        const allNFTs = [...(cocozResponse.result || []), ...(firstWaveResponse.result || [])];
+        console.log('[Moralis] ===== COCOz Response =====');
+        console.log(JSON.stringify(cocozResponse, null, 2));
+        console.log('[Moralis] ===== First Wave Response =====');
+        console.log(JSON.stringify(firstWaveResponse, null, 2));
+        console.log('[Moralis] Total NFTs fetched:', allNFTs.length);
         
-        const products = await Promise.all(nftList.map(async (nft: any, idx: number) => {
-          // Determine NFT name first
-          const nftName = nft.name || nft.collection?.name || nft.contract?.name || `NFT #${nft.token_id}`;
+        const products = allNFTs.map((nft: any, idx: number) => {
+        console.log("[Moralis] All NFTs data:", JSON.stringify(allNFTs, null, 2));
+          // Determine NFT name
+          const nftName = nft.name || `NFT #${nft.token_id}`;
           
-          // Try multiple image URL fields with fallback strategy
-          let imageUrl = nft.image_url 
-            || nft.image 
-            || nft.metadata?.image 
-            || nft.metadata?.image_url
-            || nft.collection?.image_url
-            || nft.collection?.image;
+          // Extract image URL using Moralis API
+          let imageUrl = moralis.extractImageUrl(nft);
           
-          // If no image found but metadata_url exists, fetch from metadata
-          if (!imageUrl && nft.metadata_url) {
-            try {
-              console.log(`[API] Attempting to fetch metadata from: ${nft.metadata_url}`);
-              const metadataResponse = await fetch(nft.metadata_url);
-              if (metadataResponse.ok) {
-                const metadata = await metadataResponse.json();
-                console.log(`[API] Metadata response for ${nft.name}:`, JSON.stringify(metadata, null, 2));
-                imageUrl = metadata.image || metadata.image_url || metadata.imageUrl;
-                if (imageUrl) {
-                  console.log(`[API] Fetched image from metadata for ${nft.name}: ${imageUrl}`);
-                }
-              } else {
-                console.log(`[API] Metadata fetch failed with status ${metadataResponse.status}`);
-              }
-            } catch (err) {
-              console.log(`[API] Failed to fetch metadata for ${nft.name}:`, err);
-            }
-          }
-          
-          // If still no image found, generate a colorful SVG placeholder
+          // If still no image, generate colorful placeholder
           if (!imageUrl) {
             const colors = ['6366f1', 'ec4899', 'f59e0b', '10b981', '06b6d4', '8b5cf6'];
             const colorIdx = (parseInt(nft.token_id) || idx) % colors.length;
             const bgColor = colors[colorIdx];
-            // Create SVG with background color and text
             const svgText = `${nftName} #${nft.token_id}`;
-            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect fill="#${bgColor}" width="300" height="300"/><text x="150" y="150" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-weight="bold" word-spacing="100%">${svgText}</text></svg>`;
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect fill="#${bgColor}" width="300" height="300"/><text x="150" y="150" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-weight="bold">${svgText}</text></svg>`;
             imageUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
-            console.log(`[API] Generated SVG placeholder for ${svgText}`);
+            console.log(`[Moralis] Generated SVG placeholder for ${svgText}`);
           }
+          console.log(`[Moralis] Image URL for ${nftName}: ${imageUrl.substring(0, 100)}...`);
           
           return {
-            id: `nft-${nft.contract_address}-${nft.token_id}`,
+            id: `nft-${nft.token_address}-${nft.token_id}`,
             name: nftName,
-            description: nft.description || `NFT from ${nft.collection?.name || 'collection'}`,
+            description: nft.name || `NFT from collection`,
             image: imageUrl,
             price: 50 + (idx * 10),
             originalPrice: 60 + (idx * 10),
-            nftData: { contractAddress: nft.contract_address, tokenId: nft.token_id, chainId: 'bsc' },
+            nftData: { contractAddress: nft.token_address, tokenId: nft.token_id, chainId: 'bsc' },
           };
-        }));
+        });
         
         return { success: true, totalProducts: products.length, products };
       } catch (error: any) {

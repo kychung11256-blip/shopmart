@@ -1,0 +1,20 @@
+{
+  "query": "SELECT * FROM thirdweb_config;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT * FROM thirdweb_config;",
+  "rows": [
+    {
+      "id": "1",
+      "thirdweb_api_key": "6adc0c22b790eb0f99ddf6751e2f81e6",
+      "thirdweb_secret_key": "3_J9f1tAknsqELfXjZp-VyElogXuy7kPaQo9mPDH7DAPjgQ4MacTgQ8hd03eoFzc8xWtqsAdEye0JQvyvmF-QQ",
+      "description": "NULL",
+      "createdAt": "2026-03-28 01:11:52",
+      "updatedAt": "2026-03-28 01:11:52",
+      "merchant_wallet_address": "0x5d467E25C25945a10019e4045409746296cfd243",
+      "moralis_api_key": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tthirdweb_api_key\tthirdweb_secret_key\tdescription\tcreatedAt\tupdatedAt\tmerchant_wallet_address\tmoralis_api_key\n1\t6adc0c22b790eb0f99ddf6751e2f81e6\t3_J9f1tAknsqELfXjZp-VyElogXuy7kPaQo9mPDH7DAPjgQ4MacTgQ8hd03eoFzc8xWtqsAdEye0JQvyvmF-QQ\tNULL\t2026-03-28 01:11:52\t2026-03-28 01:11:52\t0x5d467E25C25945a10019e4045409746296cfd243\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1642
+}

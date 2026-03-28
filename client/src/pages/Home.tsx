@@ -49,9 +49,19 @@ function convertNFTProductToFrontend(nftProduct: any): Product {
   };
 }
 
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product, nftData }: { product: Product; nftData?: any }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [, navigate] = useLocation();
+
+  const handleClick = () => {
+    if (nftData) {
+      // NFT 商品：導航到 NFT 詳情頁面
+      navigate(`/nft/${nftData.contractAddress}/${nftData.tokenId}`);
+    } else {
+      // 普通商品：導航到商品詳情頁面
+      navigate(`/product/${product.id}`);
+    }
+  };
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
@@ -82,7 +92,7 @@ function ProductCard({ product }: { product: Product }) {
   return (
     <div 
       className="product-card bg-white border border-gray-100 rounded overflow-hidden group cursor-pointer" 
-      onClick={() => navigate(`/product/${product.id}`)}
+      onClick={handleClick}
     >
       <div className="relative overflow-hidden" style={{ paddingTop: '100%' }}>
         <img
@@ -258,9 +268,16 @@ export default function Home() {
               <div className="p-8 text-center text-gray-500">Loading NFT products...</div>
             ) : nftProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4">
-                {nftProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
+                {nftProductsData?.products?.map((nftProduct: any) => {
+                  const product = convertNFTProductToFrontend(nftProduct);
+                  return (
+                    <ProductCard 
+                      key={product.id} 
+                      product={product}
+                      nftData={nftProduct.nftData}
+                    />
+                  );
+                })}
               </div>
             ) : (
               <div className="p-8 text-center text-gray-500">No NFT products available</div>

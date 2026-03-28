@@ -290,3 +290,17 @@
 - [ ] 實現從 NFT metadata JSON 中提取圖片的邏輯
 - [ ] 測試並驗證後面兩個 NFT 現在顯示真實圖片
 - [ ] 發布修復版本
+
+
+## 🆕 NFT 詳情頁面 - 已完成
+
+- [x] 創建 NFT 詳情頁面路由 (/nft/:contractAddress/:tokenId)
+- [x] 實現 NFT 詳情數據查詢 API
+- [x] 設計詳情頁面 UI (圖片、名稱、合約地址、區塊鏈、Token ID、創建者)
+- [x] 添加購買按鈕和購買流程
+- [x] 測試詳情頁面功能
+
+## 🔧 API 路由修復 - 已完成
+
+- [x] 添加 auth.me 路由 - 返回當前用戶信息
+- [x] 添加 auth.logout 路由 - 清除會話 cookie
