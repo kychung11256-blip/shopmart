@@ -42,14 +42,18 @@ export const appRouter = router({
         if (!response.ok) throw new Error(`API error: ${response.statusText}`);
         
         const data = await response.json();
+        console.log('[API] Full API response:', JSON.stringify(data, null, 2));
         const nftList = data.data || [];
         
-        // Debug: Log first NFT to inspect data structure
-        if (nftList.length > 0) {
-          console.log('[API] First NFT data structure:', JSON.stringify(nftList[0], null, 2));
-        }
+        // Debug: Log all NFTs to inspect data structure
+        nftList.forEach((nft: any, idx: number) => {
+          console.log(`[API] NFT ${idx} full data:`, JSON.stringify(nft, null, 2));
+        });
         
-        const products = nftList.map((nft: any, idx: number) => {
+        const products = await Promise.all(nftList.map(async (nft: any, idx: number) => {
+          // Determine NFT name first
+          const nftName = nft.name || nft.collection?.name || nft.contract?.name || `NFT #${nft.token_id}`;
+          
           // Try multiple image URL fields with fallback strategy
           let imageUrl = nft.image_url 
             || nft.image 
@@ -58,26 +62,48 @@ export const appRouter = router({
             || nft.collection?.image_url
             || nft.collection?.image;
           
-          // If no image found, generate a colorful placeholder based on token ID
+          // If no image found but metadata_url exists, fetch from metadata
+          if (!imageUrl && nft.metadata_url) {
+            try {
+              console.log(`[API] Attempting to fetch metadata from: ${nft.metadata_url}`);
+              const metadataResponse = await fetch(nft.metadata_url);
+              if (metadataResponse.ok) {
+                const metadata = await metadataResponse.json();
+                console.log(`[API] Metadata response for ${nft.name}:`, JSON.stringify(metadata, null, 2));
+                imageUrl = metadata.image || metadata.image_url || metadata.imageUrl;
+                if (imageUrl) {
+                  console.log(`[API] Fetched image from metadata for ${nft.name}: ${imageUrl}`);
+                }
+              } else {
+                console.log(`[API] Metadata fetch failed with status ${metadataResponse.status}`);
+              }
+            } catch (err) {
+              console.log(`[API] Failed to fetch metadata for ${nft.name}:`, err);
+            }
+          }
+          
+          // If still no image found, generate a colorful SVG placeholder
           if (!imageUrl) {
             const colors = ['6366f1', 'ec4899', 'f59e0b', '10b981', '06b6d4', '8b5cf6'];
             const colorIdx = (parseInt(nft.token_id) || idx) % colors.length;
             const bgColor = colors[colorIdx];
-            const nftName = nft.name || nft.collection?.name || `NFT #${nft.token_id}`;
-            imageUrl = `https://via.placeholder.com/300x300/${bgColor}/ffffff?text=${encodeURIComponent(nftName)}`;
-            console.log(`[API] Generated placeholder for ${nftName}: ${imageUrl}`);
+            // Create SVG with background color and text
+            const svgText = `${nftName} #${nft.token_id}`;
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect fill="#${bgColor}" width="300" height="300"/><text x="150" y="150" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-weight="bold" word-spacing="100%">${svgText}</text></svg>`;
+            imageUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+            console.log(`[API] Generated SVG placeholder for ${svgText}`);
           }
           
           return {
             id: `nft-${nft.contract_address}-${nft.token_id}`,
-            name: nft.name || nft.collection?.name || `NFT #${nft.token_id}`,
+            name: nftName,
             description: nft.description || `NFT from ${nft.collection?.name || 'collection'}`,
             image: imageUrl,
             price: 50 + (idx * 10),
             originalPrice: 60 + (idx * 10),
             nftData: { contractAddress: nft.contract_address, tokenId: nft.token_id, chainId: 'bsc' },
           };
-        });
+        }));
         
         return { success: true, totalProducts: products.length, products };
       } catch (error: any) {
