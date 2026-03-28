@@ -473,6 +473,68 @@ export const appRouter = router({
           throw error;
         }
       }),
+    createNexapaySession: publicProcedure
+      .input(z.object({
+        orderId: z.number(),
+        amount: z.number(),
+        currency: z.string().default('USD'),
+        customerEmail: z.string().email().optional(),
+        successUrl: z.string(),
+        cancelUrl: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          const apiKey = process.env.NEXAPAY_API_KEY;
+          if (!apiKey) {
+            throw new Error('NEXAPAY_API_KEY not configured');
+          }
+
+          const nexapayUrl = 'https://nexapay.one/api/v1/payments';
+          const payload = {
+            amount: input.amount,
+            currency: input.currency,
+            crypto: 'USDC',
+            description: `Order #${input.orderId}`,
+            customer_email: input.customerEmail,
+            success_url: input.successUrl,
+            cancel_url: input.cancelUrl,
+            callback_url: `${process.env.VITE_APP_URL || 'https://shopmart-8wwg5mrc.manus.space'}/api/webhooks/nexapay`,
+          };
+
+          console.log('[Nexapay] Creating payment session:', payload);
+
+          const response = await fetch(nexapayUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Key': apiKey,
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('[Nexapay] API Error:', response.status, errorText);
+            throw new Error(`Nexapay API Error: ${response.status} ${errorText}`);
+          }
+
+          const data = await response.json();
+          console.log('[Nexapay] Payment session created:', data);
+
+          return {
+            success: true,
+            checkoutUrl: data.payment?.checkout_url,
+            orderId: data.payment?.order_id,
+            paymentId: data.payment?.id,
+          };
+        } catch (error: any) {
+          console.error('[Nexapay] Error creating payment session:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to create Nexapay payment session: ${error.message}`,
+          });
+        }
+      }),
   }),
 
   // Cart router

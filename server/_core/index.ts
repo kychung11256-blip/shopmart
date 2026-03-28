@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { handleStripeWebhook } from "../stripe-webhook";
 import { handleStarPayWebhook } from "../star-pay-webhook";
+import { handleNexapayWebhook } from "../nexapay-webhook";
 import Stripe from "stripe";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -82,6 +83,15 @@ async function startServer() {
     express.json(),
     async (req, res) => {
       await handleStarPayWebhook(req, res);
+    }
+  );
+
+  // Nexapay webhook must be registered BEFORE express.json() to verify signatures
+  app.post(
+    "/api/webhooks/nexapay",
+    express.raw({ type: "application/json" }),
+    async (req, res) => {
+      await handleNexapayWebhook(req, res);
     }
   );
 

@@ -98,6 +98,8 @@ export default function Checkout() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showGuestForm, setShowGuestForm] = useState<boolean>(false);
   const [showStarPayModal, setShowStarPayModal] = useState<boolean>(false);
+  const [showNexapayModal, setShowNexapayModal] = useState<boolean>(false);
+  const [nexapayUrl, setNexapayUrl] = useState<string | null>(null);
   const [starPayOrderId, setStarPayOrderId] = useState<number | null>(null);
   const [paymentCheckInterval, setPaymentCheckInterval] = useState<NodeJS.Timeout | null>(null);
 
@@ -228,6 +230,7 @@ export default function Checkout() {
   const createGuestOrderMutation = trpc.orders.createGuest.useMutation();
   const createPaymentIntentMutation = trpc.payments.createPaymentIntent.useMutation();
   const createStarPayOrderMutation = trpc.payments.createStarPayOrder.useMutation();
+  const createNexapaySessionMutation = trpc.orders.createNexapaySession.useMutation();
   const stripeKeyQuery = trpc.config.getStripePublishableKey.useQuery();
 
   // Initialize Stripe
@@ -248,6 +251,81 @@ export default function Checkout() {
   // Calculate total
   const totalPrice = cartItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
   const totalPriceInCents = Math.round(totalPrice * 100);
+
+  const handleNexapayCheckout = async () => {
+    if (!shippingAddress.trim()) {
+      toast.error('Please enter shipping address');
+      return;
+    }
+
+    if (!isAuthenticated && (!guestEmail.trim() || !guestName.trim())) {
+      toast.error('Please enter email and name for guest checkout');
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      toast.error('Your cart is empty');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // Create order
+      let orderResult;
+      if (isAuthenticated) {
+        orderResult = await createOrderMutation.mutateAsync({
+          items: cartItems.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+          })),
+          shippingAddress,
+        });
+      } else {
+        orderResult = await createGuestOrderMutation.mutateAsync({
+          items: cartItems.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+          })),
+          shippingAddress,
+          guestEmail,
+          guestName,
+        });
+      }
+
+      if (!orderResult.success) {
+        throw new Error('Failed to create order');
+      }
+
+      const orderId = orderResult.id || 1;
+      sessionStorage.setItem('lastOrderId', orderId.toString());
+
+      // Create Nexapay payment session
+      const nexapayResult = await createNexapaySessionMutation.mutateAsync({
+        orderId,
+        amount: totalPrice,
+        currency: 'USD',
+        customerEmail: isAuthenticated ? user?.email : guestEmail,
+        successUrl: `${window.location.origin}/orders/confirmation?orderId=${orderId}`,
+        cancelUrl: `${window.location.origin}/checkout`,
+      });
+
+      if (nexapayResult.checkoutUrl) {
+        setNexapayUrl(nexapayResult.checkoutUrl);
+        setShowNexapayModal(true);
+        toast.success('Opening Nexapay payment page...');
+        // Redirect to checkout URL in new tab
+        window.open(nexapayResult.checkoutUrl, '_blank');
+      } else {
+        throw new Error('Failed to get Nexapay checkout URL');
+      }
+    } catch (error: any) {
+      console.error('Nexapay checkout error:', error);
+      toast.error(error?.message || 'Failed to process payment');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleStarPayCheckout = async (product: 'TRC20Buy' | 'TRC20H5' | 'USDCERC20Buy') => {
     if (!shippingAddress.trim()) {
@@ -540,6 +618,18 @@ export default function Checkout() {
                     <div className="text-left">
                       <div className="font-semibold">USD PAY</div>
                       <div className="text-sm text-gray-600">Pay with cryptocurrency</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={handleNexapayCheckout}
+                    disabled={isProcessing}
+                    className="w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <div className="w-5 h-5 bg-blue-500 rounded flex items-center justify-center text-white text-xs font-bold">₦</div>
+                    <div className="text-left">
+                      <div className="font-semibold">Nexapay</div>
+                      <div className="text-sm text-gray-600">Pay with card, receive USDC</div>
                     </div>
                   </button>
                 </div>
