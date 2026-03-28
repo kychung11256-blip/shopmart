@@ -1,0 +1,1 @@
+ALTER TABLE `thirdweb_config` ADD `merchant_wallet_address` varchar(255);

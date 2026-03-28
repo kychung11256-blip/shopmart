@@ -117,7 +117,6 @@ export default function Cart() {
           } as CartItem;
         })
         .filter((item): item is CartItem => item !== null);
-
       setCartItems(items);
       setIsLoading(false);
     } else {
@@ -142,11 +141,12 @@ export default function Cart() {
       }
       setIsLoading(false);
     }
-  }, [isAuthenticated, cartLoading, apiCartItems]);
+  }, [isAuthenticated, cartLoading, apiCartItems, convertedProducts]);;
 
   // 當商品列表改變時，更新購物車中的商品信息
+  // 注意：只在未登入用戶時更新，登入用戶的購物車由第一個 useEffect 處理
   useEffect(() => {
-    if (cartItems.length === 0 || convertedProducts.length === 0) return;
+    if (isAuthenticated || cartItems.length === 0 || convertedProducts.length === 0) return;
     
     setCartItems(prevItems => 
       prevItems.map(item => {
@@ -154,7 +154,7 @@ export default function Cart() {
         return updatedProduct ? { ...item, product: updatedProduct } : item;
       })
     );
-  }, [convertedProducts]);
+  }, [convertedProducts, isAuthenticated, cartItems.length]);
 
   const selectedItems = cartItems.filter(item => item.selected);
   const totalPrice = selectedItems.reduce((sum, item) => sum + item.product.price * item.qty, 0);
