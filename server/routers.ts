@@ -780,14 +780,26 @@ export const appRouter = router({
           
           // Create Star Pay order
           const merchantRef = `ORDER-${input.orderId}-${Date.now()}`;
+          
+          // Get customer info from authenticated user or guest input
+          const customerEmail = ctx.user?.email || input.guestEmail?.trim() || '';
+          const customerName = ctx.user?.name || input.guestName?.trim() || 'Guest';
+          
+          if (!customerEmail) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Customer email is required for payment',
+            });
+          }
+          
           const response = await createStarPayOrder(
             merchantRef,
             input.product,
             formattedAmount,
             'en_US',
             {
-              customer_email: ctx.user?.email || (input.guestEmail?.trim() || ''),
-              customer_name: ctx.user?.name || (input.guestName?.trim() || ''),
+              customer_email: customerEmail,
+              customer_name: customerName,
             }
           );
           
@@ -801,7 +813,24 @@ export const appRouter = router({
               payUrl = params.payurl || null;
             } catch (e) {
               console.warn('[API] Failed to parse Star Pay params:', e);
+              throw new TRPCError({
+                code: 'INTERNAL_SERVER_ERROR',
+                message: 'Failed to parse payment URL from Star Pay',
+              });
             }
+          } else {
+            console.error('[API] Star Pay error response:', response);
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: `Star Pay API error: ${response.message || 'Unknown error'}`,
+            });
+          }
+          
+          if (!payUrl) {
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'No payment URL received from Star Pay',
+            });
           }
           
           // Save merchant ref to order

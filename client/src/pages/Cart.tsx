@@ -154,7 +154,7 @@ export default function Cart() {
         return updatedProduct ? { ...item, product: updatedProduct } : item;
       })
     );
-  }, [convertedProducts, isAuthenticated, cartItems.length]);
+  }, [convertedProducts, isAuthenticated]);
 
   const selectedItems = cartItems.filter(item => item.selected);
   const totalPrice = selectedItems.reduce((sum, item) => sum + item.product.price * item.qty, 0);
