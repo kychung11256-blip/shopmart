@@ -32,20 +32,34 @@ export function useAuth(options?: UseAuthOptions) {
         error instanceof TRPCClientError &&
         error.data?.code === "UNAUTHORIZED"
       ) {
-        return;
+        // Already logged out on server
+      } else {
+        throw error;
       }
-      throw error;
     } finally {
+      // Clear all auth-related data
       utils.auth.me.setData(undefined, null);
       await utils.auth.me.invalidate();
+      // Clear localStorage to prevent auto-login
+      localStorage.removeItem("manus-runtime-user-info");
+      // Redirect to login page
+      if (typeof window !== "undefined") {
+        window.location.href = getLoginUrl();
+      }
     }
   }, [logoutMutation, utils]);
 
   const state = useMemo(() => {
-    localStorage.setItem(
-      "manus-runtime-user-info",
-      JSON.stringify(meQuery.data)
-    );
+    // Only save to localStorage if user is authenticated
+    if (meQuery.data) {
+      localStorage.setItem(
+        "manus-runtime-user-info",
+        JSON.stringify(meQuery.data)
+      );
+    } else {
+      // Clear localStorage when user is not authenticated
+      localStorage.removeItem("manus-runtime-user-info");
+    }
     return {
       user: meQuery.data ?? null,
       loading: meQuery.isLoading || logoutMutation.isPending,
