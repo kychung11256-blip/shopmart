@@ -100,14 +100,6 @@ export default function Checkout() {
   const [showStarPayModal, setShowStarPayModal] = useState<boolean>(false);
   const [starPayOrderId, setStarPayOrderId] = useState<number | null>(null);
   const [paymentCheckInterval, setPaymentCheckInterval] = useState<NodeJS.Timeout | null>(null);
-  const [lastTransactionId, setLastTransactionId] = useState<string | null>(null);
-  const [transferStatus, setTransferStatus] = useState<{
-    success: boolean;
-    status: string;
-    transactionHash: string | null;
-    message: string;
-    errorMessage: string | null;
-  } | null>(null);
 
   // Get cart items from localStorage for guests, or from tRPC for authenticated users
   const { data: authenticatedCartItems } = trpc.cart.list.useQuery(undefined, {
@@ -256,94 +248,6 @@ export default function Checkout() {
   // Calculate total
   const totalPrice = cartItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
   const totalPriceInCents = Math.round(totalPrice * 100);
-
-  const transferNFTMutation = trpc.nftProducts.transferNFT.useMutation();
-  const checkTransferStatusMutation = trpc.nftProducts.checkTransferStatus.useQuery(
-    { transactionId: lastTransactionId || '' },
-    { enabled: false }
-  );
-
-  const handleCheckStatus = async () => {
-    if (!lastTransactionId) {
-      toast.error('No transaction ID found');
-      return;
-    }
-
-    try {
-      setIsProcessing(true);
-      const result = await checkTransferStatusMutation.refetch();
-      if (result.data) {
-        setTransferStatus(result.data);
-        if (result.data.success) {
-          toast.success('NFT transfer successful!');
-        } else if (result.data.message.includes('processing')) {
-          toast.info('Transfer is still processing...');
-        } else {
-          toast.error(result.data.message);
-        }
-      }
-    } catch (error: any) {
-      console.error('[Check Status] Error:', error);
-      toast.error('Failed to check transfer status');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleTestGift = async () => {
-    if (!shippingAddress.trim()) {
-      toast.error('Please enter wallet address');
-      return;
-    }
-
-    setIsProcessing(true);
-
-    try {
-      // Get NFT data from localStorage cart
-      const savedCart = localStorage.getItem('shopmart_cart');
-      if (!savedCart) {
-        toast.error('No NFT in cart');
-        return;
-      }
-
-      const cart = JSON.parse(savedCart);
-      if (cart.length === 0) {
-        toast.error('No NFT in cart');
-        return;
-      }
-
-      // Get the first NFT item from cart
-      const nftItem = cart[0];
-      if (!nftItem.nftData) {
-        toast.error('Invalid NFT data in cart');
-        return;
-      }
-
-      const { contractAddress, tokenId } = nftItem.nftData;
-
-      console.log('[Test Gift] Transferring NFT:', { contractAddress, tokenId, toAddress: shippingAddress });
-
-      const result = await transferNFTMutation.mutateAsync({
-        contractAddress,
-        tokenId,
-        toAddress: shippingAddress,
-      });
-
-      if (result.success) {
-        toast.success(`NFT transfer initiated! Transaction ID: ${result.transactionId}`);
-        // Store transaction ID for status checking
-        setLastTransactionId(result.transactionId);
-        setTransferStatus(null);
-      } else {
-        throw new Error('Transfer failed');
-      }
-    } catch (error: any) {
-      console.error('[Test Gift] Error:', error);
-      toast.error(error?.message || 'Failed to transfer NFT');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   const handleStarPayCheckout = async (product: 'TRC20Buy' | 'TRC20H5' | 'USDCERC20Buy') => {
     if (!shippingAddress.trim()) {
@@ -566,19 +470,18 @@ export default function Checkout() {
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-2xl font-bold mb-6">Checkout</h2>
 
-              {/* Wallet Address */}
+              {/* Shipping Address */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Wallet Address *
+                  Shipping Address *
                 </label>
-                <input
-                  type="text"
+                <textarea
                   value={shippingAddress}
                   onChange={(e) => setShippingAddress(e.target.value)}
-                  placeholder="Enter your wallet address (0x...)"
-                  className="w-full border border-gray-300 rounded px-4 py-2 text-sm outline-none focus:border-red-500 font-mono"
+                  placeholder="Enter your shipping address"
+                  className="w-full border border-gray-300 rounded px-4 py-2 text-sm outline-none focus:border-red-500"
+                  rows={3}
                 />
-                <p className="text-xs text-gray-500 mt-2">Your NFT will be transferred to this wallet address</p>
               </div>
 
               {/* Guest checkout fields */}
@@ -639,69 +542,7 @@ export default function Checkout() {
                       <div className="text-sm text-gray-600">Pay with cryptocurrency</div>
                     </div>
                   </button>
-
-                  <button
-                    onClick={handleTestGift}
-                    disabled={isProcessing || !shippingAddress}
-                    className="w-full flex items-center gap-3 p-4 border-2 border-yellow-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-yellow-50"
-                  >
-                    <div className="text-2xl">🎁</div>
-                    <div className="text-left">
-                      <div className="font-semibold text-yellow-700">Test Gift (Demo)</div>
-                      <div className="text-sm text-yellow-600">Simulate NFT transfer</div>
-                    </div>
-                  </button>
-
-                  {lastTransactionId && (
-                    <button
-                      onClick={handleCheckStatus}
-                      disabled={isProcessing}
-                      className="w-full flex items-center gap-3 p-4 border-2 border-blue-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-blue-50"
-                    >
-                      <div className="text-2xl">🔍</div>
-                      <div className="text-left">
-                        <div className="font-semibold text-blue-700">Check Transfer Status</div>
-                        <div className="text-sm text-blue-600">Query transaction status</div>
-                      </div>
-                    </button>
-                  )}
                 </div>
-
-                {transferStatus && (
-                  <div className={`mt-6 p-4 rounded-lg border-2 ${
-                    transferStatus.success
-                      ? 'bg-green-50 border-green-300'
-                      : 'bg-red-50 border-red-300'
-                  }`}>
-                    <div className="flex items-start gap-3">
-                      <div className="text-2xl">{transferStatus.success ? '✅' : '❌'}</div>
-                      <div className="flex-1">
-                        <h4 className={`font-semibold ${
-                          transferStatus.success ? 'text-green-700' : 'text-red-700'
-                        }`}>
-                          {transferStatus.success ? 'Transfer Successful' : 'Transfer Failed'}
-                        </h4>
-                        <p className={`text-sm mt-1 ${
-                          transferStatus.success ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {transferStatus.message}
-                        </p>
-                        {transferStatus.transactionHash && (
-                          <div className="mt-3 bg-white rounded p-3 font-mono text-xs break-all">
-                            <p className="text-gray-600 mb-1">Transaction Hash:</p>
-                            <p className="text-gray-800">{transferStatus.transactionHash}</p>
-                          </div>
-                        )}
-                        {transferStatus.errorMessage && (
-                          <div className="mt-3 bg-white rounded p-3 text-xs">
-                            <p className="text-gray-600 mb-1">Error Details:</p>
-                            <p className="text-red-600">{transferStatus.errorMessage}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>

@@ -1,1 +1,0 @@
-ALTER TABLE `thirdweb_config` ADD `moralis_api_key` varchar(1024);

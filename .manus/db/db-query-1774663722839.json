@@ -1,9 +1,0 @@
-{
-  "query": "UPDATE thirdweb_config SET moralis_api_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjBmZDBlMWE0LWM1Y2UtNGEwZi04MDYxLTJiNzI1NDMzMjY1MCIsIm9yZ0lkIjoiNDkxNTM2IiwidXNlcklkIjoiNTA1NzQxIiwidHlwZUlkIjoiNGM0MGQ0YjEtYjczYy00MzhjLTk1MDMtMzMxMzk5YjgwYzljIiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NjkwNzMxNjIsImV4cCI6NDkyNDgzMzE2Mn0.kgbfGGjB_Cfx_QKuiAb-XrZpyYxHnWeftsJAH1m4Q6U' WHERE merchant_wallet_address = '0x8ba1f109551bd432803012645ac136ddd64dba72';",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute UPDATE thirdweb_config SET moralis_api_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjBmZDBlMWE0LWM1Y2UtNGEwZi04MDYxLTJiNzI1NDMzMjY1MCIsIm9yZ0lkIjoiNDkxNTM2IiwidXNlcklkIjoiNTA1NzQxIiwidHlwZUlkIjoiNGM0MGQ0YjEtYjczYy00MzhjLTk1MDMtMzMxMzk5YjgwYzljIiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NjkwNzMxNjIsImV4cCI6NDkyNDgzMzE2Mn0.kgbfGGjB_Cfx_QKuiAb-XrZpyYxHnWeftsJAH1m4Q6U' WHERE merchant_wallet_address = '0x8ba1f109551bd432803012645ac136ddd64dba72';",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 1645
-}

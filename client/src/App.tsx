@@ -22,8 +22,6 @@ import Login from "./pages/Login";
 import Checkout from "./pages/Checkout";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import OrderHistory from "./pages/OrderHistory";
-import NFTMarketplace from "./pages/NFTMarketplace";
-import NFTDetail from "./pages/NFTDetail";
 
 // Admin pages
 import Dashboard from "./pages/admin/Dashboard";
@@ -33,7 +31,6 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminSettings from "./pages/admin/AdminSettings";
-import AdminNFTSettings from "./pages/admin/AdminNFTSettings";
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
@@ -47,8 +44,6 @@ function Router() {
       <Route path="/checkout" component={Checkout} />
       <Route path="/orders" component={OrderHistory} />
       <Route path="/orders/confirmation" component={OrderConfirmation} />
-      <Route path="/nft-marketplace" component={NFTMarketplace} />
-      <Route path="/nft/:contractAddress/:tokenId" component={NFTDetail} />
 
       {/* Admin routes */}
       <Route path="/admin" component={Dashboard} />
@@ -58,7 +53,6 @@ function Router() {
       <Route path="/admin/categories" component={AdminCategories} />
       <Route path="/admin/analytics" component={AdminAnalytics} />
       <Route path="/admin/settings" component={AdminSettings} />
-      <Route path="/admin/nft-settings" component={AdminNFTSettings} />
 
       {/* 404 */}
       <Route path="/404" component={NotFound} />
