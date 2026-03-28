@@ -249,6 +249,66 @@ export default function Checkout() {
   const totalPrice = cartItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
   const totalPriceInCents = Math.round(totalPrice * 100);
 
+  const transferNFTMutation = trpc.nftProducts.transferNFT.useMutation();
+
+  const handleTestGift = async () => {
+    if (!shippingAddress.trim()) {
+      toast.error('Please enter wallet address');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // Get NFT data from localStorage cart
+      const savedCart = localStorage.getItem('shopmart_cart');
+      if (!savedCart) {
+        toast.error('No NFT in cart');
+        return;
+      }
+
+      const cart = JSON.parse(savedCart);
+      if (cart.length === 0) {
+        toast.error('No NFT in cart');
+        return;
+      }
+
+      // Get the first NFT item from cart
+      const nftItem = cart[0];
+      if (!nftItem.nftData) {
+        toast.error('Invalid NFT data in cart');
+        return;
+      }
+
+      const { contractAddress, tokenId } = nftItem.nftData;
+
+      console.log('[Test Gift] Transferring NFT:', { contractAddress, tokenId, toAddress: shippingAddress });
+
+      const result = await transferNFTMutation.mutateAsync({
+        contractAddress,
+        tokenId,
+        toAddress: shippingAddress,
+      });
+
+      if (result.success) {
+        toast.success(`NFT transfer initiated! Transaction: ${result.transactionHash}`);
+        // Clear cart after successful transfer
+        localStorage.removeItem('shopmart_cart');
+        setCartItems([]);
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
+      } else {
+        throw new Error('Transfer failed');
+      }
+    } catch (error: any) {
+      console.error('[Test Gift] Error:', error);
+      toast.error(error?.message || 'Failed to transfer NFT');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleStarPayCheckout = async (product: 'TRC20Buy' | 'TRC20H5' | 'USDCERC20Buy') => {
     if (!shippingAddress.trim()) {
       toast.error('Please enter shipping address');
@@ -541,6 +601,18 @@ export default function Checkout() {
                     <div className="text-left">
                       <div className="font-semibold">USD PAY</div>
                       <div className="text-sm text-gray-600">Pay with cryptocurrency</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={handleTestGift}
+                    disabled={isProcessing || !shippingAddress}
+                    className="w-full flex items-center gap-3 p-4 border-2 border-yellow-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-yellow-50"
+                  >
+                    <div className="text-2xl">🎁</div>
+                    <div className="text-left">
+                      <div className="font-semibold text-yellow-700">Test Gift (Demo)</div>
+                      <div className="text-sm text-yellow-600">Simulate NFT transfer</div>
                     </div>
                   </button>
                 </div>

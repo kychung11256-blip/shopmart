@@ -179,6 +179,72 @@ export const appRouter = router({
     getNFTProducts: nftProductsRouter.getNFTProducts,
     getNFTProduct: nftProductsRouter.getNFTProduct,
     estimateNFTValue: nftProductsRouter.estimateNFTValue,
+    transferNFT: publicProcedure
+      .input(z.object({
+        contractAddress: z.string(),
+        tokenId: z.string(),
+        toAddress: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          const db = await getDb();
+          if (!db) throw new Error('Database not available');
+          
+          const config = await db.select().from(thirdwebConfig).limit(1);
+          if (!config || config.length === 0 || !config[0].thirdwebSecretKey) {
+            throw new Error('thirdweb secret key not configured');
+          }
+          
+          const secretKey = config[0].thirdwebSecretKey;
+          const fromAddress = config[0].merchantWalletAddress || '0x5d467E25C25945a10019e4045409746296cfd243';
+          
+          console.log('[thirdweb] Transferring NFT:', {
+            contractAddress: input.contractAddress,
+            tokenId: input.tokenId,
+            from: fromAddress,
+            to: input.toAddress,
+          });
+          
+          const response = await fetch('https://api.thirdweb.com/v1/contracts/write', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-secret-key': secretKey,
+            },
+            body: JSON.stringify({
+              chainId: 56,
+              calls: [
+                {
+                  contractAddress: input.contractAddress,
+                  method: 'function safeTransferFrom(address from, address to, uint256 tokenId)',
+                  params: [fromAddress, input.toAddress, input.tokenId],
+                },
+              ],
+            }),
+          });
+          
+          if (!response.ok) {
+            const error = await response.text();
+            console.error('[thirdweb] Transfer failed:', error);
+            throw new Error(`thirdweb API error: ${response.status} ${error}`);
+          }
+          
+          const result = await response.json();
+          console.log('[thirdweb] Transfer successful:', result);
+          
+          return {
+            success: true,
+            transactionHash: result.result?.transactionHash || 'pending',
+            message: 'NFT transfer initiated successfully',
+          };
+        } catch (error: any) {
+          console.error('[API] Error transferring NFT:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: error.message,
+          });
+        }
+      }),
   }),
   verification: router({
     me: publicProcedure.query(opts => opts.ctx.user),
