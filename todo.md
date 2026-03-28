@@ -267,3 +267,10 @@
 - [x] 驗證首頁 NFT 商品正確顯示 - 所有 3 個 NFT 商品現已正確顯示
 - [x] 修復 NFT 數據解析邏輯 - 適配新 API 響應格式
 - [x] 修復商品合併邏輯 - 正確顯示所有 NFT 商品
+
+## 🐛 首頁顯示問題 - 已完成
+
+- [x] 修復 Banner 滑動區域沒有顯示圖片的問題 - 修復了圖片加載邏輯，現在顯示真實商品圖片
+- [x] 修復 NFT Marketplace 只顯示一個 NFT 的問題 - 改用 nftProducts 替代 recommendedProducts
+- [x] 修復 NFT Marketplace 的錯誤提示 - 驗證所有 3 個 NFT 商品正確顯示
+- [x] 驗證所有 3 個 NFT 商品正確顯示在 Marketplace 中

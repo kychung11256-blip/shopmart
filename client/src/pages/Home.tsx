@@ -197,16 +197,22 @@ export default function Home() {
   const topOneProducts = products.slice(0, 3);
   const youMayLikeProducts = products.slice(0, 10);
   
-  // 生成動態 Banner 幻燈片 - 使用熱銷商品圖片
+  // 生成動態 Banner 幻燈片 - 使用熱銷商品圖片，確保圖片有效
   const bannerSlides = topOneProducts.length > 0 
-    ? topOneProducts.map((product, idx) => ({
-        id: idx + 1,
-        image: product.image || defaultBannerSlides[idx % defaultBannerSlides.length].image,
-        title: product.name,
-        subtitle: `$${product.price.toFixed(2)}`,
-        cta: 'View Details',
-        productId: product.id,
-      }))
+    ? topOneProducts.map((product, idx) => {
+        // 如果商品圖片無效或缺失，使用默認 Banner 圖片
+        const imageUrl = product.image && product.image.trim() && !product.image.includes('placeholder')
+          ? product.image
+          : defaultBannerSlides[idx % defaultBannerSlides.length].image;
+        return {
+          id: idx + 1,
+          image: imageUrl,
+          title: product.name,
+          subtitle: `$${product.price.toFixed(2)}`,
+          cta: 'View Details',
+          productId: product.id,
+        };
+      })
     : defaultBannerSlides;
 
   return (
@@ -390,7 +396,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Recommended section */}
+            {/* NFT Marketplace section */}
             <section className="bg-white rounded shadow-sm mb-4">
               <div className="section-title flex items-center justify-between">
                 <span>{nftLoading ? 'Loading NFT Products...' : 'NFT Marketplace'}</span>
@@ -402,7 +408,7 @@ export default function Home() {
                 <div className="p-8 text-center text-gray-500">Loading NFT products...</div>
               ) : nftProducts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4">
-                  {recommendedProducts.map((product) => (
+                  {nftProducts.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
                 </div>
