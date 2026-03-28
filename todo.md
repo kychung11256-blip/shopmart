@@ -304,3 +304,11 @@
 
 - [x] 添加 auth.me 路由 - 返回當前用戶信息
 - [x] 添加 auth.logout 路由 - 清除會話 cookie
+
+## 🐛 NFT 詳情頁面圖片顯示問題 - 部分完成
+
+- [x] 診斷圖片顯示空白的原因 - 使用了模擬數據
+- [x] 實現後端 API 獲取真實 NFT 數據（使用 Moralis）
+- [x] 更新前端組件調用 API 獲取 NFT 圖片
+- [x] COCOz NFT 圖片正確顯示
+- [ ] First Wave NFT 圖片無法加載 - 需要調查圖片 URL 可訪問性

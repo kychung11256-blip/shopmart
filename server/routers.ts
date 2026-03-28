@@ -31,6 +31,74 @@ export const appRouter = router({
   }),
   nft: nftRouter,
   nftProducts: router({
+    getNFTDetail: publicProcedure
+      .input(z.object({
+        contractAddress: z.string(),
+        tokenId: z.string(),
+      }))
+      .query(async ({ input }) => {
+        try {
+          const db = await getDb();
+          if (!db) throw new Error('Database not available');
+          
+          const config = await db.select().from(thirdwebConfig).limit(1);
+          if (!config || config.length === 0 || !config[0].merchantWalletAddress) {
+            throw new Error('No merchant wallet configured');
+          }
+          
+          const merchantWallet = config[0].merchantWalletAddress;
+          const moralisApiKey = config[0].moralisApiKey;
+          
+          if (!moralisApiKey) {
+            throw new Error('Moralis API key not configured');
+          }
+          
+          // Initialize Moralis API
+          const moralis = new MoralisAPI(moralisApiKey);
+          
+          // Get NFTs from the specified contract
+          const response = await moralis.getNFTsByContract(merchantWallet, input.contractAddress, 'bsc');
+          
+          // Find the specific NFT by token ID
+          const nft = response.result?.find((n: any) => n.token_id === input.tokenId);
+          
+          if (!nft) {
+            throw new Error('NFT not found');
+          }
+          
+          // Extract image URL
+          let imageUrl = moralis.extractImageUrl(nft);
+          
+          // If still no image, generate colorful placeholder
+          if (!imageUrl) {
+            const colors = ['6366f1', 'ec4899', 'f59e0b', '10b981', '06b6d4', '8b5cf6'];
+            const colorIdx = (parseInt(nft.token_id) || 0) % colors.length;
+            const bgColor = colors[colorIdx];
+            const svgText = `${nft.name || `NFT #${nft.token_id}`}`;
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect fill="#${bgColor}" width="300" height="300"/><text x="150" y="150" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-weight="bold">${svgText}</text></svg>`;
+            imageUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+          }
+          
+          return {
+            id: `nft-${nft.token_address}-${nft.token_id}`,
+            name: nft.name || `NFT #${nft.token_id}`,
+            description: nft.name || 'NFT Asset',
+            image: imageUrl,
+            price: 50,
+            contractAddress: nft.token_address,
+            tokenId: nft.token_id,
+            chainId: 'bsc',
+            creator: nft.owner_of,
+            collectionName: nft.symbol || 'NFT Collection',
+          };
+        } catch (error: any) {
+          console.error('[API] Error fetching NFT detail:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: error.message,
+          });
+        }
+      }),
     getMerchantNFTProducts: publicProcedure.query(async () => {
       try {
         console.log("[DEBUG] getMerchantNFTProducts called");

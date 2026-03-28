@@ -46,43 +46,38 @@ export default function NFTDetail() {
   const addToCartMutation = trpc.cart.add.useMutation();
   const utils = trpc.useUtils();
 
-  // 加載 NFT 詳情
-  useEffect(() => {
-    const loadNFT = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        // 從 URL 參數構建 NFT 詳情
-        // 這裡需要調用後端 API 獲取完整的 NFT 詳情
-        const nftId = `nft-${contractAddress}-${tokenId}`;
-        
-        // 臨時使用模擬數據，實際應該調用 API
-        const mockNFT: NFTDetail = {
-          id: nftId,
-          name: `NFT #${tokenId}`,
-          description: 'NFT 詳情描述',
-          image: 'https://via.placeholder.com/400x400?text=NFT',
-          price: 50,
-          contractAddress: contractAddress,
-          tokenId: tokenId,
-          chainId: 'bsc',
-          creator: '0x5d467E25C25945a10019e4045409746296cfd243',
-          collectionName: 'NFT Collection',
-        };
-        
-        setNft(mockNFT);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load NFT');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // 使用 TRPC 查詢 NFT 詳情
+  const { data: nftData, isLoading: isLoadingNFT, error: nftError } = trpc.nftProducts.getNFTDetail.useQuery(
+    { contractAddress, tokenId },
+    { enabled: !!contractAddress && !!tokenId }
+  );
 
-    if (contractAddress && tokenId) {
-      loadNFT();
+  useEffect(() => {
+    if (nftData) {
+      setNft({
+        id: nftData.id,
+        name: nftData.name,
+        description: nftData.description,
+        image: nftData.image,
+        price: nftData.price,
+        contractAddress: nftData.contractAddress,
+        tokenId: nftData.tokenId,
+        chainId: nftData.chainId,
+        creator: nftData.creator,
+        collectionName: nftData.collectionName,
+      });
+      setError(null);
+      setIsLoading(false);
     }
-  }, [contractAddress, tokenId]);
+    if (nftError) {
+      setError(nftError instanceof Error ? nftError.message : 'Failed to load NFT');
+      setIsLoading(false);
+    }
+  }, [nftData, nftError]);
+
+  useEffect(() => {
+    setIsLoading(isLoadingNFT);
+  }, [isLoadingNFT]);
 
   const handleAddToCart = async () => {
     try {
