@@ -54,6 +54,7 @@ export default function Cart() {
     enabled: isAuthenticated,
   });
   const { data: allProducts = [] } = trpc.products.list.useQuery({ limit: 200 });
+  const removeCartMutation = trpc.cart.remove.useMutation();
 
   // ============ SINGLE EFFECT - 唯一的初始化 effect ============
   // 這個 effect 只依賴於原始數據，不依賴任何計算結果
@@ -129,7 +130,6 @@ export default function Cart() {
 
     try {
       setRemovingIds(prev => new Set(prev).add(cartItemId));
-      const removeCartMutation = trpc.cart.remove.useMutation();
       await removeCartMutation.mutateAsync(cartItemId);
       setCartItems(prev => prev.filter(item => item.product.id !== productId));
       await refetchCart();

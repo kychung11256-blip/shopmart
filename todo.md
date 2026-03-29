@@ -246,6 +246,13 @@
 ## 🎯 NexaPayButton 嵌入式支付組件 - 已完成
 
 - [x] 創建 NexaPayButton.tsx 組件 - 實現嵌入式支付按鈕
+
+## 🐛 購物車刪除功能 Hook 錯誤修復 - 已完成
+
+- [x] 診斷購物車頁面 React Hook 錯誤 - useMutation 在事件處理函數內調用
+- [x] 修復 Hook 違規 - 將 useMutation 移到組件頂層
+- [x] 測試刪除功能 - 驗證商品可以成功從購物車移除
+- [x] 驗證購物車計數器實時更新 - 從 1 變為 0
 - [x] 實現組件 Props 接口 - amount、currency、onSuccess、onError 等
 - [x] 實現 modal 中的 iframe 嵌入 - 支付頁面在網站內完成
 - [x] 實現 postMessage 事件監聽 - 監聽支付完成信號
