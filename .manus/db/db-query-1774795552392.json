@@ -1,0 +1,60 @@
+{
+  "query": "SELECT id, status, createdAt FROM orders ORDER BY createdAt DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT id, status, createdAt FROM orders ORDER BY createdAt DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "1320006",
+      "status": "pending",
+      "createdAt": "2026-03-29 14:01:14"
+    },
+    {
+      "id": "1320005",
+      "status": "pending",
+      "createdAt": "2026-03-29 13:57:53"
+    },
+    {
+      "id": "1320004",
+      "status": "pending",
+      "createdAt": "2026-03-29 13:55:13"
+    },
+    {
+      "id": "1320003",
+      "status": "pending",
+      "createdAt": "2026-03-29 13:49:53"
+    },
+    {
+      "id": "1320002",
+      "status": "processing",
+      "createdAt": "2026-03-29 13:42:59"
+    },
+    {
+      "id": "1320001",
+      "status": "processing",
+      "createdAt": "2026-03-29 13:38:39"
+    },
+    {
+      "id": "1290013",
+      "status": "pending",
+      "createdAt": "2026-03-29 13:01:56"
+    },
+    {
+      "id": "1290012",
+      "status": "pending",
+      "createdAt": "2026-03-29 13:00:14"
+    },
+    {
+      "id": "1290011",
+      "status": "pending",
+      "createdAt": "2026-03-29 12:58:48"
+    },
+    {
+      "id": "1290010",
+      "status": "pending",
+      "createdAt": "2026-03-29 12:47:48"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tstatus\tcreatedAt\n1320006\tpending\t2026-03-29 14:01:14\n1320005\tpending\t2026-03-29 13:57:53\n1320004\tpending\t2026-03-29 13:55:13\n1320003\tpending\t2026-03-29 13:49:53\n1320002\tprocessing\t2026-03-29 13:42:59\n1320001\tprocessing\t2026-03-29 13:38:39\n1290013\tpending\t2026-03-29 13:01:56\n1290012\tpending\t2026-03-29 13:00:14\n1290011\tpending\t2026-03-29 12:58:48\n1290010\tpending\t2026-03-29 12:47:48\n",
+  "stderr": "",
+  "execution_time_ms": 1622
+}

@@ -60,7 +60,41 @@ export async function handleNexapayWebhook(req: Request, res: Response) {
 
     console.log(`[Nexapay Webhook] Received webhook: order_id=${order_id}, status=${status}`);
 
-    if (status === 'completed') {
+    if (status === 'pending') {
+      // Update order status to awaiting_payment
+      const db = await getDb();
+      if (!db) {
+        console.error('[Nexapay Webhook] Database not available');
+        return res.status(500).json({ error: 'Database not available' });
+      }
+
+      // Find order by order_id
+      const existingOrders = await db
+        .select()
+        .from(orders)
+        .where(eq(orders.id, parseInt(order_id)))
+        .limit(1);
+
+      if (existingOrders.length === 0) {
+        console.warn(`[Nexapay Webhook] Order not found: ${order_id}`);
+        return res.status(404).json({ error: 'Order not found' });
+      }
+
+      const order = existingOrders[0];
+
+      // Update order status to awaiting_payment
+      await db
+        .update(orders)
+        .set({
+          status: 'awaiting_payment',
+          paymentMethod: 'nexapay',
+          updatedAt: new Date(),
+        })
+        .where(eq(orders.id, order.id));
+
+      console.log(`[Nexapay Webhook] Order ${order_id} marked as awaiting_payment`);
+      return res.json({ received: true, status: 'Order marked as awaiting_payment' });
+    } else if (status === 'completed') {
       // Update order status to paid
       const db = await getDb();
       if (!db) {

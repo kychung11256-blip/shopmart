@@ -279,3 +279,20 @@
 - [x] Removed undocumented `provider` and `order_id` params from NexaPay API request
 - [x] Added `callback_url` for webhook notifications
 - [x] Verified full payment flow: checkout → NexaPay → payment provider selection → Pay Now
+
+## 🔄 NexaPay 支付系統完整重新接入 - 已完成
+
+- [x] 根據官方 API 文檔重新設計支付流程
+- [x] 修復 webhook 處理 - 正確處理 pending/completed/failed/expired 狀態
+- [x] 實現訂單狀態更新邏輯
+- [x] 測試完整支付流程
+- [x] 診斷「Checkout Unavailable」錯誤 - 發現是舊版本代碼未發布
+- [x] 重新發布最新版本到生產環境
+- [x] 驗證 NexaPay 按鈕在已發布域名上正確顯示
+
+## 🔧 NexaPay Webhook Pending 狀態處理 - 已完成
+
+- [x] 處理 webhook pending 狀態 - 將訂單狀態更新為 awaiting_payment
+- [x] 測試 pending 狀態的 webhook 處理
+- [x] 驗證訂單狀態正確更新
+- [x] 服務器已重新載入修改後的代碼
