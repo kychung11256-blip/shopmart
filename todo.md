@@ -228,3 +228,17 @@
 - [x] 移除 Checkout.tsx 中的 isAuthenticated 查詢條件
 - [x] 驗證未登入用戶可以訪問結帳頁面
 - [x] 驗證遊客用戶可以進行支付流程
+
+## 💳 NexaPay 支付網關集成 - 已完成
+
+- [x] 創建自定義 NexaPayButton React 組件 - 提供簡單的支付按鈕
+- [x] 在 Checkout.tsx 中集成 NexaPayButton - 作為第三種支付方式
+- [x] 實現完整的支付流程 - 訂單創建 → 支付會話 → 支付頁面
+- [x] 配置 NexaPay Public Key - cg_live_9fdbfb12c5cb3a81cd4ac0fdbf1e598dc7c115a8eb708c08328044f16cdf2ee8
+- [x] 實現後端 orders.createNexapaySession 程序 - 創建支付會話並返回結帳 URL
+- [x] 實現 NexaPay Webhook 處理 - /api/webhooks/nexapay - 自動更新訂單狀態
+- [x] 支持 authenticated 和 guest 用戶 - 兩種用戶都可以使用 NexaPay 支付
+- [x] 編寫 NexaPay 集成測試 - 5 個測試全部通過
+- [x] 支持多種貨幣 - USD、EUR 等
+- [x] 支付成功後自動清除購物車 - 支持 authenticated 和 guest 用戶
+- [x] 支付完成後自動重定向到訂單確認頁面 - 顯示訂單詳情

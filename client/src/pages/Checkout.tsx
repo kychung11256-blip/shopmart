@@ -12,6 +12,8 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 
 let stripePromise: ReturnType<typeof loadStripe> | null = null;
 
+const NEXAPAY_PUBLIC_KEY = 'cg_live_9fdbfb12c5cb3a81cd4ac0fdbf1e598dc7c115a8eb708c08328044f16cdf2ee8';
+
 interface CartItem {
   id?: number;
   productId: number;
@@ -622,7 +624,7 @@ export default function Checkout() {
                     disabled={isProcessing}
                     className="w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <div className="w-5 h-5 bg-blue-500 rounded flex items-center justify-center text-white text-xs font-bold">₦</div>
+                    <div className="w-5 h-5 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">₦</div>
                     <div className="text-left">
                       <div className="font-semibold">Nexapay</div>
                       <div className="text-sm text-gray-600">Pay with card, receive USDC</div>
