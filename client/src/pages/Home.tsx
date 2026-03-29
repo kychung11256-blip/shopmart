@@ -18,6 +18,8 @@ import { getProductName, getCategoryName } from '@/lib/data-translations';
 import { trpc } from '@/lib/trpc';
 import type { Product } from '@/lib/data';
 import { toast } from 'sonner';
+import TermsAndConditionsModal from '@/components/TermsAndConditionsModal';
+import { useTermsAgreement } from '@/hooks/useTermsAgreement';
 
 // Unsplash product images for categories
 const categoryImages = [
@@ -138,6 +140,10 @@ export default function Home() {
   const { user, isAuthenticated, logout } = useAuth();
   const [, navigate] = useLocation();
   
+  // Terms and Conditions agreement
+  const { hasAgreed, isLoading: termsLoading, acceptTerms, rejectTerms } = useTermsAgreement();
+  const showTermsModal = hasAgreed === false && !termsLoading;
+  
   // 使用 TRPC 獲取購物車數據
   const { data: cartItems = [] } = trpc.cart.list.useQuery(undefined, { enabled: isAuthenticated });
   
@@ -184,8 +190,26 @@ export default function Home() {
       }))
     : defaultBannerSlides;
 
+  // If user hasn't agreed to terms, show only the modal
+  if (showTermsModal) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <TermsAndConditionsModal
+          isOpen={true}
+          onAccept={acceptTerms}
+          onReject={() => {
+            rejectTerms();
+            // Redirect to a blocked page or show message
+            window.location.href = 'about:blank';
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
+
       {/* Top utility bar */}
       <div className="bg-gray-700 text-gray-300 text-xs py-1.5 hidden sm:block">
         <div className="max-w-[1200px] mx-auto px-4 flex items-center justify-between">

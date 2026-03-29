@@ -311,3 +311,11 @@
 - [x] AdminProducts 組件 - 已集成使用新的編輯對話框
 - [x] 測試商品編輯對話框功能 - 驗證完整對話框正常打開
 - [x] 驗證描述字段可正確顯示和編輯 - 已驗證描述字段在對話框中可見
+
+## 📋 Terms and Conditions 彈窗 - 已完成
+
+- [x] TermsAndConditionsModal 組件已創建 - 包含可滾動的條款內容
+- [x] localStorage 存儲用戶同意狀態已實現
+- [x] 在 Home 頁面集成彈窗 - 首次訪問時正確顯示
+- [x] 彈窗功能已測試 - 同意/拒絕邏輯正常
+- [x] localStorage 持久化已驗證 - 刷新頁面後不再顯示
