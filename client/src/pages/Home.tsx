@@ -233,7 +233,7 @@ export default function Home() {
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-red-600 rounded flex items-center justify-center">
               <ShoppingCart size={16} className="text-white" />
             </div>
-            <span className="font-bold text-gray-800 text-base sm:text-lg hidden sm:block">ShopMart</span>
+            <span className="font-bold text-gray-800 text-base sm:text-lg hidden sm:block">PinKoi</span>
           </Link>
 
           {/* Search bar - hidden on mobile */}
@@ -567,9 +567,9 @@ export default function Home() {
                 <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
                   <ShoppingCart size={16} className="text-white" />
                 </div>
-                <span className="text-white font-bold text-lg">ShopMart</span>
+                <span className="text-white font-bold text-lg">PinKoi</span>
               </div>
-              <p className="text-sm">{language === 'zh' ? '您的一站式在線購物目的地，擁有數百萬種商品。' : 'Your one-stop online shopping destination with millions of products.'}</p>
+              <p className="text-sm">{language === 'zh' ? '您的一站式在線藝術中心' : 'Your one-stop online art center.'}</p>
             </div>
             <div>
               <h4 className="text-white font-medium mb-3">{language === 'zh' ? '快速連結' : 'Quick Links'}</h4>
@@ -596,13 +596,13 @@ export default function Home() {
                 </div>
                 <div className="flex items-start gap-2">
                   <MapPin size={14} className="mt-0.5 shrink-0" />
-                  <span>{language === 'zh' ? '西安市奇行時代廣場A座1101-04室' : 'Room 1101-04, Block A, Qihang Times Square, Xi\'an City'}</span>
+                  <span>1640 Palm Ave, San Mateo, CA 94402</span>
                 </div>
               </div>
             </div>
           </div>
           <div className="border-t border-gray-700 pt-4 text-center text-xs">
-            <p>Copyright © 2013-2024 ShopMart Network Technology Co., Ltd. All rights reserved.</p>
+            <p>Copyright © 2013-2024 PinKoi Network Technology Co., Ltd. All rights reserved.</p>
           </div>
         </div>
       </footer>
