@@ -582,9 +582,9 @@ export default function Home() {
             <div>
               <h4 className="text-white font-medium mb-3">{language === 'zh' ? '幫助 / 政策' : 'Help / Policy'}</h4>
               <ul className="space-y-1.5 text-sm">
-                {(language === 'zh' ? ['問與答', '大宗採購', '訊息公告', '服務條款', '隱私權政策'] : ['FAQ', 'Bulk Purchase', 'Announcements', 'Terms of Service', 'Privacy Policy']).map((link) => (
-                  <li key={link}><a href="#" className="hover:text-white transition-colors">{link}</a></li>
-                ))}
+                <li><Link href="/terms-of-service" className="hover:text-white transition-colors">{language === 'zh' ? '服務條款' : 'Terms of Service'}</Link></li>
+                <li><Link href="/privacy-policy" className="hover:text-white transition-colors">{language === 'zh' ? '隱私權政策' : 'Privacy Policy'}</Link></li>
+                <li><Link href="/disclaimer" className="hover:text-white transition-colors">{language === 'zh' ? '免責聲明' : 'Disclaimer'}</Link></li>
               </ul>
             </div>
             <div>

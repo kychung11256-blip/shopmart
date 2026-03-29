@@ -22,6 +22,9 @@ import Login from "./pages/Login";
 import Checkout from "./pages/Checkout";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import OrderHistory from "./pages/OrderHistory";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Disclaimer from "./pages/Disclaimer";
 
 // Admin pages
 import Dashboard from "./pages/admin/Dashboard";
@@ -44,6 +47,9 @@ function Router() {
       <Route path="/checkout" component={Checkout} />
       <Route path="/orders" component={OrderHistory} />
       <Route path="/orders/confirmation" component={OrderConfirmation} />
+      <Route path="/terms-of-service" component={TermsOfService} />
+      <Route path="/privacy-policy" component={PrivacyPolicy} />
+      <Route path="/disclaimer" component={Disclaimer} />
 
       {/* Admin routes */}
       <Route path="/admin" component={Dashboard} />
