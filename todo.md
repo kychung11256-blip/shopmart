@@ -296,3 +296,11 @@
 - [x] 測試 pending 狀態的 webhook 處理
 - [x] 驗證訂單狀態正確更新
 - [x] 服務器已重新載入修改後的代碼
+
+## 📋 商品描述功能 - 已完成
+
+- [x] 數據庫 schema - products 表已有 description 字段
+- [x] 下端 API - 支持創建/編輯商品時保存描述
+- [x] 前端商品詳情頁 - ProductDetail.tsx 顯示描述
+- [x] 下台管理界面 - ProductEditDialog.tsx 支持描述編輯
+- [x] 測試完整的商品描述功能 - 驗證描述正常顯示
