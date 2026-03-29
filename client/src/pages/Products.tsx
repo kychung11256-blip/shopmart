@@ -7,41 +7,32 @@
 import { useState, useMemo } from 'react';
 import { Link, useLocation } from 'wouter';
 import { ShoppingCart, Search, User, ChevronRight, Filter, SlidersHorizontal, Heart, Star, Globe, LogOut } from 'lucide-react';
-import { products as defaultProducts, categories as defaultCategories } from '@/lib/data';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
-import type { Product } from '@/lib/data';
 import { toast } from 'sonner';
 
-// 轉換數據庫商品格式為前端格式
-function convertDbProductToFrontend(dbProduct: any): Product {
-  return {
-    id: dbProduct.id,
-    name: dbProduct.name,
-    price: dbProduct.price / 100, // 從分轉換為元
-    originalPrice: dbProduct.originalPrice ? dbProduct.originalPrice / 100 : undefined,
-    image: dbProduct.image,
-    categoryId: dbProduct.categoryId,
-    sold: dbProduct.sold || 0,
-    rating: dbProduct.rating ? dbProduct.rating / 100 : 0, // 從 0-500 轉換為 0-5
-    description: dbProduct.description,
-    stock: dbProduct.stock || 0,
-    status: dbProduct.status || 'active',
-    createdAt: dbProduct.createdAt,
-    updatedAt: dbProduct.updatedAt,
-  };
+// Product type from API
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  originalPrice?: number | null;
+  image?: string | null;
+  categoryId?: number | null;
+  sold: number;
+  rating?: number | null;
+  description?: string | null;
+  stock?: number;
+  status?: string;
 }
 
-// 轉換數據庫分類格式為前端格式
-function convertDbCategoryToFrontend(dbCategory: any): any {
-  return {
-    id: dbCategory.id,
-    name: dbCategory.name,
-    nameEn: dbCategory.nameEn,
-    icon: dbCategory.icon || '📦',
-    order: dbCategory.order || 0,
-  };
+interface Category {
+  id: number;
+  name: string;
+  nameEn?: string | null;
+  icon?: string | null;
+  order?: number;
 }
 
 function ProductCard({ product }: { product: Product }) {
@@ -142,7 +133,7 @@ function ProductCard({ product }: { product: Product }) {
 export default function Products() {
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState('default');
-  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [priceRange, setPriceRange] = useState([0, 999999]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { language, toggleLanguage } = useLanguage();
@@ -153,10 +144,28 @@ export default function Products() {
   const { data: apiProducts = [], isLoading: productsLoading } = trpc.products.list.useQuery({ limit: 200 });
   const { data: apiCategories = [], isLoading: categoriesLoading } = trpc.categories.list.useQuery();
 
-  // 轉換 API 數據為前端格式（不使用本地後備數據，確保與數據庫同步）
-  const products = apiProducts.map(convertDbProductToFrontend);
+  // 直接使用 API 數據（後端已轉換價格）
+  const products: Product[] = apiProducts.map((p: any) => ({
+    id: p.id,
+    name: p.name,
+    price: p.price,
+    originalPrice: p.originalPrice,
+    image: p.image,
+    categoryId: p.categoryId,
+    sold: p.sold || 0,
+    rating: p.rating,
+    description: p.description,
+    stock: p.stock || 0,
+    status: p.status || 'active',
+  }));
   
-  const categories = apiCategories.map(convertDbCategoryToFrontend);
+  const categories: Category[] = apiCategories.map((c: any) => ({
+    id: c.id,
+    name: c.name,
+    nameEn: c.nameEn,
+    icon: c.icon || '📦',
+    order: c.order || 0,
+  }));
 
   // 過濾和排序商品
   const filteredProducts = useMemo(() => {
@@ -319,10 +328,10 @@ export default function Products() {
                 </h3>
                 <div className="space-y-2">
                   {[
-                    { label: '$0 - $100', min: 0, max: 100 },
-                    { label: '$100 - $300', min: 100, max: 300 },
-                    { label: '$300 - $500', min: 300, max: 500 },
-                    { label: '$500+', min: 500, max: 10000 },
+                    { label: '$0 - $500', min: 0, max: 500 },
+                    { label: '$500 - $5,000', min: 500, max: 5000 },
+                    { label: '$5,000 - $50,000', min: 5000, max: 50000 },
+                    { label: '$50,000+', min: 50000, max: 999999 },
                   ].map(range => (
                     <button
                       key={range.label}

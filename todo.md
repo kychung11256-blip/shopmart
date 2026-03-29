@@ -341,3 +341,25 @@
 - [x] 移除語言切換功能 - 僅顯示英文內容
 - [x] 測試英文版本頁面 - 頁面正常顯示英文內容
 - [x] 驗證所有內容正確顯示 - 英文內容完整清晰
+
+## 🔄 前後端數據同步 - 已完成
+
+- [x] 審計前端硬編碼/測試數據
+- [x] 審計數據庫中的測試/假數據
+- [x] 與用戶確認清理計劃
+- [x] DB: 清理測試商品記錄 - 保留 3 個真實商品
+- [x] DB: 清理測試分類記錄 - 保留 1 個真實分類 (NFT)
+- [x] DB: 清理所有訂單記錄 - 已清空
+- [x] DB: 清理所有用戶記錄 - 已清空
+- [x] DB: 清理購物車記錄 - 已清空
+- [x] API: 新增 Dashboard 統計 API (stats, salesData, categoryData)
+- [x] API: 新增管理員用戶列表 API (list, updateRole, delete)
+- [x] 前端: Home 頁面改用真實 API 數據
+- [x] 前端: Products 頁面改用真實 API 數據
+- [x] 前端: ProductDetail 頁面改用真實 API 數據
+- [x] 前端: Dashboard 改用真實統計 API
+- [x] 前端: AdminAnalytics 改用真實數據
+- [x] 前端: AdminOrders 改用真實 API
+- [x] 前端: AdminUsers 改用真實 API
+- [x] 清理硬編碼數據文件 data.ts - 僅保留型別定義，移除所有假數據和 data-translations.ts
+- [x] 端到端測試所有頁面 - 首頁、商品頁、後台 Dashboard、訂單、用戶、商品管理均正常

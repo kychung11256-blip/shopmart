@@ -1,0 +1,31 @@
+{
+  "query": "SELECT id, name, price, stock, status FROM products WHERE status != 'deleted';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT id, name, price, stock, status FROM products WHERE status != 'deleted';",
+  "rows": [
+    {
+      "id": "90007",
+      "name": "nft001",
+      "price": "49000",
+      "stock": "100",
+      "status": "active"
+    },
+    {
+      "id": "180001",
+      "name": "NFT002",
+      "price": "4900000",
+      "stock": "110",
+      "status": "active"
+    },
+    {
+      "id": "180002",
+      "name": "NFT003",
+      "price": "11000000",
+      "stock": "100",
+      "status": "active"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tprice\tstock\tstatus\n90007\tnft001\t49000\t100\tactive\n180001\tNFT002\t4900000\t110\tactive\n180002\tNFT003\t11000000\t100\tactive\n",
+  "stderr": "",
+  "execution_time_ms": 1514
+}

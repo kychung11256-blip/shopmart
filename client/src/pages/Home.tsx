@@ -10,23 +10,15 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { ShoppingCart, Search, User, ChevronRight, Phone, MessageCircle, ArrowUp, Heart, MapPin, Globe, LogOut } from 'lucide-react';
-import { products as defaultProducts, categories as defaultCategories } from '@/lib/data';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { t } from '@/lib/translations';
-import { getProductName, getCategoryName } from '@/lib/data-translations';
 import { trpc } from '@/lib/trpc';
-import type { Product } from '@/lib/data';
 import { toast } from 'sonner';
 import TermsAndConditionsModal from '@/components/TermsAndConditionsModal';
 import { useTermsAgreement } from '@/hooks/useTermsAgreement';
 
-// Unsplash product images for categories
-const categoryImages = [
-  'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=200&h=200&fit=crop',
-];
+
 
 // 默認 Banner 幻燈片（備用）
 const defaultBannerSlides = [
@@ -56,35 +48,30 @@ const defaultBannerSlides = [
   },
 ];
 
-// 轉換數據庫商品格式為前端格式
-// 注意：後端 API 已經通過 convertProductsToAPI 轉換了價格，所以這裡不需要再除以 100
-function convertDbProductToFrontend(dbProduct: any): Product {
-  return {
-    id: dbProduct.id,
-    name: dbProduct.name,
-    price: dbProduct.price, // 後端已轉換，直接使用
-    originalPrice: dbProduct.originalPrice, // 後端已轉換，直接使用
-    image: dbProduct.image,
-    categoryId: dbProduct.categoryId,
-    sold: dbProduct.sold || 0,
-    rating: dbProduct.rating ? dbProduct.rating / 100 : 0, // 從 0-500 轉換為 0-5
-    description: dbProduct.description,
-    stock: dbProduct.stock || 0,
-    status: dbProduct.status || 'active',
-    createdAt: dbProduct.createdAt,
-    updatedAt: dbProduct.updatedAt,
-  };
+// Product type from API
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  originalPrice?: number | null;
+  image?: string | null;
+  categoryId?: number | null;
+  sold?: number;
+  rating?: number | null;
+  description?: string | null;
+  stock?: number;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-// 轉換數據庫分類格式為前端格式
-function convertDbCategoryToFrontend(dbCategory: any): any {
-  return {
-    id: dbCategory.id,
-    name: dbCategory.name,
-    nameEn: dbCategory.nameEn,
-    icon: dbCategory.icon || '📦',
-    order: dbCategory.order || 0,
-  };
+// Category type from API
+interface Category {
+  id: number;
+  name: string;
+  nameEn?: string | null;
+  icon?: string | null;
+  order?: number;
 }
 
 function ProductCard({ product }: { product: Product }) {
@@ -116,14 +103,14 @@ function ProductCard({ product }: { product: Product }) {
         )}
       </div>
       <div className="p-3">
-        <p className="text-sm text-gray-700 line-clamp-2 min-h-[2.5rem] leading-tight">{getProductName(product.id, language)}</p>
+        <p className="text-sm text-gray-700 line-clamp-2 min-h-[2.5rem] leading-tight">{product.name}</p>
         <div className="mt-2 flex items-baseline gap-2">
           <span className="price-current text-base">${product.price.toFixed(2)}</span>
           {product.originalPrice && product.originalPrice > product.price && (
             <span className="price-original text-xs">${product.originalPrice.toFixed(2)}</span>
           )}
         </div>
-        <p className="text-xs text-gray-400 mt-1">{product.sold} {language === 'zh' ? '已賣' : 'Sold'}</p>
+        <p className="text-xs text-gray-400 mt-1">{product.sold || 0} {language === 'zh' ? '已賣' : 'Sold'}</p>
       </div>
     </div>
   );
@@ -150,13 +137,31 @@ export default function Home() {
   // 計算購物車項目總數
   const cartCount = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
   
-  // 使用 TRPC 獲取商品和分類數據
+  // 使用 TRPC 獲取商品和分類數據（完全從數據庫獲取，無假數據）
   const { data: apiProducts = [], isLoading: productsLoading } = trpc.products.list.useQuery({ limit: 100 });
   const { data: apiCategories = [], isLoading: categoriesLoading } = trpc.categories.list.useQuery();
   
-  // 轉換 API 數據為前端格式（不使用本地後備數據，確保與數據庫同步）
-  const products = apiProducts.map(convertDbProductToFrontend);
-  const categories = apiCategories.map(convertDbCategoryToFrontend);
+  // 直接使用 API 數據，不再轉換
+  const products: Product[] = apiProducts.map((p: any) => ({
+    id: p.id,
+    name: p.name,
+    price: p.price,
+    originalPrice: p.originalPrice,
+    image: p.image,
+    categoryId: p.categoryId,
+    sold: p.sold || 0,
+    rating: p.rating,
+    description: p.description,
+    stock: p.stock || 0,
+    status: p.status || 'active',
+  }));
+  const categories: Category[] = apiCategories.map((c: any) => ({
+    id: c.id,
+    name: c.name,
+    nameEn: c.nameEn,
+    icon: c.icon || '📦',
+    order: c.order || 0,
+  }));
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -171,21 +176,17 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const topListProducts = products.slice(0, 3);
-  const promotionProducts = products.slice(4, 8);
-  const recommendedProducts = products.slice(0, 2);
-  const shopStreetProducts = products.slice(0, 3);
-  const topOneProducts = products.slice(0, 3);
-  const youMayLikeProducts = products.slice(0, 10);
+  // 所有商品區塊都顯示真實數據
+  const allProducts = products.filter(p => p.status === 'active');
   
-  // 生成動態 Banner 幻燈片 - 使用熱銷商品圖片
-  const bannerSlides = topOneProducts.length > 0 
-    ? topOneProducts.map((product, idx) => ({
+  // 生成動態 Banner 幻燈片 - 使用真實商品圖片
+  const bannerSlides = allProducts.length > 0 
+    ? allProducts.slice(0, 3).map((product, idx) => ({
         id: idx + 1,
         image: product.image || defaultBannerSlides[idx % defaultBannerSlides.length].image,
         title: product.name,
         subtitle: `$${product.price.toFixed(2)}`,
-        cta: 'View Details',
+        cta: language === 'zh' ? '查看詳情' : 'View Details',
         productId: product.id,
       }))
     : defaultBannerSlides;
@@ -364,7 +365,7 @@ export default function Home() {
                           : 'text-gray-700 hover:bg-gray-50 hover:text-red-500'
                       }`}
                     >
-                      {getCategoryName(cat.name, language)}
+                      {cat.name}
                     </button>
                   ))}
                 </>
@@ -419,10 +420,12 @@ export default function Home() {
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {productsLoading ? (
                   <div className="col-span-full text-center text-gray-500 py-8">{language === 'zh' ? '加載商品中...' : 'Loading products...'}</div>
-                ) : (
-                  recommendedProducts.map((product) => (
+                ) : allProducts.length > 0 ? (
+                  allProducts.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))
+                ) : (
+                  <div className="col-span-full text-center text-gray-500 py-8">{language === 'zh' ? '暫無商品' : 'No products available'}</div>
                 )}
               </div>
             </section>
@@ -438,7 +441,7 @@ export default function Home() {
                   </Link>
                 </div>
                 <div className="p-3 grid grid-cols-2 gap-2">
-                  {shopStreetProducts.map((product) => (
+                  {allProducts.slice(0, 4).map((product) => (
                     <div key={product.id} className="group cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
                       <div className="relative overflow-hidden rounded" style={{ paddingTop: '100%' }}>
                         <img
@@ -464,7 +467,7 @@ export default function Home() {
                   </Link>
                 </div>
                 <div className="p-3 space-y-2">
-                  {topOneProducts.map((product, idx) => (
+                  {allProducts.slice(0, 3).map((product, idx) => (
                     <div key={product.id} className="flex items-center gap-3 group cursor-pointer hover:bg-gray-50 rounded p-1 transition-colors" onClick={() => navigate(`/product/${product.id}`)}>
                       <div className="relative shrink-0">
                         <div className="w-16 h-16 rounded overflow-hidden">
@@ -500,7 +503,7 @@ export default function Home() {
                 </Link>
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {topListProducts.map((product) => (
+                {allProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
@@ -515,7 +518,7 @@ export default function Home() {
                 </Link>
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {promotionProducts.map((product) => (
+                {allProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
@@ -525,7 +528,7 @@ export default function Home() {
             <section className="bg-white rounded shadow-sm mb-4">
               <div className="section-title">{language === 'zh' ? '您可能也喜歡' : 'You May Also Like'}</div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                {youMayLikeProducts.map((product) => (
+                {allProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>

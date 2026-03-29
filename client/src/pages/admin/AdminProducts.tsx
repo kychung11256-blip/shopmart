@@ -100,7 +100,7 @@ export default function AdminProducts() {
         // Create new product
         await createMutation.mutateAsync({
           name: editingData.name || "",
-          price: Math.round((editingData.price || 0) * 100),
+          price: editingData.price || 0,
           stock: editingData.stock || 0,
           categoryId: editingData.categoryId || 0,
           image: editingData.image ?? undefined,
@@ -111,7 +111,7 @@ export default function AdminProducts() {
         await updateMutation.mutateAsync({
           id: parseInt(editingId),
           name: editingData.name || "",
-          price: Math.round((editingData.price || 0) * 100),
+          price: editingData.price || 0,
           stock: editingData.stock || 0,
           categoryId: editingData.categoryId || 0,
           image: editingData.image ?? undefined,
@@ -142,7 +142,7 @@ export default function AdminProducts() {
       await updateMutation.mutateAsync({
         id: product.id,
         name: product.name,
-        price: Math.round(product.price * 100),
+        price: product.price,
         stock: product.stock,
         categoryId: product.categoryId || 0,
         image: product.image ?? undefined,
@@ -685,7 +685,7 @@ export default function AdminProducts() {
                       {String(product.categoryId) || "N/A"}
                     </td>
                     <td className="px-6 py-4 text-sm text-red-600 font-semibold">
-                      ${(product.price / 100).toFixed(2)}
+                      ${product.price.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 text-sm">{product.stock}</td>
                     <td className="px-6 py-4">

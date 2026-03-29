@@ -1,0 +1,18 @@
+{
+  "query": "SELECT id, name, email, role, loginMethod, createdAt FROM users WHERE name IS NOT NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT id, name, email, role, loginMethod, createdAt FROM users WHERE name IS NOT NULL;",
+  "rows": [
+    {
+      "id": "3570104",
+      "name": "johnny xu",
+      "email": "kychung11256@gmail.com",
+      "role": "admin",
+      "loginMethod": "google",
+      "createdAt": "2026-03-29 21:46:20"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\tloginMethod\tcreatedAt\n3570104\tjohnny xu\tkychung11256@gmail.com\tadmin\tgoogle\t2026-03-29 21:46:20\n",
+  "stderr": "",
+  "execution_time_ms": 1562
+}

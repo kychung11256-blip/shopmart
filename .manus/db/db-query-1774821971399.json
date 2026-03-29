@@ -1,0 +1,15 @@
+{
+  "query": "SELECT COUNT(*) as total, SUM(CASE WHEN name IS NOT NULL AND name != 'NULL' THEN 1 ELSE 0 END) as with_name, SUM(CASE WHEN name IS NULL OR name = 'NULL' THEN 1 ELSE 0 END) as without_name FROM users;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT COUNT(*) as total, SUM(CASE WHEN name IS NOT NULL AND name != 'NULL' THEN 1 ELSE 0 END) as with_name, SUM(CASE WHEN name IS NULL OR name = 'NULL' THEN 1 ELSE 0 END) as without_name FROM users;",
+  "rows": [
+    {
+      "total": "63",
+      "with_name": "1",
+      "without_name": "62"
+    }
+  ],
+  "messages": [],
+  "stdout": "total\twith_name\twithout_name\n63\t1\t62\n",
+  "stderr": "",
+  "execution_time_ms": 1537
+}

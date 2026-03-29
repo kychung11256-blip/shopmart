@@ -7,7 +7,7 @@ import { TRPCError } from "@trpc/server";
 import { getDb } from "./db";
 import type { User } from "../drizzle/schema";
 import { products, categories, orders, orderItems, cart, users, InsertProduct, InsertOrder, InsertOrderItem, InsertCartItem } from "../drizzle/schema";
-import { eq, and, desc, asc } from "drizzle-orm";
+import { eq, and, desc, asc, count, sql, sum } from "drizzle-orm";
 import { convertProductsToAPI, convertProductToAPI, centsToDollars } from "./price-utils";
 
 export const appRouter = router({
@@ -935,6 +935,121 @@ export const appRouter = router({
         }
       }),
   }),
+  // Dashboard stats router
+  dashboard: router({
+    stats: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return { totalProducts: 0, totalOrders: 0, totalUsers: 0, totalRevenue: 0, recentOrders: [] };
+      try {
+        const [productCount] = await db.select({ count: count() }).from(products).where(eq(products.status, 'active'));
+        const [orderCount] = await db.select({ count: count() }).from(orders);
+        const [userCount] = await db.select({ count: count() }).from(users);
+        const [revenueResult] = await db.select({ total: sum(orders.totalPrice) }).from(orders).where(eq(orders.paymentStatus, 'paid'));
+        const recentOrders = await db.select().from(orders).orderBy(desc(orders.createdAt)).limit(10);
+        return {
+          totalProducts: productCount?.count || 0,
+          totalOrders: orderCount?.count || 0,
+          totalUsers: userCount?.count || 0,
+          totalRevenue: revenueResult?.total ? Number(revenueResult.total) / 100 : 0,
+          recentOrders,
+        };
+      } catch (error) {
+        console.error('[API] Error fetching dashboard stats:', error);
+        return { totalProducts: 0, totalOrders: 0, totalUsers: 0, totalRevenue: 0, recentOrders: [] };
+      }
+    }),
+    // Monthly sales data for charts
+    salesData: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      try {
+        const result = await db.execute(sql`
+          SELECT 
+            DATE_FORMAT(createdAt, '%Y-%m') as month,
+            SUM(totalPrice) as total,
+            COUNT(*) as cnt
+          FROM orders 
+          WHERE paymentStatus = 'paid'
+          GROUP BY DATE_FORMAT(createdAt, '%Y-%m')
+          ORDER BY month
+        `);
+        const rows = (result as any).rows || result;
+        return (Array.isArray(rows) ? rows : []).map((r: any) => ({
+          month: r.month,
+          revenue: r.total ? Number(r.total) / 100 : 0,
+          orders: Number(r.cnt || 0),
+        }));
+      } catch (error) {
+        console.error('[API] Error fetching sales data:', error);
+        return [];
+      }
+    }),
+    // Category distribution
+    categoryData: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      try {
+        const result = await db.select({
+          categoryId: products.categoryId,
+          count: count(),
+        }).from(products).where(eq(products.status, 'active')).groupBy(products.categoryId);
+        // Join with category names
+        const cats = await db.select().from(categories);
+        const catMap = new Map(cats.map(c => [c.id, c.name]));
+        return result.map(r => ({
+          name: catMap.get(r.categoryId || 0) || 'Uncategorized',
+          count: r.count,
+        }));
+      } catch (error) {
+        console.error('[API] Error fetching category data:', error);
+        return [];
+      }
+    }),
+  }),
+
+  // Admin users router
+  adminUsers: router({
+    list: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      try {
+        return await db.select().from(users).orderBy(desc(users.createdAt));
+      } catch (error) {
+        console.error('[API] Error fetching users:', error);
+        return [];
+      }
+    }),
+    updateRole: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        role: z.enum(['admin', 'user']),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          await db.update(users).set({ role: input.role }).where(eq(users.id, input.id));
+          return { success: true };
+        } catch (error) {
+          console.error('[API] Error updating user role:', error);
+          throw error;
+        }
+      }),
+    delete: adminProcedure
+      .input(z.number())
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          await db.delete(users).where(eq(users.id, input));
+          return { success: true };
+        } catch (error) {
+          console.error('[API] Error deleting user:', error);
+          throw error;
+        }
+      }),
+  }),
+
   verification: router({
     // Public: Get domain verification file content
     getCryptomusVerification: publicProcedure.query(async () => {

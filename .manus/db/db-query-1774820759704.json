@@ -1,0 +1,34 @@
+{
+  "query": "SELECT 'products' as tbl, COUNT(*) as cnt FROM products UNION ALL SELECT 'categories', COUNT(*) FROM categories UNION ALL SELECT 'orders', COUNT(*) FROM orders UNION ALL SELECT 'orderItems', COUNT(*) FROM orderItems UNION ALL SELECT 'cart', COUNT(*) FROM cart UNION ALL SELECT 'users', COUNT(*) FROM users;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT 'products' as tbl, COUNT(*) as cnt FROM products UNION ALL SELECT 'categories', COUNT(*) FROM categories UNION ALL SELECT 'orders', COUNT(*) FROM orders UNION ALL SELECT 'orderItems', COUNT(*) FROM orderItems UNION ALL SELECT 'cart', COUNT(*) FROM cart UNION ALL SELECT 'users', COUNT(*) FROM users;",
+  "rows": [
+    {
+      "tbl": "orderItems",
+      "cnt": "0"
+    },
+    {
+      "tbl": "categories",
+      "cnt": "1"
+    },
+    {
+      "tbl": "products",
+      "cnt": "3"
+    },
+    {
+      "tbl": "orders",
+      "cnt": "0"
+    },
+    {
+      "tbl": "cart",
+      "cnt": "0"
+    },
+    {
+      "tbl": "users",
+      "cnt": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "tbl\tcnt\norderItems\t0\ncategories\t1\nproducts\t3\norders\t0\ncart\t0\nusers\t0\n",
+  "stderr": "",
+  "execution_time_ms": 1571
+}

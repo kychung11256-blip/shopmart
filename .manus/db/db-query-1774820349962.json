@@ -1,0 +1,130 @@
+{
+  "query": "SELECT id, name, price, originalPrice, status, createdAt FROM products ORDER BY id LIMIT 15;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT id, name, price, originalPrice, status, createdAt FROM products ORDER BY id LIMIT 15;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Test Product",
+      "price": "29999",
+      "originalPrice": "NULL",
+      "status": "deleted",
+      "createdAt": "2026-03-21 06:11:33"
+    },
+    {
+      "id": "2",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL",
+      "status": "deleted",
+      "createdAt": "2026-03-21 06:22:22"
+    },
+    {
+      "id": "3",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL",
+      "status": "deleted",
+      "createdAt": "2026-03-21 06:22:58"
+    },
+    {
+      "id": "4",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL",
+      "status": "deleted",
+      "createdAt": "2026-03-21 06:23:26"
+    },
+    {
+      "id": "5",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL",
+      "status": "deleted",
+      "createdAt": "2026-03-21 06:30:35"
+    },
+    {
+      "id": "6",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL",
+      "status": "deleted",
+      "createdAt": "2026-03-21 06:39:17"
+    },
+    {
+      "id": "7",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL",
+      "status": "deleted",
+      "createdAt": "2026-03-21 06:41:24"
+    },
+    {
+      "id": "8",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL",
+      "status": "deleted",
+      "createdAt": "2026-03-21 06:41:55"
+    },
+    {
+      "id": "9",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL",
+      "status": "deleted",
+      "createdAt": "2026-03-21 06:54:07"
+    },
+    {
+      "id": "30001",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL",
+      "status": "deleted",
+      "createdAt": "2026-03-21 09:31:12"
+    },
+    {
+      "id": "30002",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL",
+      "status": "deleted",
+      "createdAt": "2026-03-21 09:31:38"
+    },
+    {
+      "id": "30003",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL",
+      "status": "deleted",
+      "createdAt": "2026-03-21 09:32:04"
+    },
+    {
+      "id": "30004",
+      "name": "Test Product",
+      "price": "999900",
+      "originalPrice": "NULL",
+      "status": "deleted",
+      "createdAt": "2026-03-21 09:32:04"
+    },
+    {
+      "id": "30006",
+      "name": "Delete Test Product",
+      "price": "300000",
+      "originalPrice": "NULL",
+      "status": "deleted",
+      "createdAt": "2026-03-21 09:32:05"
+    },
+    {
+      "id": "30007",
+      "name": "Price Conversion Test",
+      "price": "1234500",
+      "originalPrice": "NULL",
+      "status": "deleted",
+      "createdAt": "2026-03-21 09:32:06"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tprice\toriginalPrice\tstatus\tcreatedAt\n1\tTest Product\t29999\tNULL\tdeleted\t2026-03-21 06:11:33\n2\tTest Product\t9999\tNULL\tdeleted\t2026-03-21 06:22:22\n3\tTest Product\t9999\tNULL\tdeleted\t2026-03-21 06:22:58\n4\tTest Product\t9999\tNULL\tdeleted\t2026-03-21 06:23:26\n5\tTest Product\t9999\tNULL\tdeleted\t2026-03-21 06:30:35\n6\tTest Product\t9999\tNULL\tdeleted\t2026-03-21 06:39:17\n7\tTest Product\t9999\tNULL\tdeleted\t2026-03-21 06:41:24\n8\tTest Product\t9999\tNULL\tdeleted\t2026-03-21 06:41:55\n9\tTest Product\t9999\tNULL\tdeleted\t2026-03-21 06:54:07\n30001\tTest Product\t9999\tNULL\tdeleted\t2026-03-21 09:31:12\n30002\tTest Product\t9999\tNULL\tdeleted\t2026-03-21 09:31:38\n30003\tTest Product\t9999\tNULL\tdeleted\t2026-03-21 09:32:04\n30004\tTest Product\t999900\tNULL\tdeleted\t2026-03-21 09:32:04\n30006\tDelete Test Product\t300000\tNULL\tdeleted\t2026-03-21 09:32:05\n30007\tPrice Conversion Test\t1234500\tNULL\tdeleted\t2026-03-21 09:32:06\n",
+  "stderr": "",
+  "execution_time_ms": 1578
+}

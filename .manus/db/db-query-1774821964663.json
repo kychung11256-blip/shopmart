@@ -1,0 +1,190 @@
+{
+  "query": "SELECT id, name, email, role, loginMethod, createdAt, lastSignedIn FROM users ORDER BY lastSignedIn DESC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT id, name, email, role, loginMethod, createdAt, lastSignedIn FROM users ORDER BY lastSignedIn DESC LIMIT 20;",
+  "rows": [
+    {
+      "id": "3570166",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 22:05:12",
+      "lastSignedIn": "2026-03-29 18:05:12"
+    },
+    {
+      "id": "3570165",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 22:05:10",
+      "lastSignedIn": "2026-03-29 18:05:11"
+    },
+    {
+      "id": "3570164",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 22:05:00",
+      "lastSignedIn": "2026-03-29 18:05:00"
+    },
+    {
+      "id": "3570163",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 22:04:59",
+      "lastSignedIn": "2026-03-29 18:04:59"
+    },
+    {
+      "id": "3570162",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 22:02:40",
+      "lastSignedIn": "2026-03-29 18:02:40"
+    },
+    {
+      "id": "3570161",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 22:02:29",
+      "lastSignedIn": "2026-03-29 18:02:29"
+    },
+    {
+      "id": "3570160",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 22:02:28",
+      "lastSignedIn": "2026-03-29 18:02:28"
+    },
+    {
+      "id": "3570158",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 22:02:26",
+      "lastSignedIn": "2026-03-29 18:02:26"
+    },
+    {
+      "id": "3570159",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 22:02:26",
+      "lastSignedIn": "2026-03-29 18:02:26"
+    },
+    {
+      "id": "3570157",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 22:01:58",
+      "lastSignedIn": "2026-03-29 18:01:58"
+    },
+    {
+      "id": "3570156",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 22:01:57",
+      "lastSignedIn": "2026-03-29 18:01:57"
+    },
+    {
+      "id": "3570155",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 22:01:49",
+      "lastSignedIn": "2026-03-29 18:01:49"
+    },
+    {
+      "id": "3570154",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 22:00:46",
+      "lastSignedIn": "2026-03-29 18:00:47"
+    },
+    {
+      "id": "3570153",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 22:00:46",
+      "lastSignedIn": "2026-03-29 18:00:46"
+    },
+    {
+      "id": "3570152",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 22:00:19",
+      "lastSignedIn": "2026-03-29 18:00:19"
+    },
+    {
+      "id": "3570151",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 22:00:18",
+      "lastSignedIn": "2026-03-29 18:00:18"
+    },
+    {
+      "id": "3570150",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 21:59:53",
+      "lastSignedIn": "2026-03-29 17:59:54"
+    },
+    {
+      "id": "3570149",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 21:59:53",
+      "lastSignedIn": "2026-03-29 17:59:53"
+    },
+    {
+      "id": "3570148",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 21:59:39",
+      "lastSignedIn": "2026-03-29 17:59:40"
+    },
+    {
+      "id": "3570147",
+      "name": "NULL",
+      "email": "NULL",
+      "role": "admin",
+      "loginMethod": "NULL",
+      "createdAt": "2026-03-29 21:59:38",
+      "lastSignedIn": "2026-03-29 17:59:39"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\tloginMethod\tcreatedAt\tlastSignedIn\n3570166\tNULL\tNULL\tadmin\tNULL\t2026-03-29 22:05:12\t2026-03-29 18:05:12\n3570165\tNULL\tNULL\tadmin\tNULL\t2026-03-29 22:05:10\t2026-03-29 18:05:11\n3570164\tNULL\tNULL\tadmin\tNULL\t2026-03-29 22:05:00\t2026-03-29 18:05:00\n3570163\tNULL\tNULL\tadmin\tNULL\t2026-03-29 22:04:59\t2026-03-29 18:04:59\n3570162\tNULL\tNULL\tadmin\tNULL\t2026-03-29 22:02:40\t2026-03-29 18:02:40\n3570161\tNULL\tNULL\tadmin\tNULL\t2026-03-29 22:02:29\t2026-03-29 18:02:29\n3570160\tNULL\tNULL\tadmin\tNULL\t2026-03-29 22:02:28\t2026-03-29 18:02:28\n3570158\tNULL\tNULL\tadmin\tNULL\t2026-03-29 22:02:26\t2026-03-29 18:02:26\n3570159\tNULL\tNULL\tadmin\tNULL\t2026-03-29 22:02:26\t2026-03-29 18:02:26\n3570157\tNULL\tNULL\tadmin\tNULL\t2026-03-29 22:01:58\t2026-03-29 18:01:58\n3570156\tNULL\tNULL\tadmin\tNULL\t2026-03-29 22:01:57\t2026-03-29 18:01:57\n3570155\tNULL\tNULL\tadmin\tNULL\t2026-03-29 22:01:49\t2026-03-29 18:01:49\n3570154\tNULL\tNULL\tadmin\tNULL\t2026-03-29 22:00:46\t2026-03-29 18:00:47\n3570153\tNULL\tNULL\tadmin\tNULL\t2026-03-29 22:00:46\t2026-03-29 18:00:46\n3570152\tNULL\tNULL\tadmin\tNULL\t2026-03-29 22:00:19\t2026-03-29 18:00:19\n3570151\tNULL\tNULL\tadmin\tNULL\t2026-03-29 22:00:18\t2026-03-29 18:00:18\n3570150\tNULL\tNULL\tadmin\tNULL\t2026-03-29 21:59:53\t2026-03-29 17:59:54\n3570149\tNULL\tNULL\tadmin\tNULL\t2026-03-29 21:59:53\t2026-03-29 17:59:53\n3570148\tNULL\tNULL\tadmin\tNULL\t2026-03-29 21:59:39\t2026-03-29 17:59:40\n3570147\tNULL\tNULL\tadmin\tNULL\t2026-03-29 21:59:38\t2026-03-29 17:59:39\n",
+  "stderr": "",
+  "execution_time_ms": 1720
+}

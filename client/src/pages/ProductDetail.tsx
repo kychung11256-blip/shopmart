@@ -7,29 +7,40 @@
 import { useState } from 'react';
 import { Link, useParams, useLocation } from 'wouter';
 import { ShoppingCart, Search, User, Star, Heart, Share2, ChevronRight, Plus, Minus, Truck, Shield, RefreshCw, Globe, LogOut } from 'lucide-react';
-import { products as defaultProducts } from '@/lib/data';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
-import type { Product } from '@/lib/data';
 
-// 轉換數據庫商品格式為前端格式
-function convertDbProductToFrontend(dbProduct: any): Product {
+// Product type from API
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  originalPrice?: number | null;
+  image?: string | null;
+  categoryId?: number | null;
+  sold: number;
+  rating?: number | null;
+  description?: string | null;
+  stock?: number;
+  status?: string;
+}
+
+// 直接將 API 數據映射為 Product
+function mapApiProduct(p: any): Product {
   return {
-    id: dbProduct.id,
-    name: dbProduct.name,
-    price: dbProduct.price, // 後端已轉換，直接使用
-    originalPrice: dbProduct.originalPrice, // 後端已轉換，直接使用
-    image: dbProduct.image,
-    categoryId: dbProduct.categoryId,
-    sold: dbProduct.sold || 0,
-    rating: dbProduct.rating ? dbProduct.rating / 100 : 0, // 從 0-500 轉換為 0-5
-    description: dbProduct.description,
-    stock: dbProduct.stock || 0,
-    status: dbProduct.status || 'active',
-    createdAt: dbProduct.createdAt,
-    updatedAt: dbProduct.updatedAt,
+    id: p.id,
+    name: p.name,
+    price: p.price,
+    originalPrice: p.originalPrice,
+    image: p.image,
+    categoryId: p.categoryId,
+    sold: p.sold || 0,
+    rating: p.rating,
+    description: p.description,
+    stock: p.stock || 0,
+    status: p.status || 'active',
   };
 }
 
@@ -40,9 +51,9 @@ export default function ProductDetail() {
   // 使用 TRPC 獲取商品詳情
   const { data: apiProduct, isLoading, error } = trpc.products.getById.useQuery(productId);
   
-  // 轉換為前端格式（不使用本地後備數據，確保與數據庫同步）
+  // 直接使用 API 數據
   const product = apiProduct 
-    ? convertDbProductToFrontend(apiProduct)
+    ? mapApiProduct(apiProduct)
     : null;
 
   // 獲取相關商品（如果商品存在）
@@ -52,7 +63,7 @@ export default function ProductDetail() {
   });
   
   const relatedProducts = relatedApiProducts
-    .map(convertDbProductToFrontend)
+    .map(mapApiProduct)
     .filter(p => product && p.id !== product.id)
     .slice(0, 4);
 

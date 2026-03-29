@@ -1,0 +1,77 @@
+{
+  "query": "SELECT * FROM categories; SELECT id, name, email, role, createdAt FROM users ORDER BY id DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT * FROM categories; SELECT id, name, email, role, createdAt FROM users ORDER BY id DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "60003",
+      "name": "NFT",
+      "nameEn": "NULL",
+      "description": "category for admin products",
+      "icon": "NULL",
+      "order": "0",
+      "status": "active",
+      "createdAt": "2026-03-21 12:59:36",
+      "updatedAt": "2026-03-21 15:01:17"
+    },
+    {
+      "id": "540001",
+      "name": "Test Category",
+      "nameEn": "NULL",
+      "description": "Test category for admin products",
+      "icon": "NULL",
+      "order": "0",
+      "status": "inactive",
+      "createdAt": "2026-03-29 08:02:18",
+      "updatedAt": "2026-03-29 16:39:38"
+    },
+    {
+      "id": "540002",
+      "name": "Test Category",
+      "nameEn": "NULL",
+      "description": "Test category for admin products",
+      "icon": "NULL",
+      "order": "0",
+      "status": "inactive",
+      "createdAt": "2026-03-29 08:02:54",
+      "updatedAt": "2026-03-29 16:39:38"
+    },
+    {
+      "id": "570001",
+      "name": "Test Category",
+      "nameEn": "NULL",
+      "description": "Test category for admin products",
+      "icon": "NULL",
+      "order": "0",
+      "status": "inactive",
+      "createdAt": "2026-03-29 11:38:29",
+      "updatedAt": "2026-03-29 16:39:38"
+    },
+    {
+      "id": "600001",
+      "name": "Test Category",
+      "nameEn": "NULL",
+      "description": "Test category for admin products",
+      "icon": "NULL",
+      "order": "0",
+      "status": "inactive",
+      "createdAt": "2026-03-29 12:02:39",
+      "updatedAt": "2026-03-29 16:39:38"
+    }
+  ],
+  "messages": [
+    "id\tname\temail\trole\tcreatedAt",
+    "3570101\tNULL\tNULL\tadmin\t2026-03-29 21:33:59",
+    "3570100\tNULL\tNULL\tadmin\t2026-03-29 21:33:58",
+    "3570099\tNULL\tNULL\tadmin\t2026-03-29 21:28:14",
+    "3570098\tNULL\tNULL\tadmin\t2026-03-29 21:28:13",
+    "3570097\tNULL\tNULL\tadmin\t2026-03-29 21:27:48",
+    "3570096\tNULL\tNULL\tadmin\t2026-03-29 21:27:47",
+    "3570095\tNULL\tNULL\tadmin\t2026-03-29 21:27:40",
+    "3570094\tNULL\tNULL\tadmin\t2026-03-29 21:27:12",
+    "3570093\tNULL\tNULL\tadmin\t2026-03-29 21:25:42",
+    "3570092\tNULL\tNULL\tadmin\t2026-03-29 21:25:42"
+  ],
+  "stdout": "id\tname\tnameEn\tdescription\ticon\torder\tstatus\tcreatedAt\tupdatedAt\n60003\tNFT\tNULL\tcategory for admin products\tNULL\t0\tactive\t2026-03-21 12:59:36\t2026-03-21 15:01:17\n540001\tTest Category\tNULL\tTest category for admin products\tNULL\t0\tinactive\t2026-03-29 08:02:18\t2026-03-29 16:39:38\n540002\tTest Category\tNULL\tTest category for admin products\tNULL\t0\tinactive\t2026-03-29 08:02:54\t2026-03-29 16:39:38\n570001\tTest Category\tNULL\tTest category for admin products\tNULL\t0\tinactive\t2026-03-29 11:38:29\t2026-03-29 16:39:38\n600001\tTest Category\tNULL\tTest category for admin products\tNULL\t0\tinactive\t2026-03-29 12:02:39\t2026-03-29 16:39:38\nid\tname\temail\trole\tcreatedAt\n3570101\tNULL\tNULL\tadmin\t2026-03-29 21:33:59\n3570100\tNULL\tNULL\tadmin\t2026-03-29 21:33:58\n3570099\tNULL\tNULL\tadmin\t2026-03-29 21:28:14\n3570098\tNULL\tNULL\tadmin\t2026-03-29 21:28:13\n3570097\tNULL\tNULL\tadmin\t2026-03-29 21:27:48\n3570096\tNULL\tNULL\tadmin\t2026-03-29 21:27:47\n3570095\tNULL\tNULL\tadmin\t2026-03-29 21:27:40\n3570094\tNULL\tNULL\tadmin\t2026-03-29 21:27:12\n3570093\tNULL\tNULL\tadmin\t2026-03-29 21:25:42\n3570092\tNULL\tNULL\tadmin\t2026-03-29 21:25:42\n",
+  "stderr": "",
+  "execution_time_ms": 1788
+}
