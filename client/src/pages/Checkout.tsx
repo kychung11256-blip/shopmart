@@ -118,13 +118,12 @@ export default function Checkout() {
   useEffect(() => {
     if (isAuthenticated && authenticatedCartItems) {
       const formattedItems: CartItem[] = authenticatedCartItems.map((item: any) => {
-        // Ensure price is in dollars - if it's > 100, it's likely in cents
-        const price = item.price > 100 ? item.price / 100 : item.price;
+        // 後端已轉換價格，直接使用
         return {
           id: item.id,
           productId: item.productId,
           quantity: item.quantity,
-          price: price,
+          price: item.price,
           name: item.productName,
         };
       });
@@ -136,12 +135,11 @@ export default function Checkout() {
         try {
           const items = JSON.parse(savedCart);
           const formattedItems: CartItem[] = items.map((item: any) => {
-            // Ensure price is in dollars - if it's > 100, it's likely in cents
-            const price = item.product.price > 100 ? item.product.price / 100 : item.product.price;
+            // 後端已轉換價格，直接使用
             return {
               productId: item.product.id,
               quantity: item.qty,
-              price: price,
+              price: item.product.price,
               name: item.product.name,
             };
           });

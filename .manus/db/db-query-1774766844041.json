@@ -1,0 +1,22 @@
+{
+  "query": "SELECT id, name, price, originalPrice FROM products WHERE name LIKE '%nft001%' OR id LIKE '%90007%' LIMIT 10",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT id, name, price, originalPrice FROM products WHERE name LIKE '%nft001%' OR id LIKE '%90007%' LIMIT 10",
+  "rows": [
+    {
+      "id": "90007",
+      "name": "nft001",
+      "price": "150000",
+      "originalPrice": "NULL"
+    },
+    {
+      "id": "390007",
+      "name": "Test Product",
+      "price": "999900",
+      "originalPrice": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tprice\toriginalPrice\n90007\tnft001\t150000\tNULL\n390007\tTest Product\t999900\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1651
+}

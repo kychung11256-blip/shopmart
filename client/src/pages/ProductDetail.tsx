@@ -19,8 +19,8 @@ function convertDbProductToFrontend(dbProduct: any): Product {
   return {
     id: dbProduct.id,
     name: dbProduct.name,
-    price: dbProduct.price / 100, // 從分轉換為元
-    originalPrice: dbProduct.originalPrice ? dbProduct.originalPrice / 100 : undefined,
+    price: dbProduct.price, // 後端已轉換，直接使用
+    originalPrice: dbProduct.originalPrice, // 後端已轉換，直接使用
     image: dbProduct.image,
     categoryId: dbProduct.categoryId,
     sold: dbProduct.sold || 0,

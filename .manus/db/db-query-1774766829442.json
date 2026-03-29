@@ -1,0 +1,40 @@
+{
+  "query": "SELECT id, name, price, originalPrice FROM products LIMIT 5",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT id, name, price, originalPrice FROM products LIMIT 5",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Test Product",
+      "price": "29999",
+      "originalPrice": "NULL"
+    },
+    {
+      "id": "2",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL"
+    },
+    {
+      "id": "3",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL"
+    },
+    {
+      "id": "4",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL"
+    },
+    {
+      "id": "5",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tprice\toriginalPrice\n1\tTest Product\t29999\tNULL\n2\tTest Product\t9999\tNULL\n3\tTest Product\t9999\tNULL\n4\tTest Product\t9999\tNULL\n5\tTest Product\t9999\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1654
+}

@@ -10,7 +10,7 @@
  * @returns Price in dollars (e.g., 4.90)
  */
 export function centsToDollars(cents: number): number {
-  return Math.round((cents / 100) * 100) / 100;
+  return Math.round((cents / 100) * 100) / 100; // 1500 -> 15.00
 }
 
 /**
