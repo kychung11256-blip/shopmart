@@ -635,6 +635,8 @@ export default function Checkout() {
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-4">Payment Method</h3>
                 <div className="space-y-3">
+                  {/* Stripe Payment - Hidden, code preserved for future use */}
+                  {false && (
                   <button
                     onClick={handleStripeCheckout}
                     disabled={isProcessing}
@@ -646,7 +648,10 @@ export default function Checkout() {
                       <div className="text-sm text-gray-600">Pay securely with your card</div>
                     </div>
                   </button>
+                  )}
 
+                  {/* USD PAY (Star Pay) - Hidden, code preserved for future use */}
+                  {false && (
                   <button
                     onClick={() => handleStarPayCheckout('TRC20Buy')}
                     disabled={isProcessing}
@@ -658,6 +663,7 @@ export default function Checkout() {
                       <div className="text-sm text-gray-600">Pay with cryptocurrency</div>
                     </div>
                   </button>
+                  )}
 
                   <button
                     onClick={handleNexapayCheckout}
