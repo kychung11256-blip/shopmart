@@ -101,8 +101,7 @@ export default function Checkout() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showGuestForm, setShowGuestForm] = useState<boolean>(false);
   const [showStarPayModal, setShowStarPayModal] = useState<boolean>(false);
-  const [showNexapayModal, setShowNexapayModal] = useState<boolean>(false);
-  const [nexapayUrl, setNexapayUrl] = useState<string | null>(null);
+  // NexaPay modal removed - now using redirect-based payment
   const [starPayOrderId, setStarPayOrderId] = useState<number | null>(null);
   const [paymentCheckInterval, setPaymentCheckInterval] = useState<NodeJS.Timeout | null>(null);
 
@@ -356,7 +355,7 @@ export default function Checkout() {
 
       const orderId = orderResult.id || 1;
       sessionStorage.setItem('lastOrderId', orderId.toString());
-      setShowNexapayModal(true);
+      // NexaPayButton will handle redirect, no modal needed
     } catch (error: any) {
       console.error('Nexapay checkout error:', error);
       toast.error(error?.message || 'Failed to process payment');
@@ -665,17 +664,18 @@ export default function Checkout() {
                   </button>
                   )}
 
-                  <button
-                    onClick={handleNexapayCheckout}
-                    disabled={isProcessing}
-                    className="w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <div className="w-5 h-5 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">₦</div>
-                    <div className="text-left">
-                      <div className="font-semibold">Nexapay</div>
-                      <div className="text-sm text-gray-600">Pay with card, receive USDC</div>
-                    </div>
-                  </button>
+                  {/* NexaPay Payment - Redirect-based */}
+                  <div className="w-full">
+                    <NexaPayButton
+                      amount={totalPrice}
+                      currency="USD"
+                      orderId={cartItems.length > 0 ? Math.floor(Math.random() * 1000000) : undefined}
+                      onSuccess={handleNexapaySuccess}
+                      onError={handleNexapayError}
+                      size="default"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -762,39 +762,7 @@ export default function Checkout() {
         </DialogContent>
       </Dialog>
 
-      {/* NexaPay Payment Button - Embedded Payment Component */}
-      {showNexapayModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full mx-4">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Complete Your Payment</h2>
-              <button
-                onClick={() => setShowNexapayModal(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            
-            <NexaPayButton
-              amount={totalPrice}
-              currency="USD"
-              publicKey={NEXAPAY_PUBLIC_KEY}
-              orderId={sessionStorage.getItem('lastOrderId') ? parseInt(sessionStorage.getItem('lastOrderId')!, 10) : undefined}
-              onSuccess={handleNexapaySuccess}
-              onError={handleNexapayError}
-              size="large"
-              className="w-full"
-            />
-            
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-900">
-                ℹ️ Your payment will be processed securely. Once completed, you'll be automatically redirected to your order confirmation page.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* NexaPay modal removed - using redirect-based payment */}
     </div>
   );
 }
