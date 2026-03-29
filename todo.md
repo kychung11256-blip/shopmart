@@ -275,3 +275,7 @@
 - [x] 測試支付流程正常工作
 - [x] 改為跳轉式支付 - 使用 window.location.href 重定向到 NexaPay 支付頁面
 - [x] 驗證跳轉支付流程正常工作 - 用戶點擊按鈕後成功跳轉到 NexaPay 支付頁面
+- [x] Fix NexaPay "Checkout Unavailable - Checkout session invalid" error after clicking Pay button on NexaPay page
+- [x] Removed undocumented `provider` and `order_id` params from NexaPay API request
+- [x] Added `callback_url` for webhook notifications
+- [x] Verified full payment flow: checkout → NexaPay → payment provider selection → Pay Now

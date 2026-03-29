@@ -519,11 +519,12 @@ export const appRouter = router({
           // Convert orderId to string for NexaPay (it expects string order_id)
           const orderIdStr = String(input.orderId);
           
+          // Build payload strictly following NexaPay API docs
+          // Required: amount, currency
+          // Optional: crypto, description, customer_email, success_url, cancel_url, callback_url
           const payload: any = {
             amount: input.amount,
-            order_id: orderIdStr,
             currency: input.currency,
-            provider: 'auto',
             description: `Order #${input.orderId}`,
           };
           
@@ -535,6 +536,12 @@ export const appRouter = router({
           }
           if (input.cancelUrl) {
             payload.cancel_url = input.cancelUrl;
+          }
+          
+          // Add webhook callback URL for payment notifications
+          const origin = input.successUrl ? new URL(input.successUrl).origin : '';
+          if (origin) {
+            payload.callback_url = `${origin}/api/webhooks/nexapay`;
           }
 
           console.log('[Nexapay] Creating payment session:', payload);
