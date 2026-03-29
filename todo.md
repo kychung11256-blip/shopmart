@@ -242,3 +242,20 @@
 - [x] 支持多種貨幣 - USD、EUR 等
 - [x] 支付成功後自動清除購物車 - 支持 authenticated 和 guest 用戶
 - [x] 支付完成後自動重定向到訂單確認頁面 - 顯示訂單詳情
+
+## 🎯 NexaPayButton 嵌入式支付組件 - 已完成
+
+- [x] 創建 NexaPayButton.tsx 組件 - 實現嵌入式支付按鈕
+- [x] 實現組件 Props 接口 - amount、currency、onSuccess、onError 等
+- [x] 實現 modal 中的 iframe 嵌入 - 支付頁面在網站內完成
+- [x] 實現 postMessage 事件監聽 - 監聽支付完成信號
+- [x] 實現 onSuccess 和 onError 回調 - 支付完成後自動觸發
+- [x] 在 Checkout.tsx 中替換舊的 NexaPay modal - 使用新的 NexaPayButton 組件
+- [x] 添加 handleNexapaySuccess 回調 - 自動清空購物車和重定向
+- [x] 添加 handleNexapayError 回調 - 顯示錯誤提示
+- [x] 編寫 NexaPayButton 組件測試 - 48 個測試全部通過
+- [x] 測試組件 Props 接口 - 驗證所有參數正確
+- [x] 測試支付流程 - 驗證 onSuccess 和 onError 回調
+- [x] 測試消息處理 - 驗證 postMessage 事件正確處理
+- [x] 測試錯誤處理 - 驗證錯誤情況優雅降級
+- [x] 測試與 Checkout 流程集成 - 驗證完整支付流程

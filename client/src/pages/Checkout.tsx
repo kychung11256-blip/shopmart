@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { ArrowLeft, Loader2, CreditCard, X } from 'lucide-react';
+import { NexaPayButton } from '@/components/NexaPayButton';
 import { useLocation } from 'wouter';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -252,6 +253,32 @@ export default function Checkout() {
   const totalPrice = cartItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
   const totalPriceInCents = Math.round(totalPrice * 100);
 
+  const handleNexapaySuccess = async (transaction: any) => {
+    try {
+      console.log('NexaPay payment successful:', transaction);
+      const orderId = sessionStorage.getItem('lastOrderId');
+      
+      // Clear cart
+      if (isAuthenticated) {
+        // Cart will be cleared by the backend
+      } else {
+        localStorage.removeItem('shopmart_cart');
+      }
+      
+      // Navigate to order confirmation
+      toast.success('Payment successful!');
+      navigate(`/orders/confirmation?orderId=${orderId}&payment=nexapay`);
+    } catch (error: any) {
+      console.error('Error handling NexaPay success:', error);
+      toast.error('Failed to process payment success');
+    }
+  };
+
+  const handleNexapayError = (error: any) => {
+    console.error('NexaPay payment error:', error);
+    toast.error(error?.message || 'Payment failed');
+  };
+
   const handleNexapayCheckout = async () => {
     if (!shippingAddress.trim()) {
       toast.error('Please enter shipping address');
@@ -299,24 +326,7 @@ export default function Checkout() {
 
       const orderId = orderResult.id || 1;
       sessionStorage.setItem('lastOrderId', orderId.toString());
-
-      // Create Nexapay payment session
-      const nexapayResult = await createNexapaySessionMutation.mutateAsync({
-        orderId,
-        amount: totalPrice,
-        currency: 'USD',
-        customerEmail: isAuthenticated ? user?.email : guestEmail,
-        successUrl: `${window.location.origin}/order-confirmation?orderId=${orderId}&payment=nexapay`,
-        cancelUrl: `${window.location.origin}/checkout`,
-      });
-
-      if (nexapayResult.checkoutUrl) {
-        // Open Nexapay in new window instead of iframe to avoid session issues
-        window.open(nexapayResult.checkoutUrl, '_blank');
-        toast.success('Nexapay payment page opened in new window');
-      } else {
-        throw new Error('Failed to get Nexapay checkout URL');
-      }
+      setShowNexapayModal(true);
     } catch (error: any) {
       console.error('Nexapay checkout error:', error);
       toast.error(error?.message || 'Failed to process payment');
@@ -716,49 +726,39 @@ export default function Checkout() {
         </DialogContent>
       </Dialog>
 
-      {/* Nexapay Payment Modal */}
-      <Dialog open={showNexapayModal} onOpenChange={(open) => {
-        if (!open) {
-          setShowNexapayModal(false);
-        }
-      }}>
-        <DialogContent className="max-w-4xl w-full h-screen md:h-auto md:max-h-[90vh] flex flex-col">
-          <DialogHeader className="flex items-center justify-between">
-            <DialogTitle>Complete Your Payment</DialogTitle>
-            <button
-              onClick={() => {
-                setShowNexapayModal(false);
-              }}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <X size={24} />
-            </button>
-          </DialogHeader>
-          
-          {nexapayUrl ? (
-            <div className="flex-1 overflow-hidden">
-              <iframe
-                src={nexapayUrl}
-                title="Nexapay Payment"
-                className="w-full h-full border-0"
-                allow="payment"
-                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation allow-pointer-lock"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
+      {/* NexaPay Payment Button - Embedded Payment Component */}
+      {showNexapayModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full mx-4">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Complete Your Payment</h2>
+              <button
+                onClick={() => setShowNexapayModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
             </div>
-          ) : (
-            <div className="flex items-center justify-center h-96">
-              <Loader2 size={40} className="animate-spin text-blue-500" />
+            
+            <NexaPayButton
+              amount={totalPrice}
+              currency="USD"
+              publicKey={NEXAPAY_PUBLIC_KEY}
+              orderId={sessionStorage.getItem('lastOrderId') || undefined}
+              onSuccess={handleNexapaySuccess}
+              onError={handleNexapayError}
+              size="large"
+              className="w-full"
+            />
+            
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-900">
+                ℹ️ Your payment will be processed securely. Once completed, you'll be automatically redirected to your order confirmation page.
+              </p>
             </div>
-          )}
-          
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-900">
-              ℹ️ Your payment will be processed securely. Once completed, you'll be automatically redirected to your order confirmation page.
-            </p>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </div>
   );
 }
