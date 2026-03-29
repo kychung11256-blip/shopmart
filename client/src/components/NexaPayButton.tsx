@@ -11,7 +11,7 @@ interface NexaPayButtonProps {
   onSuccess: (tx: any) => void;
   onError?: (error: any) => void;
   size?: 'small' | 'default' | 'large';
-  orderId?: string;
+  orderId?: number;
   className?: string;
 }
 
@@ -87,7 +87,7 @@ export function NexaPayButton({
       setError(null);
 
       // Generate a temporary order ID if not provided
-      const tempOrderId = orderId || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const tempOrderId = orderId || Math.floor(Math.random() * 1000000);
 
       // Call backend to create NexaPay session
       const response = await createPaymentMutation.mutateAsync({

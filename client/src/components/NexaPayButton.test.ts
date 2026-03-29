@@ -38,14 +38,14 @@ describe('NexaPayButton Component', () => {
         onSuccess: vi.fn(),
         onError: vi.fn(),
         size: 'large' as const,
-        orderId: 'order_123',
+        orderId: 123,
         className: 'custom-class',
       };
 
       expect(props.publicKey).toBeDefined();
       expect(props.onError).toBeDefined();
       expect(props.size).toBe('large');
-      expect(props.orderId).toBe('order_123');
+      expect(props.orderId).toBe(123);
       expect(props.className).toBe('custom-class');
     });
 
@@ -307,7 +307,7 @@ describe('NexaPayButton Component', () => {
     });
 
     it('should receive orderId from sessionStorage', () => {
-      const orderId = '123';
+      const orderId = 123;
       const props = {
         amount: 25.00,
         currency: 'USD',
@@ -315,7 +315,7 @@ describe('NexaPayButton Component', () => {
         orderId,
       };
 
-      expect(props.orderId).toBe('123');
+      expect(props.orderId).toBe(123);
     });
 
     it('should call handleNexapaySuccess on successful payment', () => {

@@ -744,7 +744,7 @@ export default function Checkout() {
               amount={totalPrice}
               currency="USD"
               publicKey={NEXAPAY_PUBLIC_KEY}
-              orderId={sessionStorage.getItem('lastOrderId') || undefined}
+              orderId={sessionStorage.getItem('lastOrderId') ? parseInt(sessionStorage.getItem('lastOrderId')!, 10) : undefined}
               onSuccess={handleNexapaySuccess}
               onError={handleNexapayError}
               size="large"
