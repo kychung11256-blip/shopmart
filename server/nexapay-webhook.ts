@@ -8,7 +8,23 @@ export async function handleNexapayWebhook(req: Request, res: Response) {
   try {
     const signature = req.headers['x-nexapay-signature'] as string;
     const timestamp = req.headers['x-nexapay-timestamp'] as string;
-    const payload = JSON.stringify(req.body);
+    
+    // Handle Buffer payload from express.raw()
+    let payload: string;
+    if (Buffer.isBuffer(req.body)) {
+      payload = req.body.toString('utf-8');
+    } else {
+      payload = JSON.stringify(req.body);
+    }
+    
+    // Parse the payload to get the body object
+    let body: any;
+    try {
+      body = JSON.parse(payload);
+    } catch (e) {
+      console.error('[Nexapay Webhook] Failed to parse payload:', e);
+      return res.status(400).json({ error: 'Invalid JSON payload' });
+    }
 
     // Verify HMAC signature
     const webhookSecret = process.env.NEXAPAY_WEBHOOK_SECRET;
@@ -40,7 +56,7 @@ export async function handleNexapayWebhook(req: Request, res: Response) {
       return res.status(401).json({ error: 'Webhook expired' });
     }
 
-    const { order_id, payment_id, status, amount, txid } = req.body;
+    const { order_id, payment_id, status, amount, txid } = body;
 
     console.log(`[Nexapay Webhook] Received webhook: order_id=${order_id}, status=${status}`);
 

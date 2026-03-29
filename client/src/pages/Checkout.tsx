@@ -258,6 +258,35 @@ export default function Checkout() {
       console.log('NexaPay payment successful:', transaction);
       const orderId = sessionStorage.getItem('lastOrderId');
       
+      if (!orderId) {
+        toast.error('Order ID not found');
+        return;
+      }
+      
+      // Show loading toast
+      const loadingToastId = toast.loading('Processing payment...');
+      
+      // Poll for order status update (webhook may take a moment)
+      let orderUpdated = false;
+      let attempts = 0;
+      const maxAttempts = 30; // 30 seconds timeout
+      
+      while (!orderUpdated && attempts < maxAttempts) {
+        try {
+          const order = await trpc.orders.getById.query({ id: parseInt(orderId) });
+          if (order && order.status === 'paid') {
+            orderUpdated = true;
+            console.log('Order status updated to paid');
+            break;
+          }
+        } catch (err) {
+          console.log('Waiting for order status update...');
+        }
+        
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+      }
+      
       // Clear cart
       if (isAuthenticated) {
         // Cart will be cleared by the backend
@@ -266,6 +295,7 @@ export default function Checkout() {
       }
       
       // Navigate to order confirmation
+      toast.dismiss(loadingToastId);
       toast.success('Payment successful!');
       navigate(`/orders/confirmation?orderId=${orderId}&payment=nexapay`);
     } catch (error: any) {

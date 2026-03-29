@@ -513,19 +513,33 @@ export const appRouter = router({
             throw new Error('NEXAPAY_API_KEY not configured');
           }
 
+          // Use NexaPay API v1 endpoint (based on official documentation)
           const nexapayUrl = 'https://nexapay.one/api/v1/payments';
-          const payload = {
+          
+          // Convert orderId to string for NexaPay (it expects string order_id)
+          const orderIdStr = String(input.orderId);
+          
+          const payload: any = {
             amount: input.amount,
+            order_id: orderIdStr,
             currency: input.currency,
-            crypto: 'USDC',
+            provider: 'auto',
             description: `Order #${input.orderId}`,
-            customer_email: input.customerEmail,
-            success_url: input.successUrl,
-            cancel_url: input.cancelUrl,
-            callback_url: `${process.env.VITE_APP_URL || 'https://shopmart-8wwg5mrc.manus.space'}/api/webhooks/nexapay`,
           };
+          
+          if (input.customerEmail) {
+            payload.customer_email = input.customerEmail;
+          }
+          if (input.successUrl) {
+            payload.success_url = input.successUrl;
+          }
+          if (input.cancelUrl) {
+            payload.cancel_url = input.cancelUrl;
+          }
 
           console.log('[Nexapay] Creating payment session:', payload);
+          console.log('[Nexapay] API URL:', nexapayUrl);
+          console.log('[Nexapay] API Key prefix:', apiKey.substring(0, 20) + '...');
 
           const response = await fetch(nexapayUrl, {
             method: 'POST',
@@ -536,20 +550,44 @@ export const appRouter = router({
             body: JSON.stringify(payload),
           });
 
+          console.log('[Nexapay] Response Status:', response.status);
+          
           if (!response.ok) {
             const errorText = await response.text();
             console.error('[Nexapay] API Error:', response.status, errorText);
+            console.error('[Nexapay] Request payload:', JSON.stringify(payload, null, 2));
             throw new Error(`Nexapay API Error: ${response.status} ${errorText}`);
           }
 
           const data = await response.json();
-          console.log('[Nexapay] Payment session created:', data);
+          console.log('[Nexapay] Payment session created:', JSON.stringify(data, null, 2));
+
+          // NexaPay API v1 returns { success: boolean, payment: Payment }
+          // The payment object contains: id, order_id, amount, currency, status, checkout_url
+          if (!data.success || !data.payment) {
+            console.error('[Nexapay] Invalid response format:', data);
+            throw new Error('Nexapay API returned invalid response format');
+          }
+
+          const payment = data.payment;
+          const checkoutUrl = payment.checkout_url;
+          
+          if (!checkoutUrl) {
+            console.error('[Nexapay] No checkout URL in response:', data);
+            throw new Error('Nexapay API did not return a checkout URL');
+          }
+
+          console.log('[Nexapay] Payment session successful:', {
+            checkoutUrl,
+            orderId: payment.order_id,
+            paymentId: payment.id,
+          });
 
           return {
             success: true,
-            checkoutUrl: data.payment?.checkout_url,
-            orderId: data.payment?.order_id,
-            paymentId: data.payment?.id,
+            checkoutUrl,
+            orderId: payment.order_id,
+            paymentId: payment.id,
           };
         } catch (error: any) {
           console.error('[Nexapay] Error creating payment session:', error);
