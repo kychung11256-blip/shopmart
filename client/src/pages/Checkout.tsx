@@ -311,9 +311,9 @@ export default function Checkout() {
       });
 
       if (nexapayResult.checkoutUrl) {
-        setNexapayUrl(nexapayResult.checkoutUrl);
-        setShowNexapayModal(true);
-        toast.success('Opening Nexapay payment page...');
+        // Open Nexapay in new window instead of iframe to avoid session issues
+        window.open(nexapayResult.checkoutUrl, '_blank');
+        toast.success('Nexapay payment page opened in new window');
       } else {
         throw new Error('Failed to get Nexapay checkout URL');
       }
@@ -742,7 +742,8 @@ export default function Checkout() {
                 title="Nexapay Payment"
                 className="w-full h-full border-0"
                 allow="payment"
-                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
+                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation allow-pointer-lock"
+                referrerPolicy="no-referrer-when-downgrade"
               />
             </div>
           ) : (
