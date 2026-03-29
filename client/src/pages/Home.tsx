@@ -1,5 +1,5 @@
 /**
- * ShopMart - Home Page (Frontend)
+ * PinKoi - Home Page (Frontend)
  * Design: 活力促銷電商風 - 紅白主色調
  * Layout: 頂部雙層導航 + 左側分類欄 + 主內容區域
  * Primary: #E93323 (Red), Background: #F5F5F5

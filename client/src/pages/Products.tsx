@@ -1,5 +1,5 @@
 /**
- * ShopMart - Products Page
+ * PinKoi - Products Page
  * Design: 活力促銷電商風 - 紅白主色調
  * API Integration: 使用 TRPC 實時獲取商品數據
  */
@@ -195,7 +195,7 @@ export default function Products() {
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-red-600 rounded flex items-center justify-center">
               <ShoppingCart size={16} className="text-white" />
             </div>
-            <span className="font-bold text-gray-800 text-base sm:text-lg hidden sm:block">ShopMart</span>
+            <span className="font-bold text-gray-800 text-base sm:text-lg hidden sm:block">PinKoi</span>
           </Link>
           <div className="flex-1 max-w-2xl hidden md:block">
             <div className="flex border-2 border-red-500 rounded overflow-hidden">

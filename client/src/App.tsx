@@ -1,5 +1,5 @@
 /**
- * ShopMart - App Router
+ * PinKoi - App Router
  * Design: 活力促銷電商風 - 紅白主色調
  * Routes: 前台購物平台 + 後台管理儀表板
  */

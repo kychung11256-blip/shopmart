@@ -1,4 +1,4 @@
-# ShopMart 設計方案
+# PinKoi 設計方案
 
 ## 方案一：現代電商簡約風
 <response>

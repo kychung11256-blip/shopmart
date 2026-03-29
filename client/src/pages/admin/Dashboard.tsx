@@ -1,5 +1,5 @@
 /**
- * ShopMart Admin - Dashboard
+ * PinKoi Admin - Dashboard
  * Design: 深色側邊欄 + 白色內容區域
  * 包含: 銷售統計、訂單概覽、商品管理入口
  * 數據來源: 完全從後端 API 獲取真實數據

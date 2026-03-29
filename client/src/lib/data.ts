@@ -1,5 +1,5 @@
 /**
- * ShopMart - Shared Type Definitions
+ * PinKoi - Shared Type Definitions
  * All fake/test data has been removed.
  * Data is now fetched exclusively from backend APIs via tRPC.
  */

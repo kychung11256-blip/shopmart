@@ -1,5 +1,5 @@
 /**
- * ShopMart Admin - Settings
+ * PinKoi Admin - Settings
  * Design: 深色側邊欄 + 白色內容區域
  */
 
@@ -11,7 +11,7 @@ import { trpc } from '@/lib/trpc';
 
 export default function AdminSettings() {
   const [activeTab, setActiveTab] = useState('general');
-  const [storeName, setStoreName] = useState('ShopMart');
+  const [storeName, setStoreName] = useState('PinKoi');
   const [storeEmail, setStoreEmail] = useState('admin@shopmart.com');
   const [storePhone, setStorePhone] = useState('400-2647-3947');
   const [storeAddress, setStoreAddress] = useState('Room 1101-04, Block A, Qihang Times Square, Xi\'an City');

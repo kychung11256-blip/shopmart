@@ -1,5 +1,5 @@
 /**
- * ShopMart - Cart Page
+ * PinKoi - Cart Page
  * Completely rewritten to eliminate infinite loop issues
  * Key strategy: Avoid useMemo/useCallback chains, use simple state management
  */
@@ -184,7 +184,7 @@ export default function Cart() {
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-red-600 rounded flex items-center justify-center">
               <ShoppingCart size={16} className="text-white" />
             </div>
-            <span className="font-bold text-gray-800 text-base sm:text-lg hidden sm:block">ShopMart</span>
+            <span className="font-bold text-gray-800 text-base sm:text-lg hidden sm:block">PinKoi</span>
           </Link>
           
           <div className="flex-1 max-w-2xl hidden md:block">

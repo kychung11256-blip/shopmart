@@ -1,5 +1,5 @@
 /**
- * ShopMart Admin - Users Management
+ * PinKoi Admin - Users Management
  * Design: 深色側邊欄 + 白色內容區域
  * 數據來源: 完全從後端 API 獲取真實數據
  */

@@ -1,5 +1,5 @@
 /**
- * ShopMart - Language Context
+ * PinKoi - Language Context
  * 管理全局語言狀態
  */
 

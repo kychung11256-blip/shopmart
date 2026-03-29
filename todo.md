@@ -363,3 +363,10 @@
 - [x] 前端: AdminUsers 改用真實 API
 - [x] 清理硬編碼數據文件 data.ts - 僅保留型別定義，移除所有假數據和 data-translations.ts
 - [x] 端到端測試所有頁面 - 首頁、商品頁、後台 Dashboard、訂單、用戶、商品管理均正常
+
+## 🏷️ 品牌名稱統一替換 - 已完成
+
+- [x] 搜索所有 ShopMart 字樣 - 共 20+ 處
+- [x] 替換所有前端頁面中的 ShopMart 為 PinKoi
+- [x] 替換網站標題和 meta 標籤 (index.html)
+- [x] 驗證全站品牌統一 - 無殘留 ShopMart 字樣

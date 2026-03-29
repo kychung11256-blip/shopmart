@@ -1,5 +1,5 @@
 /**
- * ShopMart - Order History Page
+ * PinKoi - Order History Page
  * Display all user orders with status and details
  */
 
