@@ -60,6 +60,13 @@ function OrderDetailModal({ order, onClose }: {
             {order.userEmail && <p className="text-xs text-gray-400 mt-1">{order.userEmail}</p>}
           </div>
 
+          {order.shippingAddress && (
+            <div className="bg-blue-50 rounded-lg p-4">
+              <p className="text-sm font-medium text-gray-700 mb-1">{language === 'zh' ? '收件郵箱' : 'Delivery Email'}</p>
+              <p className="text-sm text-blue-600 break-all">{order.shippingAddress}</p>
+            </div>
+          )}
+
           {order.items && order.items.length > 0 && (
             <div>
               <p className="text-sm font-medium text-gray-700 mb-2">{language === 'zh' ? '商品' : 'Products'}</p>
@@ -76,7 +83,7 @@ function OrderDetailModal({ order, onClose }: {
 
           <div className="border-t border-gray-200 pt-2 flex justify-between font-semibold">
             <span>{language === 'zh' ? '總計' : 'Total'}</span>
-            <span className="text-red-500">${(order.totalAmount / 100).toFixed(2)}</span>
+            <span className="text-red-500">${((order.totalAmount ?? order.totalPrice ?? 0) / 100).toFixed(2)}</span>
           </div>
 
           {order.stripePaymentIntentId && (
@@ -182,6 +189,7 @@ export default function AdminOrders() {
                 <tr className="bg-gray-50 border-b border-gray-100">
                   <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '訂單 ID' : 'Order ID'}</th>
                   <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '客戶' : 'Customer'}</th>
+                  <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '收件郵箱' : 'Delivery Email'}</th>
                   <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '總計' : 'Total'}</th>
                   <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '日期' : 'Date'}</th>
                   <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">{language === 'zh' ? '狀態' : 'Status'}</th>
@@ -201,7 +209,10 @@ export default function AdminOrders() {
                         {order.userEmail && <p className="text-xs text-gray-400">{order.userEmail}</p>}
                       </td>
                       <td className="px-5 py-3">
-                        <span className="text-sm font-semibold text-red-500">${(order.totalAmount / 100).toFixed(2)}</span>
+                        <p className="text-sm text-blue-600">{order.shippingAddress || <span className="text-gray-300">—</span>}</p>
+                      </td>
+                      <td className="px-5 py-3">
+                        <span className="text-sm font-semibold text-red-500">${((order.totalAmount ?? order.totalPrice ?? 0) / 100).toFixed(2)}</span>
                       </td>
                       <td className="px-5 py-3 text-sm text-gray-500">
                         {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '-'}

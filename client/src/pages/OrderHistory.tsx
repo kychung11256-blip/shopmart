@@ -152,10 +152,13 @@ export default function OrderHistory() {
                       </span>
                     </div>
 
-                    {/* Shipping Address */}
-                    <p className="text-sm text-gray-600 mb-2">
-                      <span className="font-medium">Shipping:</span> {order.shippingAddress}
-                    </p>
+                    {/* Delivery Email */}
+                    {order.shippingAddress && (
+                      <p className="text-sm text-gray-600 mb-2">
+                        <span className="font-medium">Delivery Email:</span>{' '}
+                        <span className="text-blue-600">{order.shippingAddress}</span>
+                      </p>
+                    )}
                   </div>
 
                   {/* Total Price and Arrow */}

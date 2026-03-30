@@ -217,12 +217,12 @@ export default function OrderConfirmation() {
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Truck size={20} className="text-orange-500" />
-                {language === 'zh' ? '配送' : 'Shipping'}
+                {language === 'zh' ? '收件郵箱' : 'Delivery Email'}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-600 mb-1">{language === 'zh' ? '地址' : 'Address'}</p>
-              <p className="text-sm font-semibold text-gray-800 truncate">
+              <p className="text-sm text-gray-600 mb-1">{language === 'zh' ? '收件郵箱' : 'Email'}</p>
+              <p className="text-sm font-semibold text-blue-600 break-all">
                 {order.shippingAddress || (language === 'zh' ? '待填寫' : 'To be filled')}
               </p>
             </CardContent>
