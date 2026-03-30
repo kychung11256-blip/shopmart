@@ -121,6 +121,9 @@ importers:
       '@trpc/server':
         specifier: ^11.6.0
         version: 11.14.1(typescript@5.9.3)
+      '@whop/checkout':
+        specifier: ^0.0.52
+        version: 0.0.52(react@19.2.1)
       '@whop/sdk':
         specifier: ^0.0.35
         version: 0.0.35
@@ -2553,6 +2556,14 @@ packages:
 
   '@vitest/utils@2.1.9':
     resolution: {integrity: sha512-v0psaMSkNJ3A2NMrUEHFRzJtDPFn+/VWZ5WxImB21T9fjucJRmS7xCS3ppEnARb9y11OAzaD+P2Ps+b+BGX5iQ==}
+
+  '@whop/checkout@0.0.52':
+    resolution: {integrity: sha512-bbaJUWyzdraYYiTBzSe1w/oNB98ZlIA138KlCljSGOtzt96ByBJvWEPteX0UUvMYvWu/BKfHNTi+IVZD8FRY0g==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      react:
+        optional: true
 
   '@whop/sdk@0.0.35':
     resolution: {integrity: sha512-Hej52xncRYhyrtH1o+NX7ABErKcOWg7fORyaaYpIMOJ1aguvTJ35JGSbQSq3JNoByXX8nM3NvDdQBl1XmTD9Nw==}
@@ -7007,6 +7018,10 @@ snapshots:
       '@vitest/pretty-format': 2.1.9
       loupe: 3.2.1
       tinyrainbow: 1.2.0
+
+  '@whop/checkout@0.0.52(react@19.2.1)':
+    optionalDependencies:
+      react: 19.2.1
 
   '@whop/sdk@0.0.35':
     dependencies:

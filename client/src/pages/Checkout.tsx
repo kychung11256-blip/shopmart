@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { WhopCheckoutEmbed } from '@whop/checkout/react';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
@@ -104,6 +105,9 @@ export default function Checkout() {
   // NexaPay modal removed - now using redirect-based payment
   const [starPayOrderId, setStarPayOrderId] = useState<number | null>(null);
   const [paymentCheckInterval, setPaymentCheckInterval] = useState<NodeJS.Timeout | null>(null);
+  const [showWhopModal, setShowWhopModal] = useState<boolean>(false);
+  const [whopPlanId, setWhopPlanId] = useState<string | null>(null);
+  const [whopOrderId, setWhopOrderId] = useState<number | null>(null);
 
   // Get cart items from localStorage for guests, or from tRPC for authenticated users
   const { data: authenticatedCartItems } = trpc.cart.list.useQuery(undefined, {
@@ -339,8 +343,10 @@ export default function Checkout() {
         customerEmail: isAuthenticated ? user?.email || undefined : guestEmail || undefined,
         customerName: isAuthenticated ? user?.name || undefined : guestName || undefined,
       });
-      toast.success('Redirecting to Whop checkout...');
-      window.open(result.checkoutUrl, '_blank');
+      // Open embedded Whop checkout dialog
+      setWhopPlanId(result.checkoutConfigId);
+      setWhopOrderId(orderId);
+      setShowWhopModal(true);
     } catch (error: any) {
       console.error('Whop checkout error:', error);
       toast.error(error?.message || 'Failed to create Whop checkout');
@@ -823,6 +829,41 @@ export default function Checkout() {
       </Dialog>
 
       {/* NexaPay modal removed - using redirect-based payment */}
+
+      {/* Whop Embedded Checkout Dialog */}
+      <Dialog open={showWhopModal} onOpenChange={(open) => { if (!open) setShowWhopModal(false); }}>
+        <DialogContent className="max-w-lg w-full p-0 overflow-hidden">
+          <DialogHeader className="px-6 pt-5 pb-3 border-b">
+            <DialogTitle className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded bg-black flex items-center justify-center">
+                <span className="text-white text-xs font-bold">W</span>
+              </div>
+              Whop Checkout
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-4">
+            {whopPlanId ? (
+              <WhopCheckoutEmbed
+                sessionId={whopPlanId}
+                theme="light"
+                skipRedirect={true}
+                onComplete={(plan_id, receipt_id) => {
+                  setShowWhopModal(false);
+                  toast.success(`Payment successful! Receipt: ${receipt_id || plan_id}`);
+                  if (!isAuthenticated) {
+                    localStorage.removeItem('shopmart_cart');
+                  }
+                  navigate(`/orders/confirmation?orderId=${whopOrderId}&payment=whop`);
+                }}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-64">
+                <Loader2 size={40} className="animate-spin text-purple-600" />
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -370,3 +370,11 @@
 - [x] 替換所有前端頁面中的 ShopMart 為 PinKoi
 - [x] 替換網站標題和 meta 標籤 (index.html)
 - [x] 驗證全站品牌統一 - 無殘留 ShopMart 字樣
+
+## 💳 Whop 嵌入式支付（WhopCheckoutEmbed）
+
+- [x] 安裝 @whop/checkout 套件
+- [x] 後端返回 checkout configuration ID（而非完整 URL）
+- [x] 前端使用 WhopCheckoutEmbed 組件嵌入結賬，不跳轉外部頁面
+- [x] 支付成功後回調處理（清空購物車、跳轉訂單確認頁）
+- [ ] 測試嵌入式支付流程
