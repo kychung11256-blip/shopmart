@@ -391,3 +391,9 @@
 - [x] 將 textarea 改為 email input，加入格式驗證
 - [x] 保留後端 shippingAddress 欄位名稱不變（避免破壞 DB 和其他邏輯）
 - [x] 同步更新遠客結賬表單的 email 欄位提示文字
+
+## 🐛 Bug: 手機版結賬頁面 Whop 彈窗過高
+
+- [x] WhopCheckoutEmbed 在手機上高度過高，遫住支付按鈕 - 添加 max-h-[90vh] 限制高度
+- [x] 需要設置最大高度並允許內部滷動 - 使用 flex 布局和 overflow-y-auto
+- [ ] 測試手機版本滷動和支付流程

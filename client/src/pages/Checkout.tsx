@@ -831,8 +831,8 @@ export default function Checkout() {
 
       {/* Whop Embedded Checkout Dialog */}
       <Dialog open={showWhopModal} onOpenChange={(open) => { if (!open) setShowWhopModal(false); }}>
-        <DialogContent className="max-w-lg w-full p-0 overflow-hidden">
-          <DialogHeader className="px-6 pt-5 pb-3 border-b">
+        <DialogContent className="max-w-lg w-full p-0 overflow-hidden max-h-[90vh] flex flex-col">
+          <DialogHeader className="px-6 pt-5 pb-3 border-b flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <div className="w-5 h-5 rounded bg-black flex items-center justify-center">
                 <span className="text-white text-xs font-bold">W</span>
@@ -840,7 +840,7 @@ export default function Checkout() {
               Whop Checkout
             </DialogTitle>
           </DialogHeader>
-          <div className="p-4">
+          <div className="p-4 overflow-y-auto flex-1">
             {whopPlanId ? (
               <WhopCheckoutEmbed
                 sessionId={whopPlanId}
