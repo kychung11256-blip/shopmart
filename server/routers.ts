@@ -604,6 +604,77 @@ export const appRouter = router({
           });
         }
       }),
+
+    createWhopCheckout: publicProcedure
+      .input(z.object({
+        orderId: z.number(),
+        amount: z.number(), // in dollars (e.g. 29.99)
+        description: z.string().optional(),
+        successUrl: z.string(),
+        cancelUrl: z.string(),
+        customerEmail: z.string().email().optional(),
+        customerName: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          const apiKey = process.env.WHOP_API_KEY;
+          const companyId = process.env.WHOP_COMPANY_ID;
+          if (!apiKey || !companyId) throw new Error('Whop credentials not configured');
+
+          const Whop = (await import('@whop/sdk')).default;
+          const client = new Whop({ apiKey });
+
+          const checkoutConfig = await client.checkoutConfigurations.create({
+            plan: {
+              company_id: companyId,
+              currency: 'usd',
+              initial_price: input.amount,
+              plan_type: 'one_time',
+              renewal_price: 0,
+            },
+            metadata: {
+              order_id: String(input.orderId),
+              customer_email: input.customerEmail || '',
+              customer_name: input.customerName || '',
+            },
+            redirect_url: input.successUrl,
+          } as any);
+
+          // Build checkout URL from the configuration ID
+          const checkoutUrl = `https://whop.com/checkout/${checkoutConfig.id}?redirect_url=${encodeURIComponent(input.successUrl)}`;
+
+          // Store whop checkout config ID on the order
+          const db = await getDb();
+          if (db) {
+            await db.update(orders)
+              .set({ whopPaymentId: checkoutConfig.id, updatedAt: new Date().toISOString() })
+              .where(eq(orders.id, input.orderId));
+          }
+
+          console.log('[Whop] Checkout config created:', checkoutConfig.id);
+          return { success: true, checkoutUrl, checkoutConfigId: checkoutConfig.id };
+        } catch (error: any) {
+          console.error('[Whop] Error creating checkout:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to create Whop checkout: ${error.message}`,
+          });
+        }
+      }),
+
+    markWhopPaid: publicProcedure
+      .input(z.object({
+        orderId: z.number(),
+        whopPaymentId: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        await db.update(orders)
+          .set({ paymentStatus: 'paid', status: 'processing', whopPaymentId: input.whopPaymentId, updatedAt: new Date().toISOString() })
+          .where(eq(orders.id, input.orderId));
+        return { success: true };
+      }),
   }),
 
   // Cart router

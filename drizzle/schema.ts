@@ -56,6 +56,7 @@ export const orders = mysqlTable("orders", {
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	stripePaymentIntentId: varchar({ length: 255 }),
 	stripeSessionId: varchar({ length: 255 }),
+	whopPaymentId: varchar({ length: 255 }),
 },
 (table) => [
 	index("orders_orderNumber_unique").on(table.orderNumber),

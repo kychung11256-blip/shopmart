@@ -10,6 +10,7 @@ import { serveStatic, setupVite } from "./vite";
 import { handleStripeWebhook } from "../stripe-webhook";
 import { handleStarPayWebhook } from "../star-pay-webhook";
 import { handleNexapayWebhook } from "../nexapay-webhook";
+import { handleWhopWebhook } from "../whop-webhook";
 import Stripe from "stripe";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -92,6 +93,15 @@ async function startServer() {
     express.raw({ type: "application/json" }),
     async (req, res) => {
       await handleNexapayWebhook(req, res);
+    }
+  );
+
+  // Whop webhook
+  app.post(
+    "/api/webhooks/whop",
+    express.raw({ type: "application/json" }),
+    async (req, res) => {
+      await handleWhopWebhook(req, res);
     }
   );
 

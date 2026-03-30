@@ -231,6 +231,7 @@ export default function Checkout() {
   const createPaymentIntentMutation = trpc.payments.createPaymentIntent.useMutation();
   const createStarPayOrderMutation = trpc.payments.createStarPayOrder.useMutation();
   const createNexapaySessionMutation = trpc.orders.createNexapaySession.useMutation();
+  const createWhopCheckoutMutation = trpc.orders.createWhopCheckout.useMutation();
   const stripeKeyQuery = trpc.config.getStripePublishableKey.useQuery();
 
   // Initialize Stripe
@@ -306,6 +307,46 @@ export default function Checkout() {
   const handleNexapayError = (error: any) => {
     console.error('NexaPay payment error:', error);
     toast.error(error?.message || 'Payment failed');
+  };
+
+  const handleWhopCheckout = async () => {
+    if (!shippingAddress.trim()) { toast.error('Please enter shipping address'); return; }
+    if (!isAuthenticated && (!guestEmail.trim() || !guestName.trim())) { toast.error('Please enter email and name for guest checkout'); return; }
+    if (cartItems.length === 0) { toast.error('Your cart is empty'); return; }
+    setIsProcessing(true);
+    try {
+      let orderResult;
+      if (isAuthenticated) {
+        orderResult = await createOrderMutation.mutateAsync({
+          items: cartItems.map(item => ({ productId: item.productId, quantity: item.quantity })),
+          shippingAddress,
+        });
+      } else {
+        orderResult = await createGuestOrderMutation.mutateAsync({
+          items: cartItems.map(item => ({ productId: item.productId, quantity: item.quantity })),
+          shippingAddress, guestEmail, guestName,
+        });
+      }
+      if (!orderResult.success) throw new Error('Failed to create order');
+      const orderId = orderResult.id || 1;
+      sessionStorage.setItem('lastOrderId', orderId.toString());
+      const origin = window.location.origin;
+      const result = await createWhopCheckoutMutation.mutateAsync({
+        orderId,
+        amount: totalPrice,
+        successUrl: `${origin}/orders/confirmation?orderId=${orderId}&payment=whop`,
+        cancelUrl: `${origin}/checkout`,
+        customerEmail: isAuthenticated ? user?.email || undefined : guestEmail || undefined,
+        customerName: isAuthenticated ? user?.name || undefined : guestName || undefined,
+      });
+      toast.success('Redirecting to Whop checkout...');
+      window.open(result.checkoutUrl, '_blank');
+    } catch (error: any) {
+      console.error('Whop checkout error:', error);
+      toast.error(error?.message || 'Failed to create Whop checkout');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleNexapayCheckout = async () => {
@@ -676,6 +717,25 @@ export default function Checkout() {
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                     />
                   </div>
+
+                  {/* Whop Payment */}
+                  <button
+                    onClick={handleWhopCheckout}
+                    disabled={isProcessing}
+                    className="w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isProcessing ? (
+                      <Loader2 size={20} className="animate-spin text-purple-600" />
+                    ) : (
+                      <div className="w-5 h-5 rounded bg-black flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">W</span>
+                      </div>
+                    )}
+                    <div className="text-left">
+                      <div className="font-semibold">Whop</div>
+                      <div className="text-sm text-gray-600">Pay with Whop — credit card, Apple Pay & more</div>
+                    </div>
+                  </button>
                 </div>
               </div>
             </div>
