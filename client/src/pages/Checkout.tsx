@@ -313,7 +313,7 @@ export default function Checkout() {
   };
 
   const handleWhopCheckout = async () => {
-    if (!shippingAddress.trim()) { toast.error('Please enter shipping address'); return; }
+    if (!shippingAddress.trim()) { toast.error('Please enter your email address'); return; }
     if (!isAuthenticated && (!guestEmail.trim() || !guestName.trim())) { toast.error('Please enter email and name for guest checkout'); return; }
     if (cartItems.length === 0) { toast.error('Your cart is empty'); return; }
     setIsProcessing(true);
@@ -356,7 +356,7 @@ export default function Checkout() {
 
   const handleNexapayCheckout = async () => {
     if (!shippingAddress.trim()) {
-      toast.error('Please enter shipping address');
+      toast.error('Please enter your email address');
       return;
     }
 
@@ -412,7 +412,7 @@ export default function Checkout() {
 
   const handleStarPayCheckout = async (product: 'TRC20Buy' | 'TRC20H5' | 'USDCERC20Buy') => {
     if (!shippingAddress.trim()) {
-      toast.error('Please enter shipping address');
+      toast.error('Please enter your email address');
       return;
     }
 
@@ -493,7 +493,7 @@ export default function Checkout() {
 
   const handleStripeCheckout = async () => {
     if (!shippingAddress.trim()) {
-      toast.error('Please enter shipping address');
+      toast.error('Please enter your email address');
       return;
     }
 
@@ -631,17 +631,17 @@ export default function Checkout() {
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-2xl font-bold mb-6">Checkout</h2>
 
-              {/* Shipping Address */}
+              {/* Email Address for digital delivery */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Shipping Address *
+                  Email Address * <span className="text-xs text-gray-400 font-normal">(Your NFT will be delivered to this email)</span>
                 </label>
-                <textarea
+                <input
+                  type="email"
                   value={shippingAddress}
                   onChange={(e) => setShippingAddress(e.target.value)}
-                  placeholder="Enter your shipping address"
+                  placeholder="Enter your email address"
                   className="w-full border border-gray-300 rounded px-4 py-2 text-sm outline-none focus:border-red-500"
-                  rows={3}
                 />
               </div>
 

@@ -384,3 +384,10 @@
 - [x] 排查購物車加入商品時金額顯示錯誤的根本原因 - Cart.tsx 中 convertDbProductToFrontend 對已轉換為美元的 API 數據再次除以 100
 - [x] 修復價格不一致問題（購物車 vs 商品頁 vs 結賬頁） - 移除雙重轉換，保留 API 已返回的美元值
 - [x] 驗證修復後全流程價格一致 - 所有測試通過
+
+## 🔧 結賬頁面 Shipping Address 改為 Email Address
+
+- [x] 將 Checkout.tsx 的 "Shipping Address" 標籤改為 "Email Address"
+- [x] 將 textarea 改為 email input，加入格式驗證
+- [x] 保留後端 shippingAddress 欄位名稱不變（避免破壞 DB 和其他邏輯）
+- [x] 同步更新遠客結賬表單的 email 欄位提示文字
