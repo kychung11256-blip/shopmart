@@ -609,7 +609,7 @@ export default function Home() {
             <div className="mb-4">
               <TrustPilotWidget />
             </div>
-            <p className="text-center text-xs">Copyright © 2013-2024 PinKoi Network Technology Co., Ltd. All rights reserved.</p>
+            <p className="text-center text-xs">Copyright © 2013-2026 PinKoi Network Technology Co., Ltd. All rights reserved.</p>
           </div>
         </div>
       </footer>
