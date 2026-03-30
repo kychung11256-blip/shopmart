@@ -86,9 +86,11 @@ describe('Admin Products Management', () => {
     expect(updateResult).toHaveProperty('success', true);
 
     // Verify the update
+    // Note: getById uses convertProductToAPI which converts cents to dollars
+    // create input price=7500 → stored as 7500*100=750000 cents → API returns 7500.00 dollars
     const updated = await adminCaller.products.getById(testProductId);
     expect(updated.name).toBe('Updated Product Name');
-    expect(updated.price).toBe(750000);
+    expect(updated.price).toBe(7500);
     expect(updated.stock).toBe(15);
   });
 
@@ -127,8 +129,9 @@ describe('Admin Products Management', () => {
     const allProducts = await adminCaller.products.list({ limit: 100 });
     const product = allProducts.find((p: any) => p.name === 'Price Conversion Test');
     
-    // Price should be stored in cents (1234500 = $12345.00)
-    expect(product.price).toBe(1234500);
+    // create input price=12345 → stored as 12345*100=1234500 cents
+    // list uses convertProductsToAPI → returns 12345 dollars
+    expect(product.price).toBe(12345);
   });
 
   it('should list products with pagination', async () => {

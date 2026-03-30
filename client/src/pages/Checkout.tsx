@@ -166,11 +166,10 @@ export default function Checkout() {
           try {
             const items = JSON.parse(savedCart);
             const formattedItems: CartItem[] = items.map((item: any) => {
-              const price = item.product.price > 100 ? item.product.price / 100 : item.product.price;
-              return {
+                return {
                 productId: item.product.id,
                 quantity: item.qty,
-                price: price,
+                price: item.product.price,
                 name: item.product.name,
               };
             });

@@ -36,7 +36,8 @@ const mockTrpcClient = {
   },
 };
 
-// 模擬商品數據轉換函數
+// 模擬服務端 centsToDollars 轉換（測試 DB cents → API dollars 的轉換邏輯）
+// 注意：此轉換在服務端已完成，前端不應再除以 100
 function convertDbProductToFrontend(dbProduct: any) {
   return {
     id: dbProduct.id,

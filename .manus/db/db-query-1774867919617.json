@@ -1,0 +1,70 @@
+{
+  "query": "SELECT id, name, price, originalPrice FROM products LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute SELECT id, name, price, originalPrice FROM products LIMIT 10;",
+  "rows": [
+    {
+      "id": "90007",
+      "name": "nft001",
+      "price": "49000",
+      "originalPrice": "NULL"
+    },
+    {
+      "id": "180001",
+      "name": "NFT002",
+      "price": "168000",
+      "originalPrice": "NULL"
+    },
+    {
+      "id": "180002",
+      "name": "NFT003",
+      "price": "298000",
+      "originalPrice": "NULL"
+    },
+    {
+      "id": "720001",
+      "name": "alt",
+      "price": "0",
+      "originalPrice": "NULL"
+    },
+    {
+      "id": "720002",
+      "name": "atl",
+      "price": "98000",
+      "originalPrice": "NULL"
+    },
+    {
+      "id": "750001",
+      "name": "think",
+      "price": "398000",
+      "originalPrice": "NULL"
+    },
+    {
+      "id": "750002",
+      "name": "mybithy",
+      "price": "498000",
+      "originalPrice": "NULL"
+    },
+    {
+      "id": "750003",
+      "name": "nft004",
+      "price": "889000",
+      "originalPrice": "NULL"
+    },
+    {
+      "id": "750004",
+      "name": "Test Product",
+      "price": "9999",
+      "originalPrice": "NULL"
+    },
+    {
+      "id": "750005",
+      "name": "Test Product",
+      "price": "999900",
+      "originalPrice": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tprice\toriginalPrice\n90007\tnft001\t49000\tNULL\n180001\tNFT002\t168000\tNULL\n180002\tNFT003\t298000\tNULL\n720001\talt\t0\tNULL\n720002\tatl\t98000\tNULL\n750001\tthink\t398000\tNULL\n750002\tmybithy\t498000\tNULL\n750003\tnft004\t889000\tNULL\n750004\tTest Product\t9999\tNULL\n750005\tTest Product\t999900\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1682
+}

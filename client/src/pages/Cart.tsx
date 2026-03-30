@@ -21,22 +21,22 @@ interface CartItem {
   selected: boolean;
 }
 
-// 轉換數據庫商品格式為前端格式
-function convertDbProductToFrontend(dbProduct: any): Product {
+// 將 API 商品格式轉為前端 Product 格式（API 已返回美元，無需再除以 100）
+function convertApiProductToFrontend(apiProduct: any): Product {
   return {
-    id: dbProduct.id,
-    name: dbProduct.name,
-    price: dbProduct.price / 100,
-    originalPrice: dbProduct.originalPrice ? dbProduct.originalPrice / 100 : undefined,
-    image: dbProduct.image,
-    categoryId: dbProduct.categoryId,
-    sold: dbProduct.sold || 0,
-    rating: dbProduct.rating ? dbProduct.rating / 100 : 0,
-    description: dbProduct.description,
-    stock: dbProduct.stock || 0,
-    status: dbProduct.status || 'active',
-    createdAt: dbProduct.createdAt,
-    updatedAt: dbProduct.updatedAt,
+    id: apiProduct.id,
+    name: apiProduct.name,
+    price: apiProduct.price,
+    originalPrice: apiProduct.originalPrice || undefined,
+    image: apiProduct.image,
+    categoryId: apiProduct.categoryId,
+    sold: apiProduct.sold || 0,
+    rating: apiProduct.rating || 0,
+    description: apiProduct.description,
+    stock: apiProduct.stock || 0,
+    status: apiProduct.status || 'active',
+    createdAt: apiProduct.createdAt,
+    updatedAt: apiProduct.updatedAt,
   };
 }
 
@@ -85,7 +85,7 @@ export default function Cart() {
     for (const cartItem of apiCartItems) {
       const dbProduct = allProducts.find(p => p.id === cartItem.productId);
       if (dbProduct) {
-        const product = convertDbProductToFrontend(dbProduct);
+        const product = convertApiProductToFrontend(dbProduct);
         items.push({
           id: cartItem.id,
           product: product,
