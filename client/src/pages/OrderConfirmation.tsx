@@ -54,9 +54,9 @@ export default function OrderConfirmation() {
     setOrderId(id);
     setIsLoading(false);
     
-    // If payment was successful (from Stripe or Nexapay) and we haven't marked as paid yet, do it now
+    // If payment was successful (from Stripe, Nexapay, or Whop) and we haven't marked as paid yet, do it now
     const paymentMethod = params.get('payment');
-    if ((redirectStatus === 'succeeded' || paymentMethod === 'nexapay') && id && !hasMarkedAsPaid) {
+    if ((redirectStatus === 'succeeded' || paymentMethod === 'nexapay' || paymentMethod === 'whop') && id && !hasMarkedAsPaid) {
       console.log(`[OrderConfirmation] Payment succeeded for order ${id}, marking as paid...`);
       setHasMarkedAsPaid(true);
       markAsPaidMutation.mutate(id, {

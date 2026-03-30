@@ -397,3 +397,11 @@
 - [x] WhopCheckoutEmbed 在手機上高度過高，遫住支付按鈕 - 添加 max-h-[90vh] 限制高度
 - [x] 需要設置最大高度並允許內部滷動 - 使用 flex 布局和 overflow-y-auto
 - [ ] 測試手機版本滷動和支付流程
+
+## 🐛 Bug: 結賬成功後返回 404 頁面 - 已修復
+
+- [x] 排查支付成功後的重定向 URL 是否正確 - 發現 onComplete 回調中 whopOrderId 因 React 閉包問題為 null
+- [x] 確認 OrderConfirmation 頁面路由是否存在 - 路由正確，問題是 orderId 為 null 導致查詢失敗
+- [x] 修復重定向邏輯 - 使用 useRef (whopOrderIdRef) 避免 stale closure，確保 orderId 正確傳遞
+- [x] 修復 OrderConfirmation - 添加 payment=whop 條件，確保 Whop 支付後也能正確標記訂單為已支付
+- [x] 修復 stripe-webhook.ts TS 類型錯誤 - updatedAt: new Date() 改為 new Date().toISOString()

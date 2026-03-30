@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { WhopCheckoutEmbed } from '@whop/checkout/react';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
@@ -108,6 +108,8 @@ export default function Checkout() {
   const [showWhopModal, setShowWhopModal] = useState<boolean>(false);
   const [whopPlanId, setWhopPlanId] = useState<string | null>(null);
   const [whopOrderId, setWhopOrderId] = useState<number | null>(null);
+  // Use ref to avoid stale closure in WhopCheckoutEmbed onComplete callback
+  const whopOrderIdRef = useRef<number | null>(null);
 
   // Get cart items from localStorage for guests, or from tRPC for authenticated users
   const { data: authenticatedCartItems } = trpc.cart.list.useQuery(undefined, {
@@ -345,6 +347,7 @@ export default function Checkout() {
       // Open embedded Whop checkout dialog
       setWhopPlanId(result.checkoutConfigId);
       setWhopOrderId(orderId);
+      whopOrderIdRef.current = orderId; // Store in ref to avoid stale closure
       setShowWhopModal(true);
     } catch (error: any) {
       console.error('Whop checkout error:', error);
@@ -852,7 +855,10 @@ export default function Checkout() {
                   if (!isAuthenticated) {
                     localStorage.removeItem('shopmart_cart');
                   }
-                  navigate(`/orders/confirmation?orderId=${whopOrderId}&payment=whop`);
+                  // Use ref to avoid stale closure; fall back to sessionStorage
+                  const confirmedOrderId = whopOrderIdRef.current || sessionStorage.getItem('lastOrderId');
+                  console.log('[Whop] onComplete - orderId:', confirmedOrderId, 'plan_id:', plan_id, 'receipt_id:', receipt_id);
+                  navigate(`/orders/confirmation?orderId=${confirmedOrderId}&payment=whop`);
                 }}
               />
             ) : (

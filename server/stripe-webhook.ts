@@ -53,7 +53,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       .set({
         paymentStatus: "paid",
         stripeSessionId: session.id,
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       })
       .where(eq(orders.id, orderId));
 
@@ -112,7 +112,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       .set({
         paymentStatus: "paid",
         status: "processing",
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       })
       .where(eq(orders.id, order.id));
 
@@ -172,7 +172,7 @@ async function handleChargeFailed(charge: Stripe.Charge) {
       .update(orders)
       .set({
         paymentStatus: "failed",
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       })
       .where(eq(orders.id, order.id));
 
@@ -220,7 +220,7 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
       .update(orders)
       .set({
         paymentStatus: "refunded",
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       })
       .where(eq(orders.id, order.id));
 
