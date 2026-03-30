@@ -289,15 +289,15 @@ export default function ProductDetail() {
 
       <div className="max-w-[1200px] mx-auto px-4 pb-8">
         {/* Product main info */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-4">
+        <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-4">
           {isLoading ? (
             <div className="text-center py-12 text-gray-500">
               {language === 'zh' ? '加載商品詳情中...' : 'Loading product details...'}
             </div>
           ) : (
-            <div className="flex gap-8">
+            <div className="flex flex-col md:flex-row gap-6 md:gap-8">
               {/* Product image */}
-              <div className="w-80 shrink-0">
+              <div className="w-full md:w-80 md:shrink-0">
                 <div className="relative rounded-lg overflow-hidden border border-gray-100" style={{ paddingTop: '100%' }}>
                   <img
                     src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'}
@@ -392,7 +392,7 @@ export default function ProductDetail() {
                 </div>
 
                 {/* Trust badges */}
-                <div className="flex gap-4 mt-5 pt-4 border-t border-gray-100">
+                <div className="flex flex-wrap gap-3 mt-5 pt-4 border-t border-gray-100">
                   {[
                     { icon: Truck, text: language === 'zh' ? '免運費' : 'Free Shipping' },
                     { icon: Shield, text: language === 'zh' ? '100%正品' : '100% Authentic' },

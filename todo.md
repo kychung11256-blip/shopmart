@@ -405,3 +405,7 @@
 - [x] 修復重定向邏輯 - 使用 useRef (whopOrderIdRef) 避免 stale closure，確保 orderId 正確傳遞
 - [x] 修復 OrderConfirmation - 添加 payment=whop 條件，確保 Whop 支付後也能正確標記訂單為已支付
 - [x] 修復 stripe-webhook.ts TS 類型錯誤 - updatedAt: new Date() 改為 new Date().toISOString()
+
+## 🐛 Bug: 手機版商品詳情頁右側資訊欄溢出畫面
+
+- [x] 修復 ProductDetail.tsx 響應式佈局 - 手機版右側資訊欄溢出畫面右側，改為 flex-col md:flex-row 垂直堆疊
