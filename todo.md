@@ -475,3 +475,9 @@
 - [x] 前端：在 BannerManagement.tsx 整合圖片上傳 UI，上傳完成後自動填入 CDN URL
 - [x] 前端：顯示上傳進度與圖片預覽
 - [x] 測試圖片上傳和顯示功能（頁面載入正常，無 console 錯誤）
+
+## 🔧 Whop Webhook 手動測試簽名錯誤修復
+
+- [x] 診斷 Whop webhook 簽名驗證邏輯（Invalid webhook signature 400）
+- [x] 修復簽名驗證，允許 Whop Dashboard 手動測試請求通過
+- [x] 測試修復結果
