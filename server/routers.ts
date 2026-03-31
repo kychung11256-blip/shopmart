@@ -387,10 +387,40 @@ export const appRouter = router({
       const db = await getDb();
       if (!db) return [];
       try {
-        if (ctx.user?.role === 'admin') {
-          return await db.select().from(orders).orderBy(desc(orders.createdAt));
-        }
-        return await db.select().from(orders).where(eq(orders.userId, ctx.user?.id || 0)).orderBy(desc(orders.createdAt));
+        // Fetch orders
+        const orderList = ctx.user?.role === 'admin'
+          ? await db.select().from(orders).orderBy(desc(orders.createdAt))
+          : await db.select().from(orders).where(eq(orders.userId, ctx.user?.id || 0)).orderBy(desc(orders.createdAt));
+
+        if (orderList.length === 0) return [];
+
+        // Fetch all order items for these orders in one query
+        const orderIds = orderList.map((o) => o.id);
+        const allItems = await db
+          .select({
+            id: orderItems.id,
+            orderId: orderItems.orderId,
+            productId: orderItems.productId,
+            quantity: orderItems.quantity,
+            price: orderItems.price,
+            productName: products.name,
+            productImage: products.image,
+          })
+          .from(orderItems)
+          .leftJoin(products, eq(orderItems.productId, products.id))
+          .where(sql`${orderItems.orderId} IN (${sql.join(orderIds.map(id => sql`${id}`), sql`, `)})`);
+
+        // Attach items to each order
+        const itemsByOrderId = allItems.reduce((acc, item) => {
+          if (!acc[item.orderId]) acc[item.orderId] = [];
+          acc[item.orderId].push(item);
+          return acc;
+        }, {} as Record<number, typeof allItems>);
+
+        return orderList.map((order) => ({
+          ...order,
+          items: itemsByOrderId[order.id] || [],
+        }));
       } catch (error) {
         console.error("[API] Error fetching orders:", error);
         return [];

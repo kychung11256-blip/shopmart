@@ -1,16 +1,13 @@
 /**
  * PinKoi Admin - Orders Management
- * Design: 深色側邊欄 + 白色內容區域
- * 數據來源: 完全從後端 API 獲取真實數據
- * 改善: 正確顯示付款狀態 (paymentStatus)、付款方式識別、付款篩選器
+ * 改善: 顯示商品名稱、數量、付款狀態、付款方式
  */
 
 import { useState } from 'react';
-import { Search, Eye, X, Package, Truck, CheckCircle, Clock, XCircle, CreditCard, DollarSign, AlertCircle, RefreshCw } from 'lucide-react';
+import { Search, Eye, X, Package, Truck, CheckCircle, Clock, XCircle, DollarSign, AlertCircle, RefreshCw, ShoppingBag } from 'lucide-react';
 import { AdminLayout } from './Dashboard';
 import { trpc } from '@/lib/trpc';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { toast } from 'sonner';
 
 // ── 訂單流程狀態 ─────────────────────────────────────────────
 const orderStatusConfig: Record<string, { color: string; icon: any; labelZh: string; labelEn: string }> = {
@@ -32,16 +29,23 @@ const paymentStatusConfig: Record<string, { color: string; dotColor: string; lab
 
 // ── 付款方式識別 ──────────────────────────────────────────────
 function detectPaymentMethod(order: any): { label: string; color: string } {
-  if (order.whopPaymentId)            return { label: 'Whop',   color: 'text-purple-600' };
-  if (order.stripePaymentIntentId)    return { label: 'Stripe', color: 'text-indigo-600' };
-  if (order.stripeSessionId)          return { label: 'Stripe', color: 'text-indigo-600' };
+  if (order.whopPaymentId)         return { label: 'Whop',   color: 'text-purple-600' };
+  if (order.stripePaymentIntentId) return { label: 'Stripe', color: 'text-indigo-600' };
+  if (order.stripeSessionId)       return { label: 'Stripe', color: 'text-indigo-600' };
   return { label: '—', color: 'text-gray-300' };
+}
+
+// ── 商品摘要文字（列表用）────────────────────────────────────
+function buildItemsSummary(items: any[], language: string): string {
+  if (!items || items.length === 0) return language === 'zh' ? '無商品資訊' : 'No items';
+  return items
+    .map((item) => `${item.productName || `#${item.productId}`} × ${item.quantity}`)
+    .join('、');
 }
 
 function getOrderStatusLabel(status: string, language: string) {
   const config = orderStatusConfig[status];
-  if (config) return language === 'zh' ? config.labelZh : config.labelEn;
-  return status;
+  return config ? (language === 'zh' ? config.labelZh : config.labelEn) : status;
 }
 
 function getPaymentStatusLabel(status: string, language: string) {
@@ -52,13 +56,15 @@ function getPaymentStatusLabel(status: string, language: string) {
 // ── 訂單詳情 Modal ────────────────────────────────────────────
 function OrderDetailModal({ order, onClose }: { order: any; onClose: () => void }) {
   const { language } = useLanguage();
-  const orderConfig  = orderStatusConfig[order.status] || orderStatusConfig.pending;
-  const payConfig    = paymentStatusConfig[order.paymentStatus] || paymentStatusConfig.unpaid;
-  const payMethod    = detectPaymentMethod(order);
+  const orderConfig = orderStatusConfig[order.status] || orderStatusConfig.pending;
+  const payConfig   = paymentStatusConfig[order.paymentStatus] || paymentStatusConfig.unpaid;
+  const payMethod   = detectPaymentMethod(order);
+  const items: any[] = order.items || [];
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-800">
             {language === 'zh' ? '訂單詳情' : 'Order Details'}
@@ -69,7 +75,7 @@ function OrderDetailModal({ order, onClose }: { order: any; onClose: () => void 
         </div>
 
         <div className="p-5 space-y-4">
-          {/* Header: ID + 訂單狀態 */}
+          {/* ID + 訂單狀態 */}
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm font-semibold text-gray-700">#{order.id}</p>
@@ -119,36 +125,79 @@ function OrderDetailModal({ order, onClose }: { order: any; onClose: () => void 
             </div>
           )}
 
-          {/* 商品列表 */}
-          {order.items && order.items.length > 0 && (
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">
-                {language === 'zh' ? '商品' : 'Products'}
+          {/* ── 商品清單 ── */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <ShoppingBag size={14} className="text-gray-500" />
+              <p className="text-sm font-medium text-gray-700">
+                {language === 'zh' ? '購買商品' : 'Items Purchased'}
               </p>
-              <div className="space-y-2">
-                {order.items.map((item: any, idx: number) => (
-                  <div key={idx} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">
-                      {item.productName || `Product #${item.productId}`} × {item.quantity}
-                    </span>
-                    <span className="font-medium text-gray-700">
-                      ${((item.price || 0) * item.quantity / 100).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
-              </div>
             </div>
-          )}
+            {items.length === 0 ? (
+              <p className="text-sm text-gray-400 italic px-1">
+                {language === 'zh' ? '此訂單無商品記錄' : 'No item records for this order'}
+              </p>
+            ) : (
+              <div className="border border-gray-100 rounded-lg overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-100">
+                      <th className="text-left text-xs font-semibold text-gray-500 px-3 py-2">
+                        {language === 'zh' ? '商品名稱' : 'Product'}
+                      </th>
+                      <th className="text-center text-xs font-semibold text-gray-500 px-3 py-2">
+                        {language === 'zh' ? '數量' : 'Qty'}
+                      </th>
+                      <th className="text-right text-xs font-semibold text-gray-500 px-3 py-2">
+                        {language === 'zh' ? '單價' : 'Price'}
+                      </th>
+                      <th className="text-right text-xs font-semibold text-gray-500 px-3 py-2">
+                        {language === 'zh' ? '小計' : 'Subtotal'}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {items.map((item: any, idx: number) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            {item.productImage && (
+                              <img
+                                src={item.productImage}
+                                alt={item.productName}
+                                className="w-8 h-8 object-cover rounded flex-shrink-0"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                              />
+                            )}
+                            <span className="text-gray-700 font-medium">
+                              {item.productName || `Product #${item.productId}`}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 text-center text-gray-600">{item.quantity}</td>
+                        <td className="px-3 py-2 text-right text-gray-600">
+                          ${(item.price / 100).toFixed(2)}
+                        </td>
+                        <td className="px-3 py-2 text-right font-medium text-gray-700">
+                          ${((item.price * item.quantity) / 100).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
 
           {/* 總計 */}
-          <div className="border-t border-gray-200 pt-2 flex justify-between font-semibold">
-            <span>{language === 'zh' ? '總計' : 'Total'}</span>
-            <span className="text-red-500">
+          <div className="border-t border-gray-200 pt-3 flex justify-between font-semibold">
+            <span className="text-gray-700">{language === 'zh' ? '訂單總計' : 'Order Total'}</span>
+            <span className="text-red-500 text-lg">
               ${((order.totalAmount ?? order.totalPrice ?? 0) / 100).toFixed(2)}
             </span>
           </div>
 
-          {/* 支付 ID */}
+          {/* 支付憑證 */}
           {(order.whopPaymentId || order.stripePaymentIntentId || order.stripeSessionId) && (
             <div className="bg-gray-50 rounded-lg p-4 space-y-2">
               <p className="text-sm font-medium text-gray-700">
@@ -183,12 +232,12 @@ function OrderDetailModal({ order, onClose }: { order: any; onClose: () => void 
 // ── 主頁面 ────────────────────────────────────────────────────
 export default function AdminOrders() {
   const { language } = useLanguage();
-  const [searchQuery,      setSearchQuery]      = useState('');
-  const [filterStatus,     setFilterStatus]     = useState('All');
-  const [filterPayment,    setFilterPayment]    = useState('All');
-  const [selectedOrder,    setSelectedOrder]    = useState<any>(null);
+  const [searchQuery,   setSearchQuery]   = useState('');
+  const [filterStatus,  setFilterStatus]  = useState('All');
+  const [filterPayment, setFilterPayment] = useState('All');
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
 
-  const { data: orderList = [], isLoading, refetch } = trpc.orders.list.useQuery({ limit: 100 } as any);
+  const { data: orderList = [], isLoading, refetch } = trpc.orders.list.useQuery({} as any);
 
   // ── 篩選 ──
   const filtered = (orderList as any[]).filter((o: any) => {
@@ -196,15 +245,18 @@ export default function AdminOrders() {
       String(o.id).includes(searchQuery) ||
       (o.orderNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (o.userName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (o.userEmail || '').toLowerCase().includes(searchQuery.toLowerCase());
-    const matchStatus  = filterStatus  === 'All' || o.status         === filterStatus;
+      (o.userEmail || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (o.items || []).some((item: any) =>
+        (item.productName || '').toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    const matchStatus  = filterStatus  === 'All' || o.status                    === filterStatus;
     const matchPayment = filterPayment === 'All' || (o.paymentStatus || 'unpaid') === filterPayment;
     return matchSearch && matchStatus && matchPayment;
   });
 
   // ── 統計 ──
-  const paidCount   = (orderList as any[]).filter((o: any) => o.paymentStatus === 'paid').length;
-  const unpaidCount = (orderList as any[]).filter((o: any) => !o.paymentStatus || o.paymentStatus === 'unpaid').length;
+  const paidCount    = (orderList as any[]).filter((o: any) => o.paymentStatus === 'paid').length;
+  const unpaidCount  = (orderList as any[]).filter((o: any) => !o.paymentStatus || o.paymentStatus === 'unpaid').length;
   const totalRevenue = (orderList as any[])
     .filter((o: any) => o.paymentStatus === 'paid')
     .reduce((sum: number, o: any) => sum + ((o.totalAmount ?? o.totalPrice ?? 0) / 100), 0);
@@ -263,12 +315,10 @@ export default function AdminOrders() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={language === 'zh' ? '搜索訂單 ID、客戶名稱或郵箱...' : 'Search by order ID, customer or email...'}
+              placeholder={language === 'zh' ? '搜索訂單 ID、客戶、商品名稱...' : 'Search by order ID, customer or product...'}
               className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400"
             />
           </div>
-
-          {/* 訂單狀態篩選 */}
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
@@ -276,13 +326,9 @@ export default function AdminOrders() {
           >
             <option value="All">{language === 'zh' ? '所有訂單狀態' : 'All Order Status'}</option>
             {Object.entries(orderStatusConfig).map(([status, cfg]) => (
-              <option key={status} value={status}>
-                {language === 'zh' ? cfg.labelZh : cfg.labelEn}
-              </option>
+              <option key={status} value={status}>{language === 'zh' ? cfg.labelZh : cfg.labelEn}</option>
             ))}
           </select>
-
-          {/* 付款狀態篩選 */}
           <select
             value={filterPayment}
             onChange={(e) => setFilterPayment(e.target.value)}
@@ -290,12 +336,9 @@ export default function AdminOrders() {
           >
             <option value="All">{language === 'zh' ? '所有付款狀態' : 'All Payment Status'}</option>
             {Object.entries(paymentStatusConfig).map(([status, cfg]) => (
-              <option key={status} value={status}>
-                {language === 'zh' ? cfg.labelZh : cfg.labelEn}
-              </option>
+              <option key={status} value={status}>{language === 'zh' ? cfg.labelZh : cfg.labelEn}</option>
             ))}
           </select>
-
           <span className="text-sm text-gray-500">
             {filtered.length} {language === 'zh' ? '個結果' : 'results'}
           </span>
@@ -320,7 +363,7 @@ export default function AdminOrders() {
                     {language === 'zh' ? '客戶' : 'Customer'}
                   </th>
                   <th className="text-left text-xs font-semibold text-gray-500 px-4 py-3">
-                    {language === 'zh' ? '收件郵箱' : 'Delivery Email'}
+                    {language === 'zh' ? '購買商品' : 'Items'}
                   </th>
                   <th className="text-left text-xs font-semibold text-gray-500 px-4 py-3">
                     {language === 'zh' ? '總計' : 'Total'}
@@ -348,6 +391,7 @@ export default function AdminOrders() {
                   const payCfg    = paymentStatusConfig[order.paymentStatus || 'unpaid'] || paymentStatusConfig.unpaid;
                   const payMethod = detectPaymentMethod(order);
                   const isPaid    = order.paymentStatus === 'paid';
+                  const items: any[] = order.items || [];
 
                   return (
                     <tr
@@ -359,14 +403,40 @@ export default function AdminOrders() {
                       </td>
                       <td className="px-4 py-3">
                         <p className="text-sm font-medium text-gray-700">{order.userName || 'Guest'}</p>
-                        {order.userEmail && (
-                          <p className="text-xs text-gray-400">{order.userEmail}</p>
+                        {order.userEmail && <p className="text-xs text-gray-400">{order.userEmail}</p>}
+                        {order.shippingAddress && (
+                          <p className="text-xs text-blue-500 truncate max-w-[120px]">{order.shippingAddress}</p>
                         )}
                       </td>
-                      <td className="px-4 py-3 max-w-[160px]">
-                        <p className="text-sm text-blue-600 truncate">
-                          {order.shippingAddress || <span className="text-gray-300">—</span>}
-                        </p>
+                      {/* 購買商品摘要 */}
+                      <td className="px-4 py-3 max-w-[220px]">
+                        {items.length === 0 ? (
+                          <span className="text-xs text-gray-300">—</span>
+                        ) : (
+                          <div className="space-y-0.5">
+                            {items.slice(0, 2).map((item: any, idx: number) => (
+                              <div key={idx} className="flex items-center gap-1.5">
+                                {item.productImage && (
+                                  <img
+                                    src={item.productImage}
+                                    alt={item.productName}
+                                    className="w-5 h-5 object-cover rounded flex-shrink-0"
+                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                  />
+                                )}
+                                <span className="text-xs text-gray-600 truncate">
+                                  {item.productName || `#${item.productId}`}
+                                  <span className="text-gray-400 ml-1">×{item.quantity}</span>
+                                </span>
+                              </div>
+                            ))}
+                            {items.length > 2 && (
+                              <span className="text-xs text-gray-400">
+                                +{items.length - 2} {language === 'zh' ? '件' : 'more'}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-sm font-semibold text-red-500">
@@ -384,9 +454,7 @@ export default function AdminOrders() {
                       </td>
                       {/* 付款方式 */}
                       <td className="px-4 py-3">
-                        <span className={`text-xs font-semibold ${payMethod.color}`}>
-                          {payMethod.label}
-                        </span>
+                        <span className={`text-xs font-semibold ${payMethod.color}`}>{payMethod.label}</span>
                       </td>
                       {/* 訂單狀態 */}
                       <td className="px-4 py-3">

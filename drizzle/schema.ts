@@ -111,3 +111,9 @@ export const users = mysqlTable("users", {
 (table) => [
 	index("users_openId_unique").on(table.openId),
 ]);
+
+// ── Insert type helpers (used in routers.ts) ──────────────────
+export type InsertOrder      = typeof orders.$inferInsert;
+export type InsertOrderItem  = typeof orderItems.$inferInsert;
+export type InsertCartItem   = typeof cart.$inferInsert;
+export type InsertProduct    = typeof products.$inferInsert;
