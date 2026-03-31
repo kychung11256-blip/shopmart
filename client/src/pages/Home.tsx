@@ -21,33 +21,8 @@ import { useTermsAgreement } from '@/hooks/useTermsAgreement';
 
 
 
-// 默認 Banner 幻燈片（備用）
-const defaultBannerSlides = [
-  {
-    id: 1,
-    image: 'https://d2xsxph8kpxj0f.cloudfront.net/310519663458665119/8Wwg5mRcrYyNGMcAgK6gn2/banner-fashion-JeSN33rLX87SGrwxcroe5B.webp',
-    title: 'New Arrivals',
-    subtitle: 'Elegant Dress Collection',
-    cta: 'Shop Now',
-    productId: null,
-  },
-  {
-    id: 2,
-    image: 'https://d2xsxph8kpxj0f.cloudfront.net/310519663458665119/8Wwg5mRcrYyNGMcAgK6gn2/banner-electronics-7i74hvSeGRXxTEuJNZKVcx.webp',
-    title: 'Latest Tech',
-    subtitle: 'Gadgets & Electronics',
-    cta: 'Explore',
-    productId: null,
-  },
-  {
-    id: 3,
-    image: 'https://d2xsxph8kpxj0f.cloudfront.net/310519663458665119/8Wwg5mRcrYyNGMcAgK6gn2/hero-banner-e7LkPqEqJMoLrHu2UyeUy2.webp',
-    title: 'Summer Sale',
-    subtitle: 'Up to 50% Off',
-    cta: 'Grab Deals',
-    productId: null,
-  },
-];
+// 默認 Banner 幻燈片（備用 - 當 API 無法加載時使用）
+const defaultBannerSlides: any[] = [];
 
 // Product type from API
 interface Product {
@@ -165,23 +140,7 @@ export default function Home() {
     order: c.order || 0,
   }));
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
-    }, 4000);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => setShowBackToTop(window.scrollY > 400);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // 所有商品區塊都顯示真實數據
-  const allProducts = products.filter(p => p.status === 'active');
-  
-  // 使用動態 Banner 數據，如果沒有則使用預設
+  // 使用動態 Banner 數據
   const bannerSlides = bannerData.length > 0
     ? bannerData.map((banner: any) => ({
         id: banner.id,
@@ -192,6 +151,40 @@ export default function Home() {
         link: banner.link,
       }))
     : defaultBannerSlides;
+
+  // 加載動態 Banner
+  useEffect(() => {
+    const loadBanners = async () => {
+      try {
+        const banners = await trpc.banners.getActive.query();
+        if (banners && banners.length > 0) {
+          // 成功加載動態 Banner
+          setCurrentSlide(0);
+        }
+      } catch (error) {
+        console.error('[Home] Error loading banners:', error);
+      }
+    };
+    
+    loadBanners();
+  }, []);
+
+  useEffect(() => {
+    if (bannerSlides.length === 0) return;
+    
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [bannerSlides.length]);
+
+  useEffect(() => {
+    const handleScroll = () => setShowBackToTop(window.scrollY > 400);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+
 
   // If user hasn't agreed to terms, show only the modal
   if (showTermsModal) {
@@ -377,39 +370,47 @@ export default function Home() {
 
           {/* Main content */}
           <main className="flex-1 min-w-0">
-            {/* Hero Banner Carousel */}
-            <div className="relative rounded overflow-hidden mb-4" style={{ height: '320px' }}>
-              {bannerSlides.map((slide, idx) => (
-                <div
-                  key={slide.id}
-                  className={`absolute inset-0 transition-opacity duration-700 ${idx === currentSlide ? 'opacity-100' : 'opacity-0'}`}
-                >
-                  <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent flex items-center">
-                    <div className="ml-12 text-white">
-                      <p className="text-sm uppercase tracking-widest opacity-80">{language === 'zh' ? '熱銷商品' : 'Hot Product'}</p>
-                      <h2 className="text-3xl font-bold mt-1">{slide.title}</h2>
-                      <button 
-                        onClick={() => slide.link ? window.location.href = slide.link : null}
-                        className="mt-4 bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded text-sm font-medium transition-colors"
-                      >
-                        {slide.cta}
-                      </button>
+            {/* Hero Banner Carousel - 動態加載 */}
+            {bannerSlides.length > 0 ? (
+              <div className="relative rounded overflow-hidden mb-4" style={{ height: '320px' }}>
+                {bannerSlides.map((slide, idx) => (
+                  <div
+                    key={slide.id}
+                    className={`absolute inset-0 transition-opacity duration-700 ${idx === currentSlide ? 'opacity-100' : 'opacity-0'}`}
+                  >
+                    <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent flex items-center">
+                      <div className="ml-12 text-white">
+                        <p className="text-sm uppercase tracking-widest opacity-80">{language === 'zh' ? '熱銷商品' : 'Hot Product'}</p>
+                        <h2 className="text-3xl font-bold mt-1">{slide.title}</h2>
+                        <button 
+                          onClick={() => slide.link ? window.location.href = slide.link : null}
+                          className="mt-4 bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded text-sm font-medium transition-colors"
+                        >
+                          {slide.cta}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              {/* Slide indicators */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                {bannerSlides.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentSlide(idx)}
-                    className={`w-2 h-2 rounded-full transition-colors ${idx === currentSlide ? 'bg-white' : 'bg-white/50'}`}
-                  />
                 ))}
+                {/* Slide indicators */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  {bannerSlides.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentSlide(idx)}
+                      className={`w-2 h-2 rounded-full transition-colors ${idx === currentSlide ? 'bg-white' : 'bg-white/50'}`}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="relative rounded overflow-hidden mb-4 bg-gradient-to-r from-gray-200 to-gray-300" style={{ height: '320px' }}>
+                <div className="flex items-center justify-center h-full text-gray-600">
+                  <span>加載中...</span>
+                </div>
+              </div>
+            )}
 
             {/* Recommended section */}
             <section className="bg-white rounded shadow-sm mb-4">
@@ -422,8 +423,8 @@ export default function Home() {
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {productsLoading ? (
                   <div className="col-span-full text-center text-gray-500 py-8">{language === 'zh' ? '加載商品中...' : 'Loading products...'}</div>
-                ) : allProducts.length > 0 ? (
-                  allProducts.map((product) => (
+                ) : products.length > 0 ? (
+                  products.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))
                 ) : (
@@ -443,7 +444,7 @@ export default function Home() {
                 </Link>
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {allProducts.map((product) => (
+                {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>

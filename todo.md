@@ -461,3 +461,16 @@
 - [x] 構建 Banner 管理後台 UI（BannerManagement.tsx）- 列表、新增、編輯、刪除、排序
 - [x] 集成動態 Banner 到首頁 - Home.tsx 使用 trpc.banners.getActive 替代靜態 Banner
 - [x] 編寫 Banner 單元測試（banners.test.ts）
+
+
+## 🧹 首頁 Banner 緩存清理
+
+- [ ] 移除首頁硬編碼的舊 Banner 緩存（服裝廣告）
+- [ ] 確保只加載動態 Banner 數據，無舊緩存顯示
+
+## 📸 Banner 圖片上傳功能
+
+- [ ] 實現圖片上傳組件（ImageUploadInput.tsx）
+- [ ] 集成 S3 上傳功能到後台 BannerManagement
+- [ ] 自動返回 CDN URL 供 Banner 使用
+- [ ] 測試圖片上傳和顯示功能
