@@ -62,7 +62,7 @@ export async function handleWhopWebhook(req: Request, res: Response) {
   }
 }
 
-function getSuccessPage(orderId: string, paymentId: string): string {
+export function getSuccessPage(orderId: string, paymentId: string): string {
   return `
     <!DOCTYPE html>
     <html lang="zh-TW">

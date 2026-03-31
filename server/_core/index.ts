@@ -10,7 +10,7 @@ import { serveStatic, setupVite } from "./vite";
 import { handleStripeWebhook } from "../stripe-webhook";
 import { handleStarPayWebhook } from "../star-pay-webhook";
 import { handleNexapayWebhook } from "../nexapay-webhook";
-import { handleWhopWebhook } from "../whop-webhook";
+import { handleWhopWebhook, getSuccessPage } from "../whop-webhook";
 import Stripe from "stripe";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -96,7 +96,16 @@ async function startServer() {
     }
   );
 
-  // Whop webhook
+  // Whop webhook - GET for testing/viewing success page
+  app.get("/api/webhooks/whop", (req, res) => {
+    const orderId = req.query.orderId || 'TEST-001';
+    const paymentId = req.query.paymentId || 'whop_test_' + Date.now();
+    res.setHeader('Content-Type', 'text/html; charset=utf-8').send(
+      getSuccessPage(String(orderId), String(paymentId))
+    );
+  });
+
+  // Whop webhook - POST for actual webhook events
   app.post(
     "/api/webhooks/whop",
     express.raw({ type: "application/json" }),

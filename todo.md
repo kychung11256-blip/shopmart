@@ -429,3 +429,7 @@
 ## 🎉 Whop 支付成功頁面
 
 - [x] 建立 Whop webhook 支付成功確認頁面 - 顯示訂單編號和交易編號
+
+## 🔧 Whop Webhook GET 端點
+
+- [x] 新增 GET 端點支持直接訪問 webhook 查看成功頁面 - 用於測試和演示
