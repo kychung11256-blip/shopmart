@@ -106,9 +106,10 @@ async function startServer() {
   });
 
   // Whop webhook - POST for actual webhook events
+  // Accept raw payload with flexible Content-Type (application/json, text/plain, etc.)
   app.post(
     "/api/webhooks/whop",
-    express.raw({ type: "application/json" }),
+    express.raw({ type: "*/*" }),
     async (req, res) => {
       await handleWhopWebhook(req, res);
     }
