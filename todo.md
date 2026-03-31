@@ -444,3 +444,11 @@
 - [x] 使用 Whop SDK webhooks.unwrap() 替代手動簽名驗證
 - [x] 確保快速返回 2xx 狀態碼避免 webhook 重試
 - [x] 處理所有官方支持的事件類型（payment.succeeded、membership.activated 等）
+
+
+## 🧹 首頁版塊清理
+
+- [x] 移除「購物街」版塊
+- [x] 移除「熱銷排行」版塊
+- [x] 移除「促銷活動」版塊
+- [x] 移除「您可能也喜歡」版塊

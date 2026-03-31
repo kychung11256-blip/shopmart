@@ -431,69 +431,7 @@ export default function Home() {
               </div>
             </section>
 
-            {/* SHOP STREET + TOP ONE side by side */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              {/* SHOP STREET */}
-              <section className="bg-white rounded shadow-sm">
-                <div className="section-title flex items-center justify-between">
-                  <span className="font-bold tracking-wide">{language === 'zh' ? '購物街' : 'SHOP STREET'}</span>
-                  <Link href="/products" className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1">
-                    <ChevronRight size={14} />
-                  </Link>
-                </div>
-                <div className="p-3 grid grid-cols-2 gap-2">
-                  {allProducts.slice(0, 4).map((product) => (
-                    <div key={product.id} className="group cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
-                      <div className="relative overflow-hidden rounded" style={{ paddingTop: '100%' }}>
-                        <img
-                          src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop'}
-                          alt={product.name}
-                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop'; }}
-                        />
-                      </div>
-                      <p className="text-xs text-gray-600 mt-1 line-clamp-1">{product.name}</p>
-                      <span className="price-current text-sm">${product.price.toFixed(2)}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              {/* TOP ONE */}
-              <section className="bg-white rounded shadow-sm">
-                <div className="section-title flex items-center justify-between">
-                  <span className="font-bold tracking-wide">{language === 'zh' ? '熱銷排行' : 'TOP ONE'}</span>
-                  <Link href="/products" className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1">
-                    <ChevronRight size={14} />
-                  </Link>
-                </div>
-                <div className="p-3 space-y-2">
-                  {allProducts.slice(0, 3).map((product, idx) => (
-                    <div key={product.id} className="flex items-center gap-3 group cursor-pointer hover:bg-gray-50 rounded p-1 transition-colors" onClick={() => navigate(`/product/${product.id}`)}>
-                      <div className="relative shrink-0">
-                        <div className="w-16 h-16 rounded overflow-hidden">
-                          <img
-                            src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'}
-                            alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                            onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop'; }}
-                          />
-                        </div>
-                        <div className={`absolute -top-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold ${
-                          idx === 0 ? 'bg-red-500' : idx === 1 ? 'bg-orange-400' : 'bg-yellow-500'
-                        }`}>
-                          {idx + 1}
-                        </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-700 line-clamp-2">{product.name}</p>
-                        <span className="price-current text-sm">${product.price.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </div>
+            {/* SHOP STREET + TOP ONE sections removed */}
 
             {/* Top List */}
             <section className="bg-white rounded shadow-sm mb-4">
@@ -510,30 +448,9 @@ export default function Home() {
               </div>
             </section>
 
-            {/* Promotions */}
-            <section className="bg-white rounded shadow-sm mb-4">
-              <div className="section-title flex items-center justify-between">
-                <span>{language === 'zh' ? '促銷活動' : 'Promotions'}</span>
-                <Link href="/products" className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1">
-                  {t('more', language)} <ChevronRight size={12} />
-                </Link>
-              </div>
-              <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {allProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </section>
+            {/* Promotions section removed */}
 
-            {/* You May Also Like */}
-            <section className="bg-white rounded shadow-sm mb-4">
-              <div className="section-title">{language === 'zh' ? '您可能也喜歡' : 'You May Also Like'}</div>
-              <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                {allProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </section>
+            {/* You May Also Like section removed */}
           </main>
         </div>
       </div>
