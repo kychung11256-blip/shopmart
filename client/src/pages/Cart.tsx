@@ -105,6 +105,9 @@ export default function Cart() {
   const totalPrice = selectedItems.reduce((sum, item) => sum + item.product.price * item.qty, 0);
   const totalOriginal = selectedItems.reduce((sum, item) => sum + (item.product.originalPrice || item.product.price) * item.qty, 0);
   const savings = totalOriginal - totalPrice;
+  // 偵測選中商品中是否有售罄商品
+  const soldOutItems = selectedItems.filter(item => typeof item.product.stock === 'number' && item.product.stock <= 0);
+  const hasSoldOutItems = soldOutItems.length > 0;
 
   // ============ 事件處理函數 ============
   // 直接定義，不使用 useCallback
@@ -159,6 +162,11 @@ export default function Cart() {
   const handleCheckout = () => {
     if (selectedItems.length === 0) {
       toast.error(language === 'zh' ? '請選擇至少一件商品' : 'Please select at least one item');
+      return;
+    }
+    if (hasSoldOutItems) {
+      const names = soldOutItems.map(i => i.product.name).join('、');
+      toast.error(language === 'zh' ? `以下商品已售罄，請移除後再結帳：${names}` : `The following items are sold out, please remove them before checkout: ${names}`);
       return;
     }
     navigate('/checkout');
@@ -342,9 +350,14 @@ export default function Cart() {
                     <span>${totalPrice.toFixed(2)}</span>
                   </div>
                 </div>
+                {hasSoldOutItems && (
+                  <div className="text-xs text-red-500 bg-red-50 border border-red-200 rounded p-2 mt-3">
+                    ⚠️ {language === 'zh' ? '購物車中有售罄商品，請移除後再結帳' : 'Some selected items are sold out. Please remove them before checkout.'}
+                  </div>
+                )}
                 <button
                   onClick={handleCheckout}
-                  disabled={selectedItems.length === 0}
+                  disabled={selectedItems.length === 0 || hasSoldOutItems}
                   className="w-full bg-red-500 text-white py-3 rounded font-medium mt-4 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {language === 'zh' ? '結帳' : 'Checkout'}

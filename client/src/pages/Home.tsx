@@ -54,39 +54,65 @@ function ProductCard({ product }: { product: Product }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [, navigate] = useLocation();
   const { language } = useLanguage();
+  const isSoldOut = typeof product.stock === 'number' && product.stock <= 0;
 
   return (
-    <div className="product-card bg-white border border-gray-100 rounded overflow-hidden group cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
+    <div
+      className={`product-card bg-white border rounded overflow-hidden group ${
+        isSoldOut
+          ? 'border-gray-200 opacity-60 cursor-not-allowed'
+          : 'border-gray-100 cursor-pointer'
+      }`}
+      onClick={() => !isSoldOut && navigate(`/product/${product.id}`)}
+    >
       <div className="relative overflow-hidden" style={{ paddingTop: '100%' }}>
         <img
           src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop'}
           alt={product.name}
-          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ${
+            isSoldOut ? 'grayscale' : 'group-hover:scale-105'
+          }`}
           onError={(e) => {
             (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop';
           }}
         />
-        <button
-          onClick={(e) => { e.stopPropagation(); setIsWishlisted(!isWishlisted); }}
-          className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <Heart size={14} className={isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
-        </button>
-        {product.originalPrice && product.originalPrice > product.price && (
+        {/* Sold out overlay */}
+        {isSoldOut && (
+          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+            <span className="bg-gray-800 text-white text-xs font-bold px-3 py-1 rounded-full">
+              {language === 'zh' ? '已售罄' : 'Sold Out'}
+            </span>
+          </div>
+        )}
+        {!isSoldOut && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setIsWishlisted(!isWishlisted); }}
+            className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <Heart size={14} className={isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
+          </button>
+        )}
+        {!isSoldOut && product.originalPrice && product.originalPrice > product.price && (
           <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded">
             -{Math.round((1 - product.price / product.originalPrice) * 100)}%
           </div>
         )}
       </div>
       <div className="p-3">
-        <p className="text-sm text-gray-700 line-clamp-2 min-h-[2.5rem] leading-tight">{product.name}</p>
+        <p className={`text-sm line-clamp-2 min-h-[2.5rem] leading-tight ${
+          isSoldOut ? 'text-gray-400' : 'text-gray-700'
+        }`}>{product.name}</p>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="price-current text-base">${product.price.toFixed(2)}</span>
-          {product.originalPrice && product.originalPrice > product.price && (
+          <span className={`price-current text-base ${isSoldOut ? 'text-gray-400' : ''}`}>${product.price.toFixed(2)}</span>
+          {!isSoldOut && product.originalPrice && product.originalPrice > product.price && (
             <span className="price-original text-xs">${product.originalPrice.toFixed(2)}</span>
           )}
         </div>
-        <p className="text-xs text-gray-400 mt-1">{product.sold || 0} {language === 'zh' ? '已賣' : 'Sold'}</p>
+        {isSoldOut ? (
+          <p className="text-xs text-gray-400 mt-1">{language === 'zh' ? '已售罄' : 'Out of stock'}</p>
+        ) : (
+          <p className="text-xs text-gray-400 mt-1">{product.sold || 0} {language === 'zh' ? '已賣' : 'Sold'}</p>
+        )}
       </div>
     </div>
   );

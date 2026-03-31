@@ -197,6 +197,7 @@ export default function ProductDetail() {
   const discountPercent = product.originalPrice && product.originalPrice > product.price
     ? Math.round((1 - product.price / product.originalPrice) * 100)
     : 0;
+  const isSoldOut = typeof product.stock === 'number' && product.stock <= 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -302,12 +303,19 @@ export default function ProductDetail() {
                   <img
                     src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'}
                     alt={product.name}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className={`absolute inset-0 w-full h-full object-cover ${isSoldOut ? 'grayscale' : ''}`}
                     onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'; }}
                   />
-                  {discountPercent > 0 && (
+                  {discountPercent > 0 && !isSoldOut && (
                     <div className="absolute top-3 left-3 bg-red-500 text-white text-sm px-2 py-1 rounded font-medium">
                       -{discountPercent}%
+                    </div>
+                  )}
+                  {isSoldOut && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <span className="bg-gray-800 text-white text-base font-bold px-5 py-2 rounded-full">
+                        {language === 'zh' ? '已售罄' : 'Sold Out'}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -332,7 +340,11 @@ export default function ProductDetail() {
                     <span className="text-sm text-gray-500 ml-1">{product.rating || 0}</span>
                   </div>
                   <span className="text-sm text-gray-400">{product.sold} {language === 'zh' ? '已賣' : 'sold'}</span>
-                  <span className="text-sm text-gray-400">{language === 'zh' ? '庫存' : 'Stock'}: {product.stock}</span>
+                  {isSoldOut ? (
+                    <span className="text-sm font-medium text-red-400">{language === 'zh' ? '已售罄' : 'Out of Stock'}</span>
+                  ) : (
+                    <span className="text-sm text-green-600">{language === 'zh' ? '庫存' : 'Stock'}: {product.stock}</span>
+                  )}
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4 mt-4">
@@ -372,16 +384,18 @@ export default function ProductDetail() {
                 <div className="flex gap-3 mt-6">
                   <button
                     onClick={handleAddToCart}
-                    className="flex-1 border-2 border-red-500 text-red-500 hover:bg-red-50 py-3 rounded font-medium transition-colors flex items-center justify-center gap-2"
+                    disabled={isSoldOut || isAddingToCart}
+                    className="flex-1 border-2 border-red-500 text-red-500 hover:bg-red-50 py-3 rounded font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-transparent"
                   >
                     <ShoppingCart size={18} />
-                    {language === 'zh' ? '加入購物車' : 'Add to Cart'}
+                    {isSoldOut ? (language === 'zh' ? '已售罄' : 'Sold Out') : (language === 'zh' ? '加入購物車' : 'Add to Cart')}
                   </button>
                   <button
                     onClick={handleBuyNow}
-                    className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded font-medium transition-colors"
+                    disabled={isSoldOut || isAddingToCart}
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300"
                   >
-                    {language === 'zh' ? '立即購買' : 'Buy Now'}
+                    {isSoldOut ? (language === 'zh' ? '已售罄' : 'Sold Out') : (language === 'zh' ? '立即購買' : 'Buy Now')}
                   </button>
                   <button
                     onClick={() => setIsWishlisted(!isWishlisted)}
@@ -517,19 +531,25 @@ export default function ProductDetail() {
         <div className="flex gap-3 p-4">
           <button
             onClick={handleAddToCart}
-            disabled={isAddingToCart}
-            className="flex-1 border-2 border-red-500 text-red-500 hover:bg-red-50 py-3 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            disabled={isSoldOut || isAddingToCart}
+            className="flex-1 border-2 border-red-500 text-red-500 hover:bg-red-50 py-3 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-transparent flex items-center justify-center gap-2"
           >
             <ShoppingCart size={18} />
-            <span className="hidden xs:inline">{language === 'zh' ? '加入購物車' : 'Add to Cart'}</span>
-            <span className="xs:hidden">{language === 'zh' ? '購物車' : 'Cart'}</span>
+            {isSoldOut ? (
+              <span>{language === 'zh' ? '已售罄' : 'Sold Out'}</span>
+            ) : (
+              <>
+                <span className="hidden xs:inline">{language === 'zh' ? '加入購物車' : 'Add to Cart'}</span>
+                <span className="xs:hidden">{language === 'zh' ? '購物車' : 'Cart'}</span>
+              </>
+            )}
           </button>
           <button
             onClick={handleBuyNow}
-            disabled={isAddingToCart}
-            className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isSoldOut || isAddingToCart}
+            className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300"
           >
-            {language === 'zh' ? '立即購買' : 'Buy Now'}
+            {isSoldOut ? (language === 'zh' ? '已售罄' : 'Sold Out') : (language === 'zh' ? '立即購買' : 'Buy Now')}
           </button>
         </div>
       </div>

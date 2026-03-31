@@ -2,8 +2,8 @@ import type { Request, Response } from 'express';
 import Whop from '@whop/sdk';
 import type { PaymentSucceededWebhookEvent, MembershipActivatedWebhookEvent, MembershipDeactivatedWebhookEvent, UnwrapWebhookEvent } from '@whop/sdk/resources/webhooks.js';
 import { getDb } from './db';
-import { orders } from '../drizzle/schema';
-import { eq } from 'drizzle-orm';
+import { orders, orderItems, products } from '../drizzle/schema';
+import { eq, sql } from 'drizzle-orm';
 
 /**
  * Whop Webhook Handler
@@ -144,6 +144,9 @@ async function handlePaymentSucceeded(event: PaymentSucceededWebhookEvent) {
   if (orderId) {
     const db = await getDb();
     if (db) {
+      const numericOrderId = parseInt(orderId);
+
+      // 1. Mark order as paid
       await db.update(orders)
         .set({
           paymentStatus: 'paid',
@@ -151,8 +154,21 @@ async function handlePaymentSucceeded(event: PaymentSucceededWebhookEvent) {
           whopPaymentId: paymentId,
           updatedAt: new Date().toISOString(),
         })
-        .where(eq(orders.id, parseInt(orderId)));
+        .where(eq(orders.id, numericOrderId));
       console.log(`[Whop Webhook] Order ${orderId} marked as paid. Payment ID: ${paymentId}`);
+
+      // 2. Decrement stock and increment sold for each item in the order
+      const items = await db.select().from(orderItems).where(eq(orderItems.orderId, numericOrderId));
+      for (const item of items) {
+        await db.update(products)
+          .set({
+            // Decrement stock (floor at 0), increment sold
+            stock: sql`GREATEST(0, stock - ${item.quantity})`,
+            sold: sql`sold + ${item.quantity}`,
+          })
+          .where(eq(products.id, item.productId));
+        console.log(`[Whop Webhook] Decremented stock for product ${item.productId} by ${item.quantity}`);
+      }
     }
   } else {
     console.warn('[Whop Webhook] payment.succeeded event missing order_id in metadata. Payment ID:', paymentId);

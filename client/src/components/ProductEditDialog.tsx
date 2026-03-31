@@ -163,22 +163,29 @@ export default function ProductEditDialog({ isOpen, product, onClose, onSave }: 
           {/* Stock & Sold */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Stock</label>
+              <label className="block text-sm font-medium mb-1">
+                庫存數量
+                <span className="ml-1 text-xs text-gray-400 font-normal">(0 = 售罄，自動變灰)</span>
+              </label>
               <Input
                 type="number"
-                placeholder="0"
-                value={formData.stock || ''}
+                placeholder="例如：30"
+                min="0"
+                value={formData.stock ?? ''}
                 onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
               />
+              <p className="text-xs text-gray-400 mt-1">付款成功後自動扣減庫存</p>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Sold</label>
+              <label className="block text-sm font-medium mb-1">已售數量</label>
               <Input
                 type="number"
                 placeholder="0"
-                value={formData.sold || ''}
+                min="0"
+                value={formData.sold ?? ''}
                 onChange={(e) => setFormData({ ...formData, sold: parseInt(e.target.value) || 0 })}
               />
+              <p className="text-xs text-gray-400 mt-1">付款成功後自動累加</p>
             </div>
           </div>
 

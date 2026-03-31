@@ -469,9 +469,17 @@ export const appRouter = router({
         try {
           const orderNumber = `ORD-${Date.now()}`;
           let totalPrice = 0;
+          // Validate stock and calculate total price
           for (const item of input.items) {
             const product = await db.select().from(products).where(eq(products.id, item.productId)).limit(1);
-            if (product[0]) totalPrice += product[0].price * item.quantity;
+            if (!product[0]) throw new TRPCError({ code: 'NOT_FOUND', message: `Product ${item.productId} not found` });
+            if (product[0].stock !== null && product[0].stock < item.quantity) {
+              throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: `商品「${product[0].name}」庫存不足，剩餘 ${product[0].stock} 件`,
+              });
+            }
+            totalPrice += product[0].price * item.quantity;
           }
           // Create guest order with null userId
           const newOrder: InsertOrder = {
@@ -480,10 +488,26 @@ export const appRouter = router({
             totalPrice,
             shippingAddress: input.shippingAddress,
           };
-          const orderResult = await db.insert(orders).values(newOrder);
+          await db.insert(orders).values(newOrder);
           // Query the newly created order to get its ID
           const createdOrder = await db.select().from(orders).where(eq(orders.orderNumber, orderNumber)).limit(1);
-          return { success: true, orderNumber, id: createdOrder[0]?.id || 0 };
+          const orderId = createdOrder[0]?.id;
+          // Insert order items
+          if (orderId) {
+            for (const item of input.items) {
+              const product = await db.select().from(products).where(eq(products.id, item.productId)).limit(1);
+              if (product[0]) {
+                const orderItem: InsertOrderItem = {
+                  orderId,
+                  productId: item.productId,
+                  quantity: item.quantity,
+                  price: product[0].price,
+                };
+                await db.insert(orderItems).values(orderItem);
+              }
+            }
+          }
+          return { success: true, orderNumber, id: orderId || 0 };
         } catch (error) {
           console.error("[API] Error creating guest order:", error);
           throw error;

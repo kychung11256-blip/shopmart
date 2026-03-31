@@ -508,3 +508,16 @@
 - [x] 修復 nexapay-webhook.ts、routers.ts、star-pay-webhook.ts 中 Date 型別不符問題
 - [x] 修復 banners 表不存在問題（重新建立）
 - [x] 驗證伺服器穩定運行（0 TS errors）
+
+## 📦 商品庫存管理功能
+
+- [x] 確認 products schema 現有欄位，確認是否已有 stock 欄位（已有，預設 0）
+- [x] 資料庫 schema 已有 stock 欄位，無需遷移
+- [x] 推送資料庫遷移（跳過，欄位已存在）
+- [x] 後端：orders.create / createGuest 下單時檢查庫存是否足夠
+- [x] 後端：Whop webhook payment.succeeded 觸發庫存扣減（stock--、sold++）
+- [x] 後台商品管理頁：庫存欄位已有，新增說明文字（0=售罄，留空=無限制）
+- [x] 前端商品列表：庫存為 0 時商品卡片變灰色，顯示「已售罄」標籤
+- [x] 前端商品詳情頁：庫存為 0 時「加入購物車」和「立即購買」按鈕禁用（桌面版 + 行動版）
+- [x] 前端購物車：售罄商品顯示警告標籤，結帳按鈕禁用
+- [x] 驗證完整流程（TypeScript 0 錯誤，伺服器正常）
