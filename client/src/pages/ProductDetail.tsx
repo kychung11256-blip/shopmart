@@ -509,6 +509,31 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {/* Sticky bottom CTA buttons for mobile */}
+      <div className="fixed bottom-0 left-0 right-0 md:hidden bg-white border-t border-gray-200 shadow-lg z-40">
+        <div className="flex gap-3 p-4">
+          <button
+            onClick={handleAddToCart}
+            disabled={isAddingToCart}
+            className="flex-1 border-2 border-red-500 text-red-500 hover:bg-red-50 py-3 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <ShoppingCart size={18} />
+            <span className="hidden xs:inline">{language === 'zh' ? '加入購物車' : 'Add to Cart'}</span>
+            <span className="xs:hidden">{language === 'zh' ? '購物車' : 'Cart'}</span>
+          </button>
+          <button
+            onClick={handleBuyNow}
+            disabled={isAddingToCart}
+            className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {language === 'zh' ? '立即購買' : 'Buy Now'}
+          </button>
+        </div>
+      </div>
+
+      {/* Add padding to prevent content from being hidden behind sticky buttons on mobile */}
+      <div className="h-24 md:h-0"></div>
     </div>
   );
 }
