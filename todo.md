@@ -481,3 +481,8 @@
 - [x] 診斷 Whop webhook 簽名驗證邏輯（Invalid webhook signature 400）
 - [x] 修復簽名驗證，允許 Whop Dashboard 手動測試請求通過
 - [x] 測試修復結果
+
+## 💳 暫時隱藏 NexaPay 支付選項
+
+- [x] 搜尋所有前端 NexaPay 相關 UI 元素
+- [x] 以條件常數隱藏（保留代碼，方便日後重新啟用）

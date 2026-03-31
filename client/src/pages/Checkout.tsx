@@ -713,7 +713,8 @@ export default function Checkout() {
                   </button>
                   )}
 
-                  {/* NexaPay Payment - Redirect-based */}
+                  {/* NexaPay Payment - Hidden, code preserved for future use */}
+                  {false && (
                   <div className="w-full">
                     <NexaPayButton
                       amount={totalPrice}
@@ -725,6 +726,7 @@ export default function Checkout() {
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                     />
                   </div>
+                  )}
 
                   {/* Whop Payment */}
                   <button
