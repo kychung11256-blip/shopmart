@@ -470,7 +470,8 @@
 
 ## 📸 Banner 圖片上傳功能
 
-- [ ] 實現圖片上傳組件（ImageUploadInput.tsx）
-- [ ] 集成 S3 上傳功能到後台 BannerManagement
-- [ ] 自動返回 CDN URL 供 Banner 使用
-- [ ] 測試圖片上傳和顯示功能
+- [x] 後端：新增 banners.uploadImage tRPC procedure，接收 base64 圖片並上傳至 S3
+- [x] 前端：建立 ImageUploadInput.tsx 可重用上傳組件（拖拽 / 點擊選擇 / 預覽）
+- [x] 前端：在 BannerManagement.tsx 整合圖片上傳 UI，上傳完成後自動填入 CDN URL
+- [x] 前端：顯示上傳進度與圖片預覽
+- [x] 測試圖片上傳和顯示功能（頁面載入正常，無 console 錯誤）

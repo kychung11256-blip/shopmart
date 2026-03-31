@@ -34,6 +34,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminSettings from "./pages/admin/AdminSettings";
+import BannerManagement from "./pages/admin/BannerManagement";
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
@@ -59,6 +60,7 @@ function Router() {
       <Route path="/admin/categories" component={AdminCategories} />
       <Route path="/admin/analytics" component={AdminAnalytics} />
       <Route path="/admin/settings" component={AdminSettings} />
+      <Route path="/admin/banners" component={BannerManagement} />
 
       {/* 404 */}
       <Route path="/404" component={NotFound} />

@@ -10,7 +10,7 @@ import { Link, useLocation } from 'wouter';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, Tag, BarChart3,
   Settings, LogOut, Menu, X, TrendingUp, TrendingDown, DollarSign,
-  ShoppingCart, UserCheck, Box, ChevronRight, Bell, Search, Eye, Globe
+  ShoppingCart, UserCheck, Box, ChevronRight, Bell, Search, Eye, Globe, Image
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { trpc } from '@/lib/trpc';
@@ -25,6 +25,7 @@ const navItems = [
   { icon: ShoppingBag, label: 'Orders', href: '/admin/orders' },
   { icon: Users, label: 'Users', href: '/admin/users' },
   { icon: Tag, label: 'Categories', href: '/admin/categories' },
+  { icon: Image, label: 'Banners', href: '/admin/banners' },
   { icon: BarChart3, label: 'Analytics', href: '/admin/analytics' },
   { icon: Settings, label: 'Settings', href: '/admin/settings' },
 ];

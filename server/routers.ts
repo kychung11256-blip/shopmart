@@ -1239,6 +1239,34 @@ export const appRouter = router({
           });
         }
       }),
+    // Admin: Upload banner image to S3
+    uploadImage: adminProcedure
+      .input(z.object({
+        // base64-encoded file content (without data URL prefix)
+        base64: z.string().min(1),
+        // original file name for extension detection
+        fileName: z.string().min(1),
+        // MIME type e.g. image/jpeg
+        mimeType: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const { storagePut } = await import('./storage');
+        try {
+          // Decode base64 to Buffer
+          const buffer = Buffer.from(input.base64, 'base64');
+          // Build a unique S3 key with random suffix to prevent enumeration
+          const ext = input.fileName.split('.').pop() || 'jpg';
+          const randomSuffix = Math.random().toString(36).substring(2, 10);
+          const key = `banners/${Date.now()}-${randomSuffix}.${ext}`;
+          const { url } = await storagePut(key, buffer, input.mimeType);
+          return { url };
+        } catch (error: any) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to upload banner image: ${error?.message || 'Unknown error'}`,
+          });
+        }
+      }),
   }),
   config: router({
     // Admin-only: Set Stripe configuration
