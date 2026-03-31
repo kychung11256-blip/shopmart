@@ -152,22 +152,7 @@ export default function Home() {
       }))
     : defaultBannerSlides;
 
-  // 加載動態 Banner
-  useEffect(() => {
-    const loadBanners = async () => {
-      try {
-        const banners = await trpc.banners.getActive.query();
-        if (banners && banners.length > 0) {
-          // 成功加載動態 Banner
-          setCurrentSlide(0);
-        }
-      } catch (error) {
-        console.error('[Home] Error loading banners:', error);
-      }
-    };
-    
-    loadBanners();
-  }, []);
+  // Banner 數據已通過 useQuery hook 動態加載，無需額外的 useEffect
 
   useEffect(() => {
     if (bannerSlides.length === 0) return;
