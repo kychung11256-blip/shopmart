@@ -109,9 +109,17 @@ function ProductCard({ product }: { product: Product }) {
           )}
         </div>
         {isSoldOut ? (
-          <p className="text-xs text-gray-400 mt-1">{language === 'zh' ? '已售罄' : 'Out of stock'}</p>
+          <p className="text-xs text-red-400 font-medium mt-1">{language === 'zh' ? '已售罄' : 'Out of Stock'}</p>
         ) : (
-          <p className="text-xs text-gray-400 mt-1">{product.sold || 0} {language === 'zh' ? '已賣' : 'Sold'}</p>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-xs text-gray-400">{language === 'zh' ? '已售' : 'Sold'}: {product.sold || 0}</span>
+            {typeof product.stock === 'number' && product.stock > 0 && (
+              <>
+                <span className="text-gray-200">|</span>
+                <span className="text-xs text-green-600">{language === 'zh' ? '庫存' : 'Stock'}: {product.stock}</span>
+              </>
+            )}
+          </div>
         )}
       </div>
     </div>
