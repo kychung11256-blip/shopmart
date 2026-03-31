@@ -438,3 +438,9 @@
 ## 🔧 Whop Webhook Content-Type 問題
 
 - [x] 修復 webhook 原始負載處理 - 支持多種 Content-Type，不只限於 application/json
+
+## 🔧 Whop Webhook 官方規範重寫
+
+- [x] 使用 Whop SDK webhooks.unwrap() 替代手動簽名驗證
+- [x] 確保快速返回 2xx 狀態碼避免 webhook 重試
+- [x] 處理所有官方支持的事件類型（payment.succeeded、membership.activated 等）
