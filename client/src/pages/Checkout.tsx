@@ -278,8 +278,9 @@ export default function Checkout() {
       
       while (!orderUpdated && attempts < maxAttempts) {
         try {
-          const order = await trpc.orders.getById.query({ id: parseInt(orderId) });
-          if (order && order.status === 'paid') {
+          const utils = trpc.useUtils();
+          const order = await utils.orders.getById.fetch(parseInt(orderId));
+          if (order && order.status === 'processing') {
             orderUpdated = true;
             console.log('Order status updated to paid');
             break;

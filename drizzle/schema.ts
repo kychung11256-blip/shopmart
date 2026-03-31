@@ -117,3 +117,8 @@ export type InsertOrder      = typeof orders.$inferInsert;
 export type InsertOrderItem  = typeof orderItems.$inferInsert;
 export type InsertCartItem   = typeof cart.$inferInsert;
 export type InsertProduct    = typeof products.$inferInsert;
+
+// ── Select type helpers ──────────────────────────────────────
+export type User             = typeof users.$inferSelect;
+export type InsertUser       = typeof users.$inferInsert;
+export type Order            = typeof orders.$inferSelect;

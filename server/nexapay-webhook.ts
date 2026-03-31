@@ -86,9 +86,8 @@ export async function handleNexapayWebhook(req: Request, res: Response) {
       await db
         .update(orders)
         .set({
-          status: 'awaiting_payment',
-          paymentMethod: 'nexapay',
-          updatedAt: new Date(),
+          paymentStatus: 'unpaid',
+          updatedAt: new Date().toISOString(),
         })
         .where(eq(orders.id, order.id));
 
@@ -120,10 +119,9 @@ export async function handleNexapayWebhook(req: Request, res: Response) {
       await db
         .update(orders)
         .set({
-          status: 'paid',
-          paymentMethod: 'nexapay',
-          transactionId: txid || payment_id,
-          updatedAt: new Date(),
+          paymentStatus: 'paid',
+          status: 'processing',
+          updatedAt: new Date().toISOString(),
         })
         .where(eq(orders.id, order.id));
 
@@ -147,8 +145,8 @@ export async function handleNexapayWebhook(req: Request, res: Response) {
         await db
           .update(orders)
           .set({
-            status: 'failed',
-            updatedAt: new Date(),
+            paymentStatus: 'failed',
+            updatedAt: new Date().toISOString(),
           })
           .where(eq(orders.id, existingOrders[0].id));
 
@@ -175,7 +173,7 @@ export async function handleNexapayWebhook(req: Request, res: Response) {
           .update(orders)
           .set({
             status: 'cancelled',
-            updatedAt: new Date(),
+            updatedAt: new Date().toISOString(),
           })
           .where(eq(orders.id, existingOrders[0].id));
 

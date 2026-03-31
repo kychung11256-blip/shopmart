@@ -361,7 +361,7 @@ export default function ProductDetail() {
                         <Minus size={14} />
                       </button>
                       <span className="w-10 text-center font-medium">{qty}</span>
-                      <button onClick={() => setQty(Math.min(product.stock, qty + 1))} className="w-8 h-8 border border-gray-200 rounded flex items-center justify-center hover:border-red-400 transition-colors">
+                      <button onClick={() => setQty(Math.min(product.stock ?? 999, qty + 1))} className="w-8 h-8 border border-gray-200 rounded flex items-center justify-center hover:border-red-400 transition-colors">
                         <Plus size={14} />
                       </button>
                       <span className="text-xs text-gray-400 ml-2">{product.stock} {language === 'zh' ? '可用' : 'available'}</span>
@@ -448,7 +448,7 @@ export default function ProductDetail() {
                     { label: language === 'zh' ? '分類' : 'Category', value: product?.categoryId || 'N/A' },
                     { label: language === 'zh' ? '評分' : 'Rating', value: `${product?.rating || 0} / 5.0` },
                     { label: language === 'zh' ? '總銷售' : 'Total Sold', value: product?.sold.toString() || '0' },
-                    { label: language === 'zh' ? '庫存' : 'Stock', value: product?.stock.toString() || '0' },
+                    { label: language === 'zh' ? '庫存' : 'Stock', value: (product?.stock ?? 0).toString() },
                     { label: language === 'zh' ? '狀態' : 'Status', value: product?.status || 'unknown' },
                   ].map((spec) => (
                     <tr key={spec.label}>

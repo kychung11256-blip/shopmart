@@ -518,7 +518,7 @@ export const appRouter = router({
             .set({
               paymentStatus: 'paid',
               status: 'processing',
-              updatedAt: new Date(),
+              updatedAt: new Date().toISOString(),
             })
             .where(eq(orders.id, orderId));
           return { success: true };

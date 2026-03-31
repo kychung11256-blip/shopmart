@@ -61,11 +61,11 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     }
 
     if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date();
+      values.lastSignedIn = new Date().toISOString();
     }
 
     if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
+      updateSet.lastSignedIn = new Date().toISOString();
     }
 
     await db.insert(users).values(values).onDuplicateKeyUpdate({
@@ -127,7 +127,7 @@ export async function setConfig(key: string, value: string, description?: string
     if (existing.length > 0) {
       // Update existing
       await db.update(config)
-        .set({ value, description, updatedAt: new Date() })
+        .set({ value, description, updatedAt: new Date().toISOString() })
         .where(eq(config.key, key));
     } else {
       // Insert new
@@ -135,8 +135,8 @@ export async function setConfig(key: string, value: string, description?: string
         key,
         value,
         description,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
     }
   } catch (error) {

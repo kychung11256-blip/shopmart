@@ -501,3 +501,10 @@
 - [x] 前端訂單列表加入商品摘要欄（如「NFT A × 1, NFT B × 2」）
 - [x] 前端訂單詳情 Modal 完整顯示商品清單
 - [x] 驗證顯示效果（頁面正常，商品欄位、詳情 Modal 正確顯示）
+
+## 🔧 修復 TypeScript 錯誤（導致 502 伺服器崩潰）
+
+- [x] 修復 routers.ts 中 User 型別未匹出問題
+- [x] 修復 nexapay-webhook.ts、routers.ts、star-pay-webhook.ts 中 Date 型別不符問題
+- [x] 修復 banners 表不存在問題（重新建立）
+- [x] 驗證伺服器穩定運行（0 TS errors）

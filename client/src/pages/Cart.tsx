@@ -292,7 +292,7 @@ export default function Cart() {
                         onChange={() => handleToggleSelect(item.product.id)}
                         className="w-4 h-4 mt-1 cursor-pointer"
                       />
-                      <img src={item.product.image} alt={item.product.name} className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded" />
+                      <img src={item.product.image ?? ''} alt={item.product.name} className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-800 line-clamp-2">{item.product.name}</p>
                         <p className="text-sm text-gray-500 mt-1">${item.product.price.toFixed(2)}</p>

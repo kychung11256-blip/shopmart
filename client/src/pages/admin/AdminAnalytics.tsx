@@ -43,10 +43,10 @@ export default function AdminAnalytics() {
           ))
         ) : (
           [
-            { label: language === 'zh' ? '總收入' : 'Total Revenue', value: `$${(totalRevenue / 100).toFixed(2)}`, change: `${stats?.revenueGrowth || 0}%`, positive: (stats?.revenueGrowth || 0) >= 0 },
-            { label: language === 'zh' ? '總訂單' : 'Total Orders', value: (stats?.totalOrders || 0).toLocaleString(), change: `${stats?.ordersGrowth || 0}%`, positive: (stats?.ordersGrowth || 0) >= 0 },
+            { label: language === 'zh' ? '總收入' : 'Total Revenue', value: `$${(totalRevenue / 100).toFixed(2)}`, change: `${(stats as any)?.revenueGrowth || 0}%`, positive: ((stats as any)?.revenueGrowth || 0) >= 0 },
+            { label: language === 'zh' ? '總訂單' : 'Total Orders', value: (stats?.totalOrders || 0).toLocaleString(), change: `${(stats as any)?.ordersGrowth || 0}%`, positive: ((stats as any)?.ordersGrowth || 0) >= 0 },
             { label: language === 'zh' ? '平均訂單金額' : 'Avg Order Value', value: `$${(avgOrderValue / 100).toFixed(2)}`, change: '0%', positive: true },
-            { label: language === 'zh' ? '總商品' : 'Total Products', value: (stats?.totalProducts || 0).toLocaleString(), change: `${stats?.productsGrowth || 0}%`, positive: (stats?.productsGrowth || 0) >= 0 },
+            { label: language === 'zh' ? '總商品' : 'Total Products', value: (stats?.totalProducts || 0).toLocaleString(), change: `${(stats as any)?.productsGrowth || 0}%`, positive: ((stats as any)?.productsGrowth || 0) >= 0 },
           ].map((metric) => (
             <div key={metric.label} className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
               <p className="text-xs text-gray-500">{metric.label}</p>

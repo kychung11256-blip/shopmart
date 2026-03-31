@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `banners` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `title` varchar(255) NOT NULL,\n  `titleEn` varchar(255) DEFAULT NULL,\n  `subtitle` varchar(255) DEFAULT NULL,\n  `subtitleEn` varchar(255) DEFAULT NULL,\n  `image` varchar(500) NOT NULL,\n  `link` varchar(500) DEFAULT NULL,\n  `ctaText` varchar(100) DEFAULT NULL,\n  `ctaTextEn` varchar(100) DEFAULT NULL,\n  `order` int NOT NULL DEFAULT '0',\n  `status` enum('active','inactive') NOT NULL DEFAULT 'active',\n  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  KEY `banners_order_status` (`order`, `status`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pzq3FY2vhR4CL9.root --database 8Wwg5mRcrYyNGMcAgK6gn2 --execute CREATE TABLE IF NOT EXISTS `banners` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `title` varchar(255) NOT NULL,\n  `titleEn` varchar(255) DEFAULT NULL,\n  `subtitle` varchar(255) DEFAULT NULL,\n  `subtitleEn` varchar(255) DEFAULT NULL,\n  `image` varchar(500) NOT NULL,\n  `link` varchar(500) DEFAULT NULL,\n  `ctaText` varchar(100) DEFAULT NULL,\n  `ctaTextEn` varchar(100) DEFAULT NULL,\n  `order` int NOT NULL DEFAULT '0',\n  `status` enum('active','inactive') NOT NULL DEFAULT 'active',\n  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  KEY `banners_order_status` (`order`, `status`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 292
+}

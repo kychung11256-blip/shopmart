@@ -155,7 +155,7 @@ export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = trpc.dashboard.stats.useQuery();
   const { data: salesData = [], isLoading: salesLoading } = trpc.dashboard.salesData.useQuery();
   const { data: categoryData = [], isLoading: categoryLoading } = trpc.dashboard.categoryData.useQuery();
-  const { data: recentOrders = [], isLoading: ordersLoading } = trpc.orders.list.useQuery({ limit: 5 });
+  const { data: recentOrders = [], isLoading: ordersLoading } = trpc.orders.list.useQuery();
   const { data: topProducts = [], isLoading: productsLoading } = trpc.products.list.useQuery({ limit: 6 });
 
   const statusColors: Record<string, string> = {
@@ -192,28 +192,28 @@ export default function Dashboard() {
             <StatCard
               title={language === 'zh' ? '總收入' : 'Total Revenue'}
               value={`$${((stats?.totalRevenue || 0) / 100).toFixed(2)}`}
-              growth={stats?.revenueGrowth || 0}
+              growth={(stats as any)?.revenueGrowth || 0}
               icon={DollarSign}
               color="bg-red-500"
             />
             <StatCard
               title={language === 'zh' ? '總訂單' : 'Total Orders'}
               value={(stats?.totalOrders || 0).toLocaleString()}
-              growth={stats?.ordersGrowth || 0}
+              growth={(stats as any)?.ordersGrowth || 0}
               icon={ShoppingBag}
               color="bg-blue-500"
             />
             <StatCard
               title={language === 'zh' ? '總用戶' : 'Total Users'}
               value={(stats?.totalUsers || 0).toLocaleString()}
-              growth={stats?.usersGrowth || 0}
+              growth={(stats as any)?.usersGrowth || 0}
               icon={UserCheck}
               color="bg-green-500"
             />
             <StatCard
               title={language === 'zh' ? '總商品' : 'Total Products'}
               value={(stats?.totalProducts || 0).toLocaleString()}
-              growth={stats?.productsGrowth || 0}
+              growth={(stats as any)?.productsGrowth || 0}
               icon={Box}
               color="bg-purple-500"
             />

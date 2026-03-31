@@ -45,7 +45,7 @@ function generateOrderConfirmationEmail(order: Order, customerEmail: string): st
         <div style="background-color: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 5px;">
           <h3>Order Details</h3>
           <p><strong>Order Number:</strong> ${order.orderNumber}</p>
-          <p><strong>Order Date:</strong> ${order.createdAt?.toLocaleDateString()}</p>
+          <p><strong>Order Date:</strong> ${order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}</p>
           <p><strong>Total Amount:</strong> $${totalPrice}</p>
           <p><strong>Payment Status:</strong> Paid</p>
         </div>

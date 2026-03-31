@@ -101,7 +101,7 @@ export async function handleStarPayWebhook(req: Request, res: Response) {
       paymentStatus,
       status: orderStatus,
       stripePaymentIntentId: merchant_ref,
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     }).where(eq(orders.id, orderId));
 
     console.log('[Star Pay Webhook] Order updated:', {
