@@ -144,3 +144,136 @@ export async function setConfig(key: string, value: string, description?: string
     throw error;
   }
 }
+
+
+// Banner queries
+export async function getAllBanners() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const { banners } = await import("../drizzle/schema");
+  const { desc } = await import("drizzle-orm");
+  
+  try {
+    const result = await db.select().from(banners).orderBy(desc(banners.order));
+    return result || [];
+  } catch (error) {
+    console.error('[Database] Error fetching all banners:', error);
+    return [];
+  }
+}
+
+export async function getActiveBanners() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const { banners } = await import("../drizzle/schema");
+  const { desc, eq } = await import("drizzle-orm");
+  
+  try {
+    const result = await db.select().from(banners)
+      .where(eq(banners.status, 'active'))
+      .orderBy(desc(banners.order));
+    return result || [];
+  } catch (error) {
+    console.error('[Database] Error fetching active banners:', error);
+    return [];
+  }
+}
+
+export async function getBannerById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const { banners } = await import("../drizzle/schema");
+  const { eq } = await import("drizzle-orm");
+  
+  try {
+    const result = await db.select().from(banners)
+      .where(eq(banners.id, id))
+      .limit(1);
+    return result[0] || null;
+  } catch (error) {
+    console.error('[Database] Error fetching banner by ID:', error);
+    return null;
+  }
+}
+
+export async function createBanner(data: {
+  title: string;
+  titleEn?: string;
+  subtitle?: string;
+  subtitleEn?: string;
+  image: string;
+  link?: string;
+  ctaText?: string;
+  ctaTextEn?: string;
+  order?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { banners } = await import("../drizzle/schema");
+  
+  const result = await db.insert(banners).values({
+    title: data.title,
+    titleEn: data.titleEn || null,
+    subtitle: data.subtitle || null,
+    subtitleEn: data.subtitleEn || null,
+    image: data.image,
+    link: data.link || null,
+    ctaText: data.ctaText || null,
+    ctaTextEn: data.ctaTextEn || null,
+    order: data.order || 0,
+    status: 'active',
+  });
+  
+  return result;
+}
+
+export async function updateBanner(id: number, data: Partial<{
+  title: string;
+  titleEn: string;
+  subtitle: string;
+  subtitleEn: string;
+  image: string;
+  link: string;
+  ctaText: string;
+  ctaTextEn: string;
+  order: number;
+  status: 'active' | 'inactive';
+}>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { banners } = await import("../drizzle/schema");
+  const { eq } = await import("drizzle-orm");
+  
+  return db.update(banners)
+    .set(data)
+    .where(eq(banners.id, id));
+}
+
+export async function deleteBanner(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { banners } = await import("../drizzle/schema");
+  const { eq } = await import("drizzle-orm");
+  
+  return db.delete(banners).where(eq(banners.id, id));
+}
+
+export async function reorderBanners(bannerIds: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { banners } = await import("../drizzle/schema");
+  const { eq } = await import("drizzle-orm");
+  
+  for (let i = 0; i < bannerIds.length; i++) {
+    await db.update(banners)
+      .set({ order: i })
+      .where(eq(banners.id, bannerIds[i]));
+  }
+}

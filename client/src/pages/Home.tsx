@@ -138,9 +138,10 @@ export default function Home() {
   // 計算購物車項目總數
   const cartCount = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
   
-  // 使用 TRPC 獲取商品和分類數據（完全從數據庫獲取，無假數據）
+  // 使用 TRPC 獲取商品、分類和 Banner 數據
   const { data: apiProducts = [], isLoading: productsLoading } = trpc.products.list.useQuery({ limit: 100 });
   const { data: apiCategories = [], isLoading: categoriesLoading } = trpc.categories.list.useQuery();
+  const { data: bannerData = [], isLoading: bannersLoading } = trpc.banners.getActive.useQuery();
   
   // 直接使用 API 數據，不再轉換
   const products: Product[] = apiProducts.map((p: any) => ({
@@ -180,15 +181,15 @@ export default function Home() {
   // 所有商品區塊都顯示真實數據
   const allProducts = products.filter(p => p.status === 'active');
   
-  // 生成動態 Banner 幻燈片 - 使用真實商品圖片
-  const bannerSlides = allProducts.length > 0 
-    ? allProducts.slice(0, 3).map((product, idx) => ({
-        id: idx + 1,
-        image: product.image || defaultBannerSlides[idx % defaultBannerSlides.length].image,
-        title: product.name,
-        subtitle: `$${product.price.toFixed(2)}`,
-        cta: language === 'zh' ? '查看詳情' : 'View Details',
-        productId: product.id,
+  // 使用動態 Banner 數據，如果沒有則使用預設
+  const bannerSlides = bannerData.length > 0
+    ? bannerData.map((banner: any) => ({
+        id: banner.id,
+        image: banner.image,
+        title: language === 'zh' ? banner.title : (banner.titleEn || banner.title),
+        subtitle: language === 'zh' ? banner.subtitle : (banner.subtitleEn || banner.subtitle),
+        cta: language === 'zh' ? banner.ctaText : (banner.ctaTextEn || banner.ctaText || '查看詳情'),
+        link: banner.link,
       }))
     : defaultBannerSlides;
 
@@ -389,7 +390,7 @@ export default function Home() {
                       <p className="text-sm uppercase tracking-widest opacity-80">{language === 'zh' ? '熱銷商品' : 'Hot Product'}</p>
                       <h2 className="text-3xl font-bold mt-1">{slide.title}</h2>
                       <button 
-                        onClick={() => slide.productId && navigate(`/product/${slide.productId}`)}
+                        onClick={() => slide.link ? window.location.href = slide.link : null}
                         className="mt-4 bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded text-sm font-medium transition-colors"
                       >
                         {slide.cta}

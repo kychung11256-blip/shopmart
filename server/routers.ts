@@ -1131,6 +1131,115 @@ export const appRouter = router({
       };
     }),
   }),
+  banners: router({
+    // Public: Get all active banners
+    getActive: publicProcedure.query(async () => {
+      const { getActiveBanners } = await import('./db');
+      return await getActiveBanners();
+    }),
+    // Admin: Get all banners (including inactive)
+    getAll: adminProcedure.query(async () => {
+      const { getAllBanners } = await import('./db');
+      return await getAllBanners();
+    }),
+    // Admin: Get banner by ID
+    getById: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const { getBannerById } = await import('./db');
+        const banner = await getBannerById(input.id);
+        if (!banner) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Banner not found',
+          });
+        }
+        return banner;
+      }),
+    // Admin: Create banner
+    create: adminProcedure
+      .input(z.object({
+        title: z.string().min(1),
+        titleEn: z.string().optional(),
+        subtitle: z.string().optional(),
+        subtitleEn: z.string().optional(),
+        image: z.string().url(),
+        link: z.string().url().optional(),
+        ctaText: z.string().optional(),
+        ctaTextEn: z.string().optional(),
+        order: z.number().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { createBanner } = await import('./db');
+        try {
+          await createBanner(input);
+          return { success: true };
+        } catch (error: any) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to create banner: ${error?.message || 'Unknown error'}`,
+          });
+        }
+      }),
+    // Admin: Update banner
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        title: z.string().optional(),
+        titleEn: z.string().optional(),
+        subtitle: z.string().optional(),
+        subtitleEn: z.string().optional(),
+        image: z.string().url().optional(),
+        link: z.string().url().optional(),
+        ctaText: z.string().optional(),
+        ctaTextEn: z.string().optional(),
+        order: z.number().optional(),
+        status: z.enum(['active', 'inactive']).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { updateBanner } = await import('./db');
+        const { id, ...data } = input;
+        try {
+          await updateBanner(id, data);
+          return { success: true };
+        } catch (error: any) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to update banner: ${error?.message || 'Unknown error'}`,
+          });
+        }
+      }),
+    // Admin: Delete banner
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const { deleteBanner } = await import('./db');
+        try {
+          await deleteBanner(input.id);
+          return { success: true };
+        } catch (error: any) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to delete banner: ${error?.message || 'Unknown error'}`,
+          });
+        }
+      }),
+    // Admin: Reorder banners
+    reorder: adminProcedure
+      .input(z.object({ bannerIds: z.array(z.number()) }))
+      .mutation(async ({ input }) => {
+        const { reorderBanners } = await import('./db');
+        try {
+          await reorderBanners(input.bannerIds);
+          return { success: true };
+        } catch (error: any) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to reorder banners: ${error?.message || 'Unknown error'}`,
+          });
+        }
+      }),
+  }),
   config: router({
     // Admin-only: Set Stripe configuration
     setStripeKeys: adminProcedure

@@ -78,6 +78,25 @@ export const products = mysqlTable("products", {
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
+export const banners = mysqlTable("banners", {
+	id: int().autoincrement().notNull(),
+	title: varchar({ length: 255 }).notNull(),
+	titleEn: varchar({ length: 255 }),
+	subtitle: varchar({ length: 255 }),
+	subtitleEn: varchar({ length: 255 }),
+	image: varchar({ length: 500 }).notNull(),
+	link: varchar({ length: 500 }),
+	ctaText: varchar({ length: 100 }),
+	ctaTextEn: varchar({ length: 100 }),
+	order: int().default(0).notNull(),
+	status: mysqlEnum(['active','inactive']).default('active').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("banners_order_status").on(table.order, table.status),
+]);
+
 export const users = mysqlTable("users", {
 	id: int().autoincrement().notNull(),
 	openId: varchar({ length: 64 }).notNull(),

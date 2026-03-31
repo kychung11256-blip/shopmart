@@ -452,3 +452,12 @@
 - [x] 移除「熱銷排行」版塊
 - [x] 移除「促銷活動」版塊
 - [x] 移除「您可能也喜歡」版塊
+
+
+## 📋 Banner 管理模組 - 已完成
+
+- [x] 設計 Banner 數據庫 schema（標題、副標題、圖片 URL、連結、排序、狀態）
+- [x] 實現 Banner CRUD API procedures（create、update、delete、getAll、getActive、getById、reorder）
+- [x] 構建 Banner 管理後台 UI（BannerManagement.tsx）- 列表、新增、編輯、刪除、排序
+- [x] 集成動態 Banner 到首頁 - Home.tsx 使用 trpc.banners.getActive 替代靜態 Banner
+- [x] 編寫 Banner 單元測試（banners.test.ts）
