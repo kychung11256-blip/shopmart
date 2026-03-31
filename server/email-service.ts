@@ -45,38 +45,33 @@ export interface EmailTemplate {
  * Supports placeholders: {{orderNumber}}, {{totalPrice}}, {{customerName}}, {{customerEmail}}, {{items}}
  */
 export const DEFAULT_EMAIL_TEMPLATE = {
-  subject: '感谢您的购买！订单确认 - {{orderNumber}}',
-  body: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
-  <div style="background: #E93323; padding: 24px; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">订单确认</h1>
-  </div>
-  <div style="padding: 32px;">
-    <p style="font-size: 16px; color: #333;">亲爱的 {{customerName}}，</p>
-    <p style="color: #555;">感谢您的购买！您的订单已成功支付。</p>
-    
-    <div style="background: #f9f9f9; border-radius: 8px; padding: 20px; margin: 24px 0;">
-      <h3 style="margin: 0 0 12px; color: #333;">订单详情</h3>
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-          <td style="padding: 6px 0; color: #666;">订单编号：</td>
-          <td style="padding: 6px 0; font-weight: bold; color: #333;">{{orderNumber}}</td>
-        </tr>
-        <tr>
-          <td style="padding: 6px 0; color: #666;">支付金额：</td>
-          <td style="padding: 6px 0; font-weight: bold; color: #E93323;">{{totalPrice}}</td>
-        </tr>
-        <tr>
-          <td style="padding: 6px 0; color: #666;">购买商品：</td>
-          <td style="padding: 6px 0; color: #333;">{{items}}</td>
-        </tr>
-      </table>
-    </div>
+  subject: 'Thank you for your purchase! Order Confirmation - {{orderNumber}}',
+  body: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; padding: 40px 32px;">
+  <p style="font-size: 16px; color: #333; margin: 0 0 20px;">Dear Guest,</p>
 
-    <p style="color: #555;">如有任何问题，请联系我们的客服团队。</p>
-    <p style="color: #555;">感谢您的支持！</p>
+  <p style="font-size: 15px; color: #444; line-height: 1.7; margin: 0 0 16px;">
+    Thank you so much for choosing our product and placing your order with us. We truly appreciate your trust and support.
+  </p>
+
+  <p style="font-size: 15px; color: #444; line-height: 1.7; margin: 0 0 24px;">
+    We hope you love your new purchase and that it brings you great satisfaction. If you have any questions or need assistance, please don't hesitate to reach out to us.
+  </p>
+
+  <p style="font-size: 15px; color: #444; margin: 0 0 24px;">Thank you again for being a valued customer!</p>
+
+  <div style="background: #f5f5f5; border-left: 4px solid #E93323; padding: 16px 20px; margin: 24px 0; border-radius: 4px;">
+    <p style="margin: 0; font-size: 14px; color: #666;">Order Reference:</p>
+    <p style="margin: 6px 0 0; font-size: 16px; font-weight: bold; color: #333; letter-spacing: 0.5px;">{{orderNumber}}</p>
   </div>
-  <div style="background: #f5f5f5; padding: 16px; text-align: center; font-size: 12px; color: #999;">
-    <p>此邮件由系统自动发送，请勿回复。</p>
+
+  <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #eee;">
+    <p style="margin: 0; font-size: 15px; color: #333;">Best regards,</p>
+    <p style="margin: 6px 0 0; font-size: 16px; font-weight: bold; color: #333;">Andy Chan</p>
+    <p style="margin: 4px 0 0; font-size: 14px; color: #666;">CEO of PaiKoi</p>
+  </div>
+
+  <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #eee; text-align: center; font-size: 12px; color: #aaa;">
+    <p style="margin: 0;">This is an automated message. Please do not reply to this email.</p>
   </div>
 </div>`,
 };

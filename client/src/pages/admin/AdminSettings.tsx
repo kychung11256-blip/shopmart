@@ -649,11 +649,11 @@ export default function AdminSettings() {
                       className="p-4"
                       dangerouslySetInnerHTML={{
                         __html: templateBody
-                          .replace(/\{\{orderNumber\}\}/g, 'ORD-20240101-001')
+                          .replace(/\{\{orderNumber\}\}/g, 'ORD-20240101-dlksnfsadnjfaklsd93793udhfk')
                           .replace(/\{\{totalPrice\}\}/g, '$99.00')
-                          .replace(/\{\{customerName\}\}/g, '张三')
+                          .replace(/\{\{customerName\}\}/g, 'Guest')
                           .replace(/\{\{customerEmail\}\}/g, 'customer@example.com')
-                          .replace(/\{\{items\}\}/g, 'NFT 艺术品 × 1'),
+                          .replace(/\{\{items\}\}/g, 'NFT Artwork × 1'),
                       }}
                     />
                   </div>
