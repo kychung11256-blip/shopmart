@@ -256,7 +256,7 @@ export default function Cart() {
 
       {/* Main Content */}
       <div className="max-w-[1200px] mx-auto px-2 sm:px-4 py-4 sm:py-6">
-        <div className="flex gap-4">
+        <div className="flex flex-col md:flex-row gap-4">
           {/* Cart Items */}
           <main className="flex-1">
             <div className="bg-white rounded shadow-sm p-4">
@@ -323,8 +323,8 @@ export default function Cart() {
 
           {/* Order Summary */}
           {cartItems.length > 0 && (
-            <aside className="w-full sm:w-80">
-              <div className="bg-white rounded shadow-sm p-4 sticky top-20">
+            <aside className="w-full md:w-80">
+              <div className="bg-white rounded shadow-sm p-4 sticky top-16 md:top-20">
                 <h2 className="text-lg font-bold text-gray-800 mb-4">{language === 'zh' ? '訂單摘要' : 'Order Summary'}</h2>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
