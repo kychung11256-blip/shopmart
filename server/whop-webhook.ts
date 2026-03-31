@@ -2,8 +2,9 @@ import type { Request, Response } from 'express';
 import Whop from '@whop/sdk';
 import type { PaymentSucceededWebhookEvent, MembershipActivatedWebhookEvent, MembershipDeactivatedWebhookEvent, UnwrapWebhookEvent } from '@whop/sdk/resources/webhooks.js';
 import { getDb } from './db';
-import { orders, orderItems, products } from '../drizzle/schema';
+import { orders, orderItems, products, users } from '../drizzle/schema';
 import { eq, sql } from 'drizzle-orm';
+import { sendOrderConfirmationEmail } from './email-service';
 
 /**
  * Whop Webhook Handler
@@ -168,6 +169,57 @@ async function handlePaymentSucceeded(event: PaymentSucceededWebhookEvent) {
           })
           .where(eq(products.id, item.productId));
         console.log(`[Whop Webhook] Decremented stock for product ${item.productId} by ${item.quantity}`);
+      }
+
+      // 3. Send order confirmation email to buyer
+      try {
+        // Get the updated order
+        const orderRows = await db.select().from(orders).where(eq(orders.id, numericOrderId)).limit(1);
+        const order = orderRows[0];
+        if (order) {
+          // Determine customer email: from shippingAddress field (used as email) or from user record
+          let customerEmail: string | null = null;
+          let customerName = '尊贵的客户';
+
+          // shippingAddress stores email for guest checkouts
+          if (order.shippingAddress && order.shippingAddress.includes('@')) {
+            customerEmail = order.shippingAddress;
+          } else if (order.userId) {
+            const userRows = await db.select().from(users).where(eq(users.id, order.userId)).limit(1);
+            if (userRows[0]) {
+              customerEmail = userRows[0].email || null;
+              customerName = userRows[0].name || customerName;
+            }
+          }
+
+          if (customerEmail) {
+            // Build items summary
+            const itemsWithProducts = await db
+              .select({ name: products.name, quantity: orderItems.quantity, price: orderItems.price })
+              .from(orderItems)
+              .innerJoin(products, eq(orderItems.productId, products.id))
+              .where(eq(orderItems.orderId, numericOrderId));
+
+            const itemsSummary = itemsWithProducts.length > 0
+              ? itemsWithProducts.map(i => `${i.name} × ${i.quantity}`).join(', ')
+              : '商品详情请查看订单';
+
+            const totalPriceStr = `$${(order.totalPrice / 100).toFixed(2)}`;
+
+            await sendOrderConfirmationEmail({
+              toEmail: customerEmail,
+              customerName,
+              orderNumber: order.orderNumber,
+              totalPrice: totalPriceStr,
+              items: itemsSummary,
+            });
+          } else {
+            console.warn(`[Whop Webhook] No email found for order ${orderId}, skipping confirmation email`);
+          }
+        }
+      } catch (emailErr: any) {
+        // Email failure should NOT fail the webhook
+        console.error('[Whop Webhook] Failed to send confirmation email:', emailErr.message);
       }
     }
   } else {

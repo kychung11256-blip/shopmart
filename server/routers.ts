@@ -1360,6 +1360,91 @@ export const appRouter = router({
         data: publishableKey || null,
       };
     }),
+
+    // Admin: Get email configuration
+    getEmailConfig: adminProcedure.query(async () => {
+      const { getConfig } = await import('./db');
+      const { EMAIL_CONFIG_KEYS } = await import('./email-service');
+      return {
+        smtpHost: await getConfig(EMAIL_CONFIG_KEYS.SMTP_HOST) || '',
+        smtpPort: await getConfig(EMAIL_CONFIG_KEYS.SMTP_PORT) || '465',
+        smtpSecure: (await getConfig(EMAIL_CONFIG_KEYS.SMTP_SECURE)) !== 'false',
+        smtpUser: await getConfig(EMAIL_CONFIG_KEYS.SMTP_USER) || '',
+        smtpPassConfigured: !!(await getConfig(EMAIL_CONFIG_KEYS.SMTP_PASS)),
+        fromName: await getConfig(EMAIL_CONFIG_KEYS.FROM_NAME) || '',
+        fromAddress: await getConfig(EMAIL_CONFIG_KEYS.FROM_ADDRESS) || '',
+        enabled: (await getConfig(EMAIL_CONFIG_KEYS.ENABLED)) === 'true',
+      };
+    }),
+
+    // Admin: Save email SMTP configuration
+    setEmailConfig: adminProcedure
+      .input(z.object({
+        smtpHost: z.string().min(1),
+        smtpPort: z.string().default('465'),
+        smtpSecure: z.boolean().default(true),
+        smtpUser: z.string().min(1),
+        smtpPass: z.string().optional(), // Optional: only update if provided
+        fromName: z.string().min(1),
+        fromAddress: z.string().email(),
+        enabled: z.boolean().default(true),
+      }))
+      .mutation(async ({ input }) => {
+        const { setConfig } = await import('./db');
+        const { EMAIL_CONFIG_KEYS } = await import('./email-service');
+        await setConfig(EMAIL_CONFIG_KEYS.SMTP_HOST, input.smtpHost, 'SMTP Host');
+        await setConfig(EMAIL_CONFIG_KEYS.SMTP_PORT, input.smtpPort, 'SMTP Port');
+        await setConfig(EMAIL_CONFIG_KEYS.SMTP_SECURE, String(input.smtpSecure), 'SMTP Secure (SSL/TLS)');
+        await setConfig(EMAIL_CONFIG_KEYS.SMTP_USER, input.smtpUser, 'SMTP Username');
+        if (input.smtpPass) {
+          await setConfig(EMAIL_CONFIG_KEYS.SMTP_PASS, input.smtpPass, 'SMTP Password');
+        }
+        await setConfig(EMAIL_CONFIG_KEYS.FROM_NAME, input.fromName, 'Email From Name');
+        await setConfig(EMAIL_CONFIG_KEYS.FROM_ADDRESS, input.fromAddress, 'Email From Address');
+        await setConfig(EMAIL_CONFIG_KEYS.ENABLED, String(input.enabled), 'Email Sending Enabled');
+        return { success: true };
+      }),
+
+    // Admin: Get email template
+    getEmailTemplate: adminProcedure.query(async () => {
+      const { getConfig } = await import('./db');
+      const { EMAIL_CONFIG_KEYS, DEFAULT_EMAIL_TEMPLATE } = await import('./email-service');
+      return {
+        subject: await getConfig(EMAIL_CONFIG_KEYS.TEMPLATE_SUBJECT) || DEFAULT_EMAIL_TEMPLATE.subject,
+        body: await getConfig(EMAIL_CONFIG_KEYS.TEMPLATE_BODY) || DEFAULT_EMAIL_TEMPLATE.body,
+      };
+    }),
+
+    // Admin: Save email template
+    setEmailTemplate: adminProcedure
+      .input(z.object({
+        subject: z.string().min(1),
+        body: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const { setConfig } = await import('./db');
+        const { EMAIL_CONFIG_KEYS } = await import('./email-service');
+        await setConfig(EMAIL_CONFIG_KEYS.TEMPLATE_SUBJECT, input.subject, 'Email Template Subject');
+        await setConfig(EMAIL_CONFIG_KEYS.TEMPLATE_BODY, input.body, 'Email Template Body (HTML)');
+        return { success: true };
+      }),
+
+    // Admin: Send test email
+    sendTestEmail: adminProcedure
+      .input(z.object({
+        toEmail: z.string().email(),
+      }))
+      .mutation(async ({ input }) => {
+        const { sendTestEmail } = await import('./email-service');
+        const result = await sendTestEmail(input.toEmail);
+        if (!result.success) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: result.message,
+          });
+        }
+        return result;
+      }),
   }),
 });
 
