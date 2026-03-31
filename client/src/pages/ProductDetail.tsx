@@ -396,7 +396,6 @@ export default function ProductDetail() {
                   {[
                     { icon: Truck, text: language === 'zh' ? '免運費' : 'Free Shipping' },
                     { icon: Shield, text: language === 'zh' ? '100%正品' : '100% Authentic' },
-                    { icon: RefreshCw, text: language === 'zh' ? '30天退貨' : '30-Day Returns' },
                   ].map((badge) => (
                     <div key={badge.text} className="flex items-center gap-1.5 text-xs text-gray-500">
                       <badge.icon size={14} className="text-red-400" />
