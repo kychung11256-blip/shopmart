@@ -394,12 +394,15 @@ export default function ProductDetail() {
                 {/* Trust badges */}
                 <div className="flex flex-wrap gap-3 mt-5 pt-4 border-t border-gray-100">
                   {[
-                    { icon: Truck, text: language === 'zh' ? '免運費' : 'Free Shipping' },
-                    { icon: Shield, text: language === 'zh' ? '100%正品' : '100% Authentic' },
+                    { icon: Truck, zh: '免運費', en: 'Free Shipping' },
+                    { icon: Shield, zh: '100%正品', en: '100% Authentic' },
                   ].map((badge) => (
-                    <div key={badge.text} className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <div key={badge.zh} className="flex items-center gap-1.5 text-xs text-gray-500">
                       <badge.icon size={14} className="text-red-400" />
-                      {badge.text}
+                      <div className="flex flex-col leading-tight">
+                        <span>{language === 'zh' ? badge.zh : badge.en}</span>
+                        <span className="text-gray-400 text-xs">{language === 'zh' ? badge.en : badge.zh}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
