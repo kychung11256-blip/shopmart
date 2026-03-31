@@ -340,10 +340,27 @@ export default function ProductDetail() {
                     <span className="text-sm text-gray-500 ml-1">{product.rating || 0}</span>
                   </div>
                   <span className="text-sm text-gray-400">{product.sold} {language === 'zh' ? '已賣' : 'sold'}</span>
+                </div>
+
+                {/* 庫存與已售狀態區塊 */}
+                <div className="flex items-center gap-4 mt-3 py-2.5 px-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-gray-400">{language === 'zh' ? '已售' : 'Sold'}:</span>
+                    <span className="text-sm font-semibold text-gray-700">{product.sold}</span>
+                  </div>
+                  <div className="w-px h-4 bg-gray-200" />
                   {isSoldOut ? (
-                    <span className="text-sm font-medium text-red-400">{language === 'zh' ? '已售罄' : 'Out of Stock'}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-block w-2 h-2 rounded-full bg-red-400" />
+                      <span className="text-sm font-semibold text-red-500">{language === 'zh' ? '已售罄' : 'Out of Stock'}</span>
+                    </div>
                   ) : (
-                    <span className="text-sm text-green-600">{language === 'zh' ? '庫存' : 'Stock'}: {product.stock}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-block w-2 h-2 rounded-full bg-green-400" />
+                      <span className="text-xs text-gray-400">{language === 'zh' ? '庫存' : 'Stock'}:</span>
+                      <span className="text-sm font-semibold text-green-600">{product.stock}</span>
+                      <span className="text-xs text-gray-400">{language === 'zh' ? '件' : 'units'}</span>
+                    </div>
                   )}
                 </div>
 
