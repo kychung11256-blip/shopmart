@@ -551,6 +551,38 @@ export const appRouter = router({
           throw error;
         }
       }),
+    updateStatus: protectedProcedure
+      .input(z.object({
+        orderId: z.number(),
+        status: z.enum(['pending', 'processing', 'shipped', 'delivered', 'completed', 'cancelled']),
+        trackingNumber: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin only' });
+        }
+        const db = await getDb();
+        if (!db) throw new Error('Database not available');
+        try {
+          const updateData: any = {
+            status: input.status,
+            updatedAt: new Date().toISOString(),
+          };
+          if (input.trackingNumber !== undefined) {
+            updateData.trackingNumber = input.trackingNumber;
+          }
+          await db
+            .update(orders)
+            .set(updateData)
+            .where(eq(orders.id, input.orderId));
+          console.log(`[API] Order ${input.orderId} status updated to ${input.status} by admin ${ctx.user.id}`);
+          return { success: true };
+        } catch (error) {
+          console.error('[API] Error updating order status:', error);
+          throw error;
+        }
+      }),
+
     createNexapaySession: publicProcedure
       .input(z.object({
         orderId: z.number(),

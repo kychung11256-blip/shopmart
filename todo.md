@@ -549,3 +549,14 @@
 ## 🔗 后台返回商城功能
 
 - [x] 在后台右上角添加「返回商城」按钮
+
+## 🐛 訂單商品記錄缺失問題
+
+- [ ] 診斷訂單 #1560003 缺少商品記錄的原因
+- [ ] 修復 Whop webhook 商品關聯邏輯（如需要）
+
+## 🚚 後台手動已發貨功能
+
+- [x] 後端新增 orders.updateStatus tRPC procedure（管理員專用）
+- [x] 前端訂單詳情 Modal 添加「標記已發貨」按鈕
+- [x] 支援狀態：processing → shipped → delivered

@@ -1,0 +1,2 @@
+ALTER TABLE `orders` MODIFY COLUMN `status` enum('pending','processing','shipped','delivered','completed','cancelled') NOT NULL DEFAULT 'pending';--> statement-breakpoint
+ALTER TABLE `orders` ADD `trackingNumber` varchar(255);

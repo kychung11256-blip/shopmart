@@ -54,12 +54,33 @@ function getPaymentStatusLabel(status: string, language: string) {
 }
 
 // ── 訂單詳情 Modal ────────────────────────────────────────────
-function OrderDetailModal({ order, onClose }: { order: any; onClose: () => void }) {
+function OrderDetailModal({ order, onClose, onStatusUpdated }: { order: any; onClose: () => void; onStatusUpdated?: () => void }) {
   const { language } = useLanguage();
-  const orderConfig = orderStatusConfig[order.status] || orderStatusConfig.pending;
+  const [currentStatus, setCurrentStatus] = useState(order.status);
+  const [trackingNumber, setTrackingNumber] = useState(order.trackingNumber || '');
+  const [showStatusPanel, setShowStatusPanel] = useState(false);
+  const orderConfig = orderStatusConfig[currentStatus] || orderStatusConfig.pending;
   const payConfig   = paymentStatusConfig[order.paymentStatus] || paymentStatusConfig.unpaid;
   const payMethod   = detectPaymentMethod(order);
   const items: any[] = order.items || [];
+
+  const utils = trpc.useUtils();
+  const updateStatus = trpc.orders.updateStatus.useMutation({
+    onSuccess: () => {
+      utils.orders.list.invalidate();
+      onStatusUpdated?.();
+    },
+  });
+
+  const handleUpdateStatus = async (newStatus: string) => {
+    await updateStatus.mutateAsync({
+      orderId: order.id,
+      status: newStatus as any,
+      trackingNumber: trackingNumber || undefined,
+    });
+    setCurrentStatus(newStatus);
+    setShowStatusPanel(false);
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -223,6 +244,111 @@ function OrderDetailModal({ order, onClose }: { order: any; onClose: () => void 
               )}
             </div>
           )}
+
+          {/* ── 管理員操作區 ── */}
+          <div className="border-t border-gray-100 pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-semibold text-gray-700">
+                {language === 'zh' ? '更新訂單狀態' : 'Update Order Status'}
+              </p>
+              <button
+                onClick={() => setShowStatusPanel(!showStatusPanel)}
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+              >
+                {showStatusPanel
+                  ? (language === 'zh' ? '收起' : 'Collapse')
+                  : (language === 'zh' ? '展開操作' : 'Expand')}
+              </button>
+            </div>
+
+            {/* 快速操作按鈕 */}
+            <div className="flex flex-wrap gap-2">
+              {currentStatus !== 'shipped' && currentStatus !== 'delivered' && currentStatus !== 'completed' && currentStatus !== 'cancelled' && (
+                <button
+                  onClick={() => handleUpdateStatus('shipped')}
+                  disabled={updateStatus.isPending}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <Truck size={13} />
+                  {language === 'zh' ? '標記已發貨' : 'Mark as Shipped'}
+                </button>
+              )}
+              {currentStatus === 'shipped' && (
+                <button
+                  onClick={() => handleUpdateStatus('delivered')}
+                  disabled={updateStatus.isPending}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <CheckCircle size={13} />
+                  {language === 'zh' ? '標記已送達' : 'Mark as Delivered'}
+                </button>
+              )}
+              {currentStatus !== 'completed' && currentStatus !== 'cancelled' && (
+                <button
+                  onClick={() => handleUpdateStatus('completed')}
+                  disabled={updateStatus.isPending}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <CheckCircle size={13} />
+                  {language === 'zh' ? '標記已完成' : 'Mark as Completed'}
+                </button>
+              )}
+              {currentStatus !== 'cancelled' && (
+                <button
+                  onClick={() => handleUpdateStatus('cancelled')}
+                  disabled={updateStatus.isPending}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <XCircle size={13} />
+                  {language === 'zh' ? '取消訂單' : 'Cancel Order'}
+                </button>
+              )}
+            </div>
+
+            {/* 展開：追蹤號輸入 */}
+            {showStatusPanel && (
+              <div className="mt-3 space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    {language === 'zh' ? '追蹤號碼（選填）' : 'Tracking Number (optional)'}
+                  </label>
+                  <input
+                    type="text"
+                    value={trackingNumber}
+                    onChange={(e) => setTrackingNumber(e.target.value)}
+                    placeholder={language === 'zh' ? '輸入物流追蹤號碼' : 'Enter tracking number'}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {(['pending','processing','shipped','delivered','completed','cancelled'] as const).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => handleUpdateStatus(s)}
+                      disabled={updateStatus.isPending || currentStatus === s}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors disabled:opacity-40 ${
+                        currentStatus === s
+                          ? 'bg-gray-200 text-gray-500 cursor-default'
+                          : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                      }`}
+                    >
+                      {orderStatusConfig[s]?.labelZh || s}
+                    </button>
+                  ))}
+                </div>
+                {updateStatus.isSuccess && (
+                  <p className="text-xs text-green-600 font-medium">
+                    ✓ {language === 'zh' ? '狀態已更新' : 'Status updated successfully'}
+                  </p>
+                )}
+                {updateStatus.isError && (
+                  <p className="text-xs text-red-600 font-medium">
+                    ✗ {language === 'zh' ? '更新失敗，請重試' : 'Update failed, please try again'}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
