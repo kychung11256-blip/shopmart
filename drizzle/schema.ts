@@ -1,4 +1,4 @@
-import { mysqlTable, mysqlSchema, AnyMySqlColumn, int, timestamp, varchar, text, mysqlEnum, index } from "drizzle-orm/mysql-core"
+import { mysqlTable, mysqlSchema, AnyMySqlColumn, int, timestamp, varchar, text, mysqlEnum, index, uniqueIndex } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
 
 export const cart = mysqlTable("cart", {
@@ -110,7 +110,7 @@ export const users = mysqlTable("users", {
 	lastSignedIn: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 },
 (table) => [
-	index("users_openId_unique").on(table.openId),
+	uniqueIndex("users_openId_unique").on(table.openId),
 ]);
 
 // ── Insert type helpers (used in routers.ts) ──────────────────

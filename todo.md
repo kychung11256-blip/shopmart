@@ -560,3 +560,7 @@
 - [x] 後端新增 orders.updateStatus tRPC procedure（管理員專用）
 - [x] 前端訂單詳情 Modal 添加「標記已發貨」按鈕
 - [x] 支援狀態：processing → shipped → delivered
+
+## 🔐 修復登入邏輯
+
+- [x] 修復 OAuth callback 登入邏輯：改為 upsert，確保同一 openId 只對應一個帳號
