@@ -120,6 +120,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
+            <a
+              href="/"
+              className="flex items-center justify-center gap-1 px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-red-500 hover:bg-gray-100 rounded transition-colors border border-gray-200 hover:border-red-400"
+              title="Back to Store"
+            >
+              <span>←</span>
+              <span className="font-medium hidden sm:inline">Back to Store</span>
+            </a>
             <button
               onClick={toggleLanguage}
               className="flex items-center justify-center gap-0.5 sm:gap-1.5 px-1.5 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-red-500 hover:bg-gray-100 rounded transition-colors"
