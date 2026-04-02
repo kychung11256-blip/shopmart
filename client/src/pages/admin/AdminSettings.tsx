@@ -58,7 +58,9 @@ export default function AdminSettings() {
   const [invoiceRepTitle, setInvoiceRepTitle] = useState('');
   const [invoiceSellerArtist, setInvoiceSellerArtist] = useState('');
   const [invoiceDisclaimer, setInvoiceDisclaimer] = useState('');
+  const [invoiceLogoUrl, setInvoiceLogoUrl] = useState('');
   const [isSavingInvoice, setIsSavingInvoice] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   // Stripe status query
   const { data: stripeStatus } = trpc.config.getStripeStatus.useQuery();
@@ -74,6 +76,8 @@ export default function AdminSettings() {
   // Invoice config queries
   const { data: invoiceConfig, refetch: refetchInvoiceConfig } = trpc.config.getInvoiceConfig.useQuery();
   const setInvoiceConfigMutation = trpc.config.setInvoiceConfig.useMutation();
+  const uploadInvoiceLogoMutation = trpc.config.uploadInvoiceLogo.useMutation();
+  const deleteInvoiceLogoMutation = trpc.config.deleteInvoiceLogo.useMutation();
 
   // Load email config into state when data arrives
   useEffect(() => {
@@ -107,6 +111,7 @@ export default function AdminSettings() {
       setInvoiceRepTitle(invoiceConfig.companyRepTitle);
       setInvoiceSellerArtist(invoiceConfig.sellerArtistName);
       setInvoiceDisclaimer(invoiceConfig.disclaimerText);
+      setInvoiceLogoUrl(invoiceConfig.companyLogoUrl || '');
     }
   }, [invoiceConfig]);
 
@@ -187,6 +192,43 @@ export default function AdminSettings() {
     }
   };
 
+  const handleUploadInvoiceLogo = async (file: File) => {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Logo file must be smaller than 5MB');
+      return;
+    }
+    setIsUploadingLogo(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64 = (e.target?.result as string).split(',')[1];
+        const result = await uploadInvoiceLogoMutation.mutateAsync({
+          fileBuffer: base64,
+          fileName: file.name,
+        });
+        setInvoiceLogoUrl(result.url);
+        toast.success('Logo uploaded successfully!');
+      };
+      reader.readAsDataURL(file);
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to upload logo');
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const handleDeleteInvoiceLogo = async () => {
+    if (!invoiceLogoUrl) return;
+    try {
+      await deleteInvoiceLogoMutation.mutateAsync();
+      setInvoiceLogoUrl('');
+      toast.success('Logo deleted successfully!');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to delete logo');
+    }
+  };
+
   const handleSaveInvoiceConfig = async () => {
     if (!invoiceCompanyName.trim() || !invoiceCompanyAddress.trim() || !invoiceCompanyEmail.trim() || !invoiceRepName.trim() || !invoiceRepTitle.trim() || !invoiceDisclaimer.trim()) {
       toast.error('Please fill in all required invoice fields');
@@ -203,6 +245,7 @@ export default function AdminSettings() {
         companyRepTitle: invoiceRepTitle.trim(),
         sellerArtistName: invoiceSellerArtist.trim(),
         disclaimerText: invoiceDisclaimer.trim(),
+        companyLogoUrl: invoiceLogoUrl,
       });
       toast.success('Invoice settings saved! New PDFs will use these settings.');
       refetchInvoiceConfig();
@@ -557,6 +600,63 @@ export default function AdminSettings() {
 
                 <div className="space-y-4 max-w-lg">
                   <div className="pb-3 border-b border-gray-100">
+                    <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Company Logo</h3>
+                    <p className="text-xs text-gray-400 mt-1">Displayed at the top of invoice PDFs</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Company Logo</label>
+                    {invoiceLogoUrl ? (
+                      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <img src={invoiceLogoUrl} alt="Company Logo" className="h-16 w-16 object-contain" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Logo uploaded</p>
+                              <p className="text-xs text-gray-400">Click to replace or delete</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={handleDeleteInvoiceLogo}
+                            className="text-red-600 hover:text-red-700 text-sm font-medium"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <input
+                          type="file"
+                          id="logo-upload"
+                          accept="image/*"
+                          onChange={(e) => e.target.files?.[0] && handleUploadInvoiceLogo(e.target.files[0])}
+                          disabled={isUploadingLogo}
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="logo-upload"
+                          className="flex items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-red-400 hover:bg-red-50 transition-colors"
+                        >
+                          <div className="text-center">
+                            {isUploadingLogo ? (
+                              <>
+                                <Loader2 size={24} className="mx-auto mb-2 animate-spin text-red-500" />
+                                <p className="text-sm text-gray-600">Uploading...</p>
+                              </>
+                            ) : (
+                              <>
+                                <p className="text-sm font-medium text-gray-700">Click to upload logo</p>
+                                <p className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</p>
+                              </>
+                            )}
+                          </div>
+                        </label>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pb-3 border-b border-gray-100 pt-2">
                     <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Company Information</h3>
                   </div>
 

@@ -25,7 +25,7 @@ export interface InvoiceData {
 }
 
 export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     const doc = new PDFDocument({
       size: 'A4',
       margins: { top: 50, bottom: 50, left: 60, right: 60 },
@@ -46,10 +46,25 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     const companyAddress = cfg.companyAddress;
     const companyEmail = cfg.companyEmail;
     const companyPhone = cfg.companyPhone;
+    const companyLogoUrl = cfg.companyLogoUrl;
     const repName = data.companyRep || cfg.companyRepName;
     const repTitle = data.companyRepTitle || cfg.companyRepTitle;
     const sellerArtist = cfg.sellerArtistName;
     const disclaimerText = cfg.disclaimerText;
+
+    // Fetch logo image if URL is provided
+    let logoBuffer: Buffer | null = null;
+    if (companyLogoUrl) {
+      try {
+        const response = await fetch(companyLogoUrl);
+        if (response.ok) {
+          const arrayBuffer = await response.arrayBuffer();
+          logoBuffer = Buffer.from(arrayBuffer);
+        }
+      } catch (err) {
+        // Silently fail if logo can't be fetched
+      }
+    }
 
     // ── Color palette ──
     const RED = '#C0392B';
@@ -63,17 +78,26 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     // ── Header band ──
     doc.rect(0, 0, doc.page.width, 110).fill(DARK);
 
+    // Add company logo if available
+    if (logoBuffer) {
+      try {
+        doc.image(logoBuffer, 60, 20, { width: 70, height: 70 });
+      } catch (err) {
+        // Silently fail if logo can't be rendered
+      }
+    }
+
     doc
       .fillColor(WHITE)
       .fontSize(28)
       .font('Helvetica-Bold')
-      .text('INVOICE', 60, 35);
+      .text('INVOICE', logoBuffer ? 140 : 60, 35);
 
     doc
       .fillColor(RED)
       .fontSize(11)
       .font('Helvetica')
-      .text(companyName, 60, 68);
+      .text(companyName, logoBuffer ? 140 : 60, 68);
 
     const headerSubLine = companyPhone
       ? `${companyAddress}  |  ${companyEmail}  |  ${companyPhone}`
@@ -82,7 +106,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     doc
       .fillColor('#BDC3C7')
       .fontSize(9)
-      .text(headerSubLine, 60, 84);
+      .text(headerSubLine, logoBuffer ? 140 : 60, 84);
 
     // Invoice meta (top-right)
     const metaX = 370;

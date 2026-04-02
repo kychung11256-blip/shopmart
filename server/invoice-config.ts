@@ -12,6 +12,7 @@ export const INVOICE_CONFIG_KEYS = {
   COMPANY_REP_TITLE: 'invoice_company_rep_title',
   DISCLAIMER_TEXT: 'invoice_disclaimer_text',
   SELLER_ARTIST_NAME: 'invoice_seller_artist_name',
+  COMPANY_LOGO_URL: 'invoice_company_logo_url',
 } as const;
 
 export interface InvoiceConfig {
@@ -23,6 +24,7 @@ export interface InvoiceConfig {
   companyRepTitle: string;
   disclaimerText: string;
   sellerArtistName: string;
+  companyLogoUrl?: string; // Optional: CDN URL to company logo
 }
 
 export const DEFAULT_INVOICE_CONFIG: InvoiceConfig = {
@@ -33,6 +35,7 @@ export const DEFAULT_INVOICE_CONFIG: InvoiceConfig = {
   companyRepName: 'Amina Karim',
   companyRepTitle: 'CEO',
   sellerArtistName: 'Amina Karim',
+  companyLogoUrl: undefined,
   disclaimerText: `• All NFT sales are final and non-refundable.
 • NFTs are created and provided by third-party artists; First Priority Asset Management LLC acts only as a platform to facilitate the sale.
 • The Company does not guarantee authenticity, ownership, or future value of the NFT. NFTs are not investment products.
@@ -55,5 +58,6 @@ export async function loadInvoiceConfig(): Promise<InvoiceConfig> {
     companyRepTitle: await getConfig(INVOICE_CONFIG_KEYS.COMPANY_REP_TITLE) || DEFAULT_INVOICE_CONFIG.companyRepTitle,
     disclaimerText: await getConfig(INVOICE_CONFIG_KEYS.DISCLAIMER_TEXT) || DEFAULT_INVOICE_CONFIG.disclaimerText,
     sellerArtistName: await getConfig(INVOICE_CONFIG_KEYS.SELLER_ARTIST_NAME) || DEFAULT_INVOICE_CONFIG.sellerArtistName,
+    companyLogoUrl: await getConfig(INVOICE_CONFIG_KEYS.COMPANY_LOGO_URL) || DEFAULT_INVOICE_CONFIG.companyLogoUrl,
   };
 }

@@ -1485,6 +1485,30 @@ export const appRouter = router({
       return config;
     }),
 
+    // Admin: Upload company logo (returns CDN URL)
+    uploadInvoiceLogo: adminProcedure
+      .input(z.object({
+        fileBuffer: z.string(),
+        fileName: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const { storagePut } = await import('./storage');
+        const buffer = Buffer.from(input.fileBuffer, 'base64');
+        const ext = input.fileName.split('.').pop() || 'png';
+        const key = `invoice-logos/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+        const { url } = await storagePut(key, buffer, `image/${ext}`);
+        return { url };
+      }),
+
+    // Admin: Delete company logo
+    deleteInvoiceLogo: adminProcedure
+      .mutation(async () => {
+        const { setConfig } = await import('./db');
+        const { INVOICE_CONFIG_KEYS } = await import('./invoice-config');
+        await setConfig(INVOICE_CONFIG_KEYS.COMPANY_LOGO_URL, '', 'Invoice Company Logo URL');
+        return { success: true };
+      }),
+
     // Admin: Save invoice configuration
     setInvoiceConfig: adminProcedure
       .input(z.object({
@@ -1496,6 +1520,7 @@ export const appRouter = router({
         companyRepTitle: z.string().min(1),
         sellerArtistName: z.string().optional().default(''),
         disclaimerText: z.string().min(1),
+        companyLogoUrl: z.string().optional().default(''),
       }))
       .mutation(async ({ input }) => {
         const { setConfig } = await import('./db');
@@ -1508,6 +1533,7 @@ export const appRouter = router({
         await setConfig(INVOICE_CONFIG_KEYS.COMPANY_REP_TITLE, input.companyRepTitle, 'Invoice Company Rep Title');
         await setConfig(INVOICE_CONFIG_KEYS.SELLER_ARTIST_NAME, input.sellerArtistName || '', 'Invoice Seller/Artist Name');
         await setConfig(INVOICE_CONFIG_KEYS.DISCLAIMER_TEXT, input.disclaimerText, 'Invoice Disclaimer Text');
+        await setConfig(INVOICE_CONFIG_KEYS.COMPANY_LOGO_URL, input.companyLogoUrl || '', 'Invoice Company Logo URL');
         return { success: true };
       }),
   }),
