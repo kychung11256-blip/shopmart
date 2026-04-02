@@ -120,6 +120,42 @@ export const appRouter = router({
           throw error;
         }
       }),
+    uploadQrCode: adminProcedure
+      .input(z.object({
+        productId: z.number(),
+        base64: z.string(),
+        fileName: z.string(),
+        mimeType: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          const { storagePut } = await import('./storage');
+          const buffer = Buffer.from(input.base64, 'base64');
+          const key = `products/qrcodes/${input.productId}-${Date.now()}-${input.fileName}`;
+          const { url } = await storagePut(key, buffer, input.mimeType);
+          const db = await getDb();
+          if (!db) throw new Error('Database not available');
+          await db.update(products).set({ qrCodeUrl: url }).where(eq(products.id, input.productId));
+          console.log('[API] QR code uploaded for product', input.productId, ':', url);
+          return { success: true, url };
+        } catch (error) {
+          console.error('[API] Error uploading QR code:', error);
+          throw error;
+        }
+      }),
+    deleteQrCode: adminProcedure
+      .input(z.number())
+      .mutation(async ({ input: productId }) => {
+        try {
+          const db = await getDb();
+          if (!db) throw new Error('Database not available');
+          await db.update(products).set({ qrCodeUrl: null }).where(eq(products.id, productId));
+          return { success: true };
+        } catch (error) {
+          console.error('[API] Error deleting QR code:', error);
+          throw error;
+        }
+      }),
     list: publicProcedure
       .input(z.object({
         categoryId: z.number().optional(),

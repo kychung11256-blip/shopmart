@@ -164,6 +164,7 @@ function renderTemplate(template: string, vars: Record<string, string>): string 
 
 /**
  * Send order confirmation email after successful payment
+ * Supports optional invoice PDF and per-product QR code attachments
  */
 export async function sendOrderConfirmationEmail(params: {
   toEmail: string;
@@ -171,6 +172,8 @@ export async function sendOrderConfirmationEmail(params: {
   orderNumber: string;
   totalPrice: string;
   items: string;
+  invoicePdfBuffer?: Buffer;
+  qrCodeItems?: Array<{ name: string; qrCodeUrl: string }>;
 }): Promise<{ success: boolean; message: string }> {
   const emailConfig = await loadEmailConfig();
   if (!emailConfig) {
@@ -191,6 +194,42 @@ export async function sendOrderConfirmationEmail(params: {
   const subject = renderTemplate(template.subject, vars);
   const html = renderTemplate(template.body, vars);
 
+  // Build attachments
+  const attachments: nodemailer.SendMailOptions['attachments'] = [];
+
+  // Attach invoice PDF
+  if (params.invoicePdfBuffer) {
+    attachments.push({
+      filename: `invoice-${params.orderNumber}.pdf`,
+      content: params.invoicePdfBuffer,
+      contentType: 'application/pdf',
+    });
+  }
+
+  // Attach QR codes for each product
+  if (params.qrCodeItems && params.qrCodeItems.length > 0) {
+    for (const item of params.qrCodeItems) {
+      try {
+        const res = await fetch(item.qrCodeUrl);
+        if (res.ok) {
+          const arrayBuf = await res.arrayBuffer();
+          const buf = Buffer.from(arrayBuf);
+          const urlPath = item.qrCodeUrl.split('?')[0];
+          const ext = urlPath.split('.').pop() || 'png';
+          const safeName = item.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+          attachments.push({
+            filename: `qrcode-${safeName}.${ext}`,
+            content: buf,
+            contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+          });
+          console.log(`[Email] Attached QR code for product: ${item.name}`);
+        }
+      } catch (err: any) {
+        console.warn(`[Email] Failed to fetch QR code for ${item.name}:`, err.message);
+      }
+    }
+  }
+
   try {
     const transporter = nodemailer.createTransport({
       host: emailConfig.smtpHost,
@@ -207,9 +246,10 @@ export async function sendOrderConfirmationEmail(params: {
       to: params.toEmail,
       subject,
       html,
+      attachments,
     });
 
-    console.log(`[Email] Order confirmation sent to ${params.toEmail} for order ${params.orderNumber}`);
+    console.log(`[Email] Order confirmation sent to ${params.toEmail} for order ${params.orderNumber} (attachments: ${attachments.length})`);
     return { success: true, message: 'Email sent successfully' };
   } catch (err: any) {
     console.error('[Email] Failed to send email:', err.message);

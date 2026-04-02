@@ -580,3 +580,13 @@
 - [ ] 新增後台發票預覽功能（Preview PDF 按鈕 + Modal）
 - [ ] 測試 PDF 為單頁並驗證預覽功能
 
+
+## 📧 付款成功自動發信（感謝信 + 發票 PDF + QR Code）
+
+- [x] 資料庫 products 表新增 qrCodeUrl 欄位並推送 migration
+- [x] 後端 products router 新增 uploadQrCode 和 deleteQrCode API
+- [x] 前端 AdminProducts.tsx 新增 QR Code 上傳/預覽/刪除功能
+- [x] email-service.ts 擴充支援發票 PDF 和 QR Code 附件
+- [x] whop-webhook.ts 付款成功後自動生成發票 PDF 並發送帶附件的郵件
+- [x] stripe-webhook.ts 付款成功後自動生成發票 PDF 並發送帶附件的郵件
+- [ ] 用戶在後台 Settings → Email 設定 SpaceMail SMTP

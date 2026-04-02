@@ -1,8 +1,10 @@
 import Stripe from "stripe";
 import { getDb } from "./db";
-import { orders } from "../drizzle/schema";
+import { orders, orderItems, products, users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
-import { sendOrderConfirmationEmail } from "./_core/email";
+import { sendOrderConfirmationEmail } from "./email-service";
+import { generateInvoicePDF } from "./invoice-service";
+import { loadInvoiceConfig } from "./invoice-config";
 
 // Stripe instance is created in the webhook handler, not here
 
@@ -64,10 +66,47 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     const order = orderResult[0];
 
     if (order) {
-      // Send confirmation email with virtual product
+      // Send confirmation email with invoice PDF and QR codes
       try {
-        await sendOrderConfirmationEmail(order, session.customer_email || "");
-        console.log(`[Webhook] Confirmation email sent to ${session.customer_email}`);
+        const customerEmail = session.customer_email || order.shippingAddress || '';
+        if (customerEmail) {
+          const itemsWithProducts = await db
+            .select({ name: products.name, quantity: orderItems.quantity, price: orderItems.price, qrCodeUrl: products.qrCodeUrl })
+            .from(orderItems)
+            .innerJoin(products, eq(orderItems.productId, products.id))
+            .where(eq(orderItems.orderId, orderId));
+
+          const customerName = session.customer_details?.name || order.shippingAddress || 'Customer';
+          const itemsSummary = itemsWithProducts.map(i => `${i.name} × ${i.quantity}`).join(', ') || 'Order details';
+          const totalPriceStr = `$${(order.totalPrice / 100).toFixed(2)}`;
+          const qrCodeItems = itemsWithProducts.filter(i => i.qrCodeUrl).map(i => ({ name: i.name, qrCodeUrl: i.qrCodeUrl! }));
+
+          let invoicePdfBuffer: Buffer | undefined;
+          try {
+            const invoiceConfig = await loadInvoiceConfig();
+            invoicePdfBuffer = await generateInvoicePDF({
+              invoiceNo: order.orderNumber,
+              date: new Date().toISOString().split('T')[0],
+              buyer: { name: customerName, email: customerEmail },
+              items: itemsWithProducts.map(i => ({ nftTitle: i.name, quantity: i.quantity, unitPrice: Math.round(i.price * 100) })),
+              paymentMethod: 'Stripe',
+              config: invoiceConfig,
+            });
+          } catch (pdfErr: any) {
+            console.warn('[Webhook] Failed to generate invoice PDF:', pdfErr.message);
+          }
+
+          await sendOrderConfirmationEmail({
+            toEmail: customerEmail,
+            customerName,
+            orderNumber: order.orderNumber,
+            totalPrice: totalPriceStr,
+            items: itemsSummary,
+            invoicePdfBuffer,
+            qrCodeItems: qrCodeItems.length > 0 ? qrCodeItems : undefined,
+          });
+          console.log(`[Webhook] Confirmation email sent to ${customerEmail}`);
+        }
       } catch (emailError) {
         console.error("[Webhook] Failed to send confirmation email:", emailError);
         // Don't fail the webhook if email fails
@@ -118,12 +157,52 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
 
     console.log(`[Webhook] Order ${order.id} updated to paid status`);
 
-    // Send confirmation email
+    // Send confirmation email with invoice PDF and QR codes
     try {
       const customerEmail = paymentIntent.receipt_email || order.shippingAddress;
       if (customerEmail) {
-        await sendOrderConfirmationEmail(order, customerEmail);
-        console.log(`[Webhook] Confirmation email sent`);
+        const itemsWithProducts = await db
+          .select({ name: products.name, quantity: orderItems.quantity, price: orderItems.price, qrCodeUrl: products.qrCodeUrl })
+          .from(orderItems)
+          .innerJoin(products, eq(orderItems.productId, products.id))
+          .where(eq(orderItems.orderId, order.id));
+
+        // Try to get customer name from users table
+        let customerName = 'Customer';
+        if (order.userId) {
+          const userRows = await db.select().from(users).where(eq(users.id, order.userId)).limit(1);
+          if (userRows[0]) customerName = userRows[0].name || customerName;
+        }
+
+        const itemsSummary = itemsWithProducts.map(i => `${i.name} × ${i.quantity}`).join(', ') || 'Order details';
+        const totalPriceStr = `$${(order.totalPrice / 100).toFixed(2)}`;
+        const qrCodeItems = itemsWithProducts.filter(i => i.qrCodeUrl).map(i => ({ name: i.name, qrCodeUrl: i.qrCodeUrl! }));
+
+        let invoicePdfBuffer: Buffer | undefined;
+        try {
+          const invoiceConfig = await loadInvoiceConfig();
+          invoicePdfBuffer = await generateInvoicePDF({
+            invoiceNo: order.orderNumber,
+            date: new Date().toISOString().split('T')[0],
+            buyer: { name: customerName, email: customerEmail },
+            items: itemsWithProducts.map(i => ({ nftTitle: i.name, quantity: i.quantity, unitPrice: Math.round(i.price * 100) })),
+            paymentMethod: 'Stripe',
+            config: invoiceConfig,
+          });
+        } catch (pdfErr: any) {
+          console.warn('[Webhook] Failed to generate invoice PDF:', pdfErr.message);
+        }
+
+        await sendOrderConfirmationEmail({
+          toEmail: customerEmail,
+          customerName,
+          orderNumber: order.orderNumber,
+          totalPrice: totalPriceStr,
+          items: itemsSummary,
+          invoicePdfBuffer,
+          qrCodeItems: qrCodeItems.length > 0 ? qrCodeItems : undefined,
+        });
+        console.log(`[Webhook] Confirmation email sent to ${customerEmail}`);
       }
     } catch (emailError) {
       console.error("[Webhook] Failed to send confirmation email:", emailError);

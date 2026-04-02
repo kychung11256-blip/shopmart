@@ -74,6 +74,7 @@ export const products = mysqlTable("products", {
 	stock: int().default(0).notNull(),
 	sold: int().default(0).notNull(),
 	rating: int().default(0),
+	qrCodeUrl: varchar({ length: 500 }),
 	status: mysqlEnum(['active','inactive','deleted']).default('active').notNull(),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),

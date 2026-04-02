@@ -5,6 +5,8 @@ import { getDb } from './db';
 import { orders, orderItems, products, users } from '../drizzle/schema';
 import { eq, sql } from 'drizzle-orm';
 import { sendOrderConfirmationEmail } from './email-service';
+import { generateInvoicePDF } from './invoice-service';
+import { loadInvoiceConfig } from './invoice-config';
 
 /**
  * Whop Webhook Handler
@@ -193,9 +195,9 @@ async function handlePaymentSucceeded(event: PaymentSucceededWebhookEvent) {
           }
 
           if (customerEmail) {
-            // Build items summary
+            // Build items summary with QR codes
             const itemsWithProducts = await db
-              .select({ name: products.name, quantity: orderItems.quantity, price: orderItems.price })
+              .select({ name: products.name, quantity: orderItems.quantity, price: orderItems.price, qrCodeUrl: products.qrCodeUrl })
               .from(orderItems)
               .innerJoin(products, eq(orderItems.productId, products.id))
               .where(eq(orderItems.orderId, numericOrderId));
@@ -206,12 +208,40 @@ async function handlePaymentSucceeded(event: PaymentSucceededWebhookEvent) {
 
             const totalPriceStr = `$${(order.totalPrice / 100).toFixed(2)}`;
 
+            // Collect QR code items (products that have a QR code)
+            const qrCodeItems = itemsWithProducts
+              .filter(i => i.qrCodeUrl)
+              .map(i => ({ name: i.name, qrCodeUrl: i.qrCodeUrl! }));
+
+            // Generate invoice PDF
+            let invoicePdfBuffer: Buffer | undefined;
+            try {
+              const invoiceConfig = await loadInvoiceConfig();
+              invoicePdfBuffer = await generateInvoicePDF({
+                invoiceNo: order.orderNumber,
+                date: new Date().toISOString().split('T')[0],
+                buyer: { name: customerName, email: customerEmail },
+                items: itemsWithProducts.map(i => ({
+                  nftTitle: i.name,
+                  quantity: i.quantity,
+                  unitPrice: Math.round(i.price * 100), // price is in dollars, convert to cents
+                })),
+                paymentMethod: 'Whop',
+                config: invoiceConfig,
+              });
+              console.log(`[Whop Webhook] Invoice PDF generated for order ${orderId}`);
+            } catch (pdfErr: any) {
+              console.warn(`[Whop Webhook] Failed to generate invoice PDF:`, pdfErr.message);
+            }
+
             await sendOrderConfirmationEmail({
               toEmail: customerEmail,
               customerName,
               orderNumber: order.orderNumber,
               totalPrice: totalPriceStr,
               items: itemsSummary,
+              invoicePdfBuffer,
+              qrCodeItems: qrCodeItems.length > 0 ? qrCodeItems : undefined,
             });
           } else {
             console.warn(`[Whop Webhook] No email found for order ${orderId}, skipping confirmation email`);

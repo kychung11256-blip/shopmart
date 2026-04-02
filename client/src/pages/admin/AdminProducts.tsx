@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Edit2, Trash2, Plus, Save, X, Upload } from "lucide-react";
+import { Edit2, Trash2, Plus, Save, X, Upload, QrCode } from "lucide-react";
 import ProductEditDialog from "@/components/ProductEditDialog";
 import type { Product } from "@/lib/data";
 
@@ -62,6 +62,9 @@ export default function AdminProducts() {
   });
 
   const uploadImageMutation = trpc.products.uploadImage.useMutation();
+  const uploadQrCodeMutation = trpc.products.uploadQrCode.useMutation();
+  const deleteQrCodeMutation = trpc.products.deleteQrCode.useMutation();
+  const [isUploadingQr, setIsUploadingQr] = useState<number | null>(null); // productId being uploaded
 
   const deleteMutation = trpc.products.delete.useMutation({
     onSuccess: () => {
@@ -194,6 +197,54 @@ export default function AdminProducts() {
       console.error("[AdminProducts] Error reading file:", error);
       toast.error("Failed to read file");
       setIsUploading(false);
+    }
+  };
+
+  const handleQrCodeUpload = async (productId: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    setIsUploadingQr(productId);
+    try {
+      const reader = new FileReader();
+      reader.onload = async event => {
+        try {
+          const base64 = (event.target?.result as string).split(',')[1];
+          await uploadQrCodeMutation.mutateAsync({
+            productId,
+            base64,
+            fileName: file.name,
+            mimeType: file.type,
+          });
+          toast.success('QR Code uploaded successfully');
+          refetch();
+        } catch (error) {
+          console.error('[AdminProducts] Error uploading QR code:', error);
+          toast.error('Failed to upload QR code');
+        } finally {
+          setIsUploadingQr(null);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('[AdminProducts] Error reading QR file:', error);
+      toast.error('Failed to read file');
+      setIsUploadingQr(null);
+    }
+  };
+
+  const handleDeleteQrCode = async (productId: number) => {
+    if (!confirm('Remove QR Code for this product?')) return;
+    try {
+      await deleteQrCodeMutation.mutateAsync(productId);
+      toast.success('QR Code removed');
+      refetch();
+    } catch (error) {
+      console.error('[AdminProducts] Error deleting QR code:', error);
+      toast.error('Failed to remove QR code');
     }
   };
 
@@ -380,6 +431,9 @@ export default function AdminProducts() {
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">
                   圖片
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">
+                  QR Code
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">
                   狀態
@@ -702,6 +756,39 @@ export default function AdminProducts() {
                       ) : (
                         <span className="text-xs text-gray-400">No image</span>
                       )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col items-start gap-1">
+                        {product.qrCodeUrl ? (
+                          <div className="flex items-center gap-2">
+                            <img
+                              src={product.qrCodeUrl}
+                              alt="QR Code"
+                              className="w-10 h-10 rounded border border-gray-200 object-contain"
+                            />
+                            <button
+                              onClick={() => handleDeleteQrCode(product.id)}
+                              className="p-1 text-red-400 hover:text-red-600 text-xs"
+                              title="Remove QR Code"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400">No QR</span>
+                        )}
+                        <label className="cursor-pointer flex items-center gap-1 text-xs text-blue-500 hover:text-blue-700">
+                          <QrCode size={12} />
+                          {isUploadingQr === product.id ? 'Uploading...' : product.qrCodeUrl ? 'Replace' : 'Upload'}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            disabled={isUploadingQr === product.id}
+                            onChange={(e) => handleQrCodeUpload(product.id, e)}
+                          />
+                        </label>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <span
