@@ -590,3 +590,10 @@
 - [x] whop-webhook.ts 付款成功後自動生成發票 PDF 並發送帶附件的郵件
 - [x] stripe-webhook.ts 付款成功後自動生成發票 PDF 並發送帶附件的郵件
 - [ ] 用戶在後台 Settings → Email 設定 SpaceMail SMTP
+
+## 🔧 前端支付方式開關同步修復 - 已完成
+
+- [x] 診斷問題：Checkout.tsx 中 Stripe 和 Whop 按鈕使用 `{false && ...}` 硬編碼隱藏，未讀取後台開關狀態
+- [x] 新增 `trpc.config.getPaymentMethodsPublic.useQuery()` 查詢後台支付開關狀態
+- [x] 用 `stripeEnabled` 和 `whopEnabled` 動態控制按鈕顯示/隱藏
+- [x] 測試驗證：後台開啟 Stripe 後，前端結帳頁面立即顯示 Stripe 按鈕

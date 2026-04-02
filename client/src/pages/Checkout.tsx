@@ -238,6 +238,10 @@ export default function Checkout() {
   const createNexapaySessionMutation = trpc.orders.createNexapaySession.useMutation();
   const createWhopCheckoutMutation = trpc.orders.createWhopCheckout.useMutation();
   const stripeKeyQuery = trpc.config.getStripePublishableKey.useQuery();
+  // Fetch enabled payment methods from backend settings
+  const { data: paymentMethodsData } = trpc.config.getPaymentMethodsPublic.useQuery();
+  const whopEnabled = paymentMethodsData?.whopEnabled ?? true;
+  const stripeEnabled = paymentMethodsData?.stripeEnabled ?? false;
 
   // Initialize Stripe
   useEffect(() => {
@@ -684,8 +688,8 @@ export default function Checkout() {
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-4">Payment Method</h3>
                 <div className="space-y-3">
-                  {/* Stripe Payment - Hidden, code preserved for future use */}
-                  {false && (
+                  {/* Stripe Payment - controlled by admin toggle */}
+                  {stripeEnabled && (
                   <button
                     onClick={handleStripeCheckout}
                     disabled={isProcessing}
@@ -693,7 +697,7 @@ export default function Checkout() {
                   >
                     <CreditCard size={20} className="text-red-500" />
                     <div className="text-left">
-                      <div className="font-semibold">St (Visa/Mastercard)</div>
+                      <div className="font-semibold">Stripe (Visa/Mastercard)</div>
                       <div className="text-sm text-gray-600">Pay securely with your card</div>
                     </div>
                   </button>
@@ -729,7 +733,8 @@ export default function Checkout() {
                   </div>
                   )}
 
-                  {/* Whop Payment */}
+                  {/* Whop Payment - controlled by admin toggle */}
+                  {whopEnabled && (
                   <button
                     onClick={handleWhopCheckout}
                     disabled={isProcessing}
@@ -747,6 +752,7 @@ export default function Checkout() {
                       <div className="text-sm text-gray-600">Pay with Whop — credit card, Apple Pay & more</div>
                     </div>
                   </button>
+                  )}
                 </div>
               </div>
             </div>
