@@ -1578,6 +1578,41 @@ export const appRouter = router({
           });
         }
       }),
+
+    // Admin: Preview invoice PDF (returns base64-encoded PDF)
+    previewInvoicePDF: adminProcedure.mutation(async () => {
+      const { getConfig } = await import('./db');
+      const { generateInvoicePDF } = await import('./invoice-service');
+      const { INVOICE_CONFIG_KEYS, DEFAULT_INVOICE_CONFIG } = await import('./invoice-config');
+
+      // Load config from DB
+      const cfg = {
+        companyName: (await getConfig(INVOICE_CONFIG_KEYS.COMPANY_NAME)) || DEFAULT_INVOICE_CONFIG.companyName,
+        companyAddress: (await getConfig(INVOICE_CONFIG_KEYS.COMPANY_ADDRESS)) || DEFAULT_INVOICE_CONFIG.companyAddress,
+        companyEmail: (await getConfig(INVOICE_CONFIG_KEYS.COMPANY_EMAIL)) || DEFAULT_INVOICE_CONFIG.companyEmail,
+        companyPhone: (await getConfig(INVOICE_CONFIG_KEYS.COMPANY_PHONE)) || DEFAULT_INVOICE_CONFIG.companyPhone,
+        companyRepName: (await getConfig(INVOICE_CONFIG_KEYS.COMPANY_REP_NAME)) || DEFAULT_INVOICE_CONFIG.companyRepName,
+        companyRepTitle: (await getConfig(INVOICE_CONFIG_KEYS.COMPANY_REP_TITLE)) || DEFAULT_INVOICE_CONFIG.companyRepTitle,
+        sellerArtistName: (await getConfig(INVOICE_CONFIG_KEYS.SELLER_ARTIST_NAME)) || DEFAULT_INVOICE_CONFIG.sellerArtistName,
+        disclaimerText: (await getConfig(INVOICE_CONFIG_KEYS.DISCLAIMER_TEXT)) || DEFAULT_INVOICE_CONFIG.disclaimerText,
+        companyLogoUrl: (await getConfig(INVOICE_CONFIG_KEYS.COMPANY_LOGO_URL)) || DEFAULT_INVOICE_CONFIG.companyLogoUrl,
+      };
+
+      const today = new Date().toISOString().split('T')[0];
+      const pdfBuffer = await generateInvoicePDF({
+        invoiceNo: 'PREVIEW-001',
+        date: today,
+        buyer: { name: 'Sample Buyer', email: 'buyer@example.com' },
+        items: [
+          { nftTitle: 'Sample NFT #1', quantity: 1, unitPrice: 50000, platformFee: 2500, artistRoyaltyPercent: 10 },
+          { nftTitle: 'Sample NFT #2', quantity: 2, unitPrice: 25000, platformFee: 1250, artistRoyaltyPercent: 5 },
+        ],
+        paymentMethod: 'Stripe',
+        config: cfg,
+      });
+
+      return { pdfBase64: pdfBuffer.toString('base64') };
+    }),
   }),
 });
 

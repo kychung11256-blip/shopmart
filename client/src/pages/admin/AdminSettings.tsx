@@ -88,6 +88,30 @@ export default function AdminSettings() {
   const { data: paymentMethods, refetch: refetchPaymentMethods } = trpc.config.getPaymentMethods.useQuery();
   const setPaymentMethodsMutation = trpc.config.setPaymentMethods.useMutation();
 
+  // Invoice preview state
+  const [showInvoicePreview, setShowInvoicePreview] = useState(false);
+  const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
+  const previewInvoiceMutation = trpc.config.previewInvoicePDF.useMutation();
+
+  const handlePreviewInvoice = async () => {
+    try {
+      toast.loading('Generating preview...');
+      const result = await previewInvoiceMutation.mutateAsync();
+      toast.dismiss();
+      // Convert base64 to blob URL
+      const binaryStr = atob(result.pdfBase64);
+      const bytes = new Uint8Array(binaryStr.length);
+      for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+      const blob = new Blob([bytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      setPreviewPdfUrl(url);
+      setShowInvoicePreview(true);
+    } catch (err: any) {
+      toast.dismiss();
+      toast.error('Failed to generate preview: ' + (err?.message || 'Unknown error'));
+    }
+  };
+
   // Load email config into state when data arrives
   useEffect(() => {
     if (emailConfig) {
@@ -274,6 +298,7 @@ export default function AdminSettings() {
   };
 
   return (
+    <>
     <AdminLayout>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Settings</h1>
@@ -866,6 +891,16 @@ export default function AdminSettings() {
                       : <><Save size={16} />Save Invoice Settings</>
                     }
                   </button>
+                  <button
+                    onClick={handlePreviewInvoice}
+                    disabled={previewInvoiceMutation.isPending}
+                    className="bg-white hover:bg-gray-50 disabled:bg-gray-100 text-gray-700 border border-gray-300 px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2"
+                  >
+                    {previewInvoiceMutation.isPending
+                      ? <><Loader2 size={16} className="animate-spin" />Generating...</>
+                      : <><FileText size={16} />Preview PDF</>
+                    }
+                  </button>
                   <p className="text-xs text-gray-400">Changes apply to all newly generated invoice PDFs</p>
                 </div>
               </div>
@@ -874,5 +909,43 @@ export default function AdminSettings() {
         </div>
       </div>
     </AdminLayout>
+
+    {/* Invoice Preview Modal */}
+    {showInvoicePreview && previewPdfUrl && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowInvoicePreview(false)}>
+        <div className="bg-white rounded-xl shadow-2xl w-[90vw] max-w-4xl h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center gap-2">
+              <FileText size={20} className="text-red-500" />
+              <h2 className="text-lg font-semibold text-gray-800">Invoice Preview</h2>
+              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">Sample Data</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <a
+                href={previewPdfUrl}
+                download="invoice-preview.pdf"
+                className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
+              >
+                <Save size={14} />Download
+              </a>
+              <button
+                onClick={() => { setShowInvoicePreview(false); URL.revokeObjectURL(previewPdfUrl!); setPreviewPdfUrl(null); }}
+                className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <iframe
+              src={previewPdfUrl}
+              className="w-full h-full border-0"
+              title="Invoice Preview"
+            />
+          </div>
+        </div>
+      </div>
+      )}
+    </>
   );
 }

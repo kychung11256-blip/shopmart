@@ -26,9 +26,11 @@ export interface InvoiceData {
 
 export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
   return new Promise(async (resolve, reject) => {
+    // Use autoFirstPage: false so we control page creation
     const doc = new PDFDocument({
       size: 'A4',
       margins: { top: 50, bottom: 50, left: 60, right: 60 },
+      autoFirstPage: false,
     });
 
     const chunks: Buffer[] = [];
@@ -39,6 +41,9 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     stream.on('error', reject);
 
     doc.pipe(stream);
+
+    // Add the first (and only) page
+    doc.addPage();
 
     // Use config from database or fall back to defaults
     const cfg = data.config || DEFAULT_INVOICE_CONFIG;
@@ -74,6 +79,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     const WHITE = '#FFFFFF';
 
     const pageW = doc.page.width - 120; // usable width
+    const pageH = doc.page.height;
 
     // ── Header band ──
     doc.rect(0, 0, doc.page.width, 110).fill(DARK);
@@ -286,7 +292,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     }
 
     // ── Disclaimer box ──
-    y += 35;
+    y += 30;
     doc.rect(col1X, y, pageW, 1).fill(LIGHT_GRAY);
     y += 8;
 
@@ -313,9 +319,9 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     });
 
     // ── Authorized by ──
-    y += 15;
-    doc.rect(col1X, y, pageW, 1).fill(LIGHT_GRAY);
     y += 12;
+    doc.rect(col1X, y, pageW, 1).fill(LIGHT_GRAY);
+    y += 10;
 
     doc
       .fillColor(DARK)
@@ -325,7 +331,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       .font('Helvetica')
       .text(`${repName}  |  ${repTitle}`, col1X + 90, y);
 
-    y += 22;
+    y += 20;
     doc
       .moveTo(col1X, y)
       .lineTo(col1X + 160, y)
@@ -334,7 +340,8 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       .stroke();
     doc.fillColor(GRAY).fontSize(8).text('Signature', col1X, y + 4);
 
-    // ── Footer ──
+    // ── Footer: render right after content, not at fixed page bottom ──
+    y += 25;
     const footerText = companyPhone
       ? `${companyName}  •  ${companyAddress}  •  ${companyEmail}  •  ${companyPhone}`
       : `${companyName}  •  ${companyAddress}  •  ${companyEmail}`;
@@ -344,8 +351,8 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       .fontSize(7.5)
       .text(
         footerText,
-        60,
-        doc.page.height - 35,
+        col1X,
+        y,
         { align: 'center', width: pageW }
       );
 
