@@ -1477,6 +1477,39 @@ export const appRouter = router({
         }
         return result;
       }),
+
+    // Admin: Get invoice configuration
+    getInvoiceConfig: adminProcedure.query(async () => {
+      const { loadInvoiceConfig, DEFAULT_INVOICE_CONFIG } = await import('./invoice-config');
+      const config = await loadInvoiceConfig();
+      return config;
+    }),
+
+    // Admin: Save invoice configuration
+    setInvoiceConfig: adminProcedure
+      .input(z.object({
+        companyName: z.string().min(1),
+        companyAddress: z.string().min(1),
+        companyEmail: z.string().email(),
+        companyPhone: z.string().optional().default(''),
+        companyRepName: z.string().min(1),
+        companyRepTitle: z.string().min(1),
+        sellerArtistName: z.string().optional().default(''),
+        disclaimerText: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const { setConfig } = await import('./db');
+        const { INVOICE_CONFIG_KEYS } = await import('./invoice-config');
+        await setConfig(INVOICE_CONFIG_KEYS.COMPANY_NAME, input.companyName, 'Invoice Company Name');
+        await setConfig(INVOICE_CONFIG_KEYS.COMPANY_ADDRESS, input.companyAddress, 'Invoice Company Address');
+        await setConfig(INVOICE_CONFIG_KEYS.COMPANY_EMAIL, input.companyEmail, 'Invoice Company Email');
+        await setConfig(INVOICE_CONFIG_KEYS.COMPANY_PHONE, input.companyPhone || '', 'Invoice Company Phone');
+        await setConfig(INVOICE_CONFIG_KEYS.COMPANY_REP_NAME, input.companyRepName, 'Invoice Company Rep Name');
+        await setConfig(INVOICE_CONFIG_KEYS.COMPANY_REP_TITLE, input.companyRepTitle, 'Invoice Company Rep Title');
+        await setConfig(INVOICE_CONFIG_KEYS.SELLER_ARTIST_NAME, input.sellerArtistName || '', 'Invoice Seller/Artist Name');
+        await setConfig(INVOICE_CONFIG_KEYS.DISCLAIMER_TEXT, input.disclaimerText, 'Invoice Disclaimer Text');
+        return { success: true };
+      }),
   }),
 });
 

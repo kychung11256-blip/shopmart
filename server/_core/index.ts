@@ -138,6 +138,7 @@ async function startServer() {
     try {
       const { orderId } = req.params;
       const { generateInvoicePDF } = await import("../invoice-service");
+      const { loadInvoiceConfig } = await import("../invoice-config");
       const { getDb } = await import("../db");
       const { orders, orderItems } = await import("../../drizzle/schema");
       const { eq } = await import("drizzle-orm");
@@ -146,6 +147,9 @@ async function startServer() {
       if (!db) {
         return res.status(500).json({ error: "Database not available" });
       }
+
+      // Load invoice configuration from database
+      const invoiceConfig = await loadInvoiceConfig();
 
       const orderResult = await db.select().from(orders).where(eq(orders.id, parseInt(orderId))).limit(1);
       if (!orderResult[0]) {
@@ -173,8 +177,10 @@ async function startServer() {
         })),
         paymentMethod: order.whopPaymentId ? 'Whop' : order.stripePaymentIntentId ? 'Stripe' : 'Other',
         notes: order.notes || undefined,
-        companyRep: 'Amina Karim',
-        companyRepTitle: 'CEO',
+        companyRep: invoiceConfig.companyRepName,
+        companyRepTitle: invoiceConfig.companyRepTitle,
+        // Pass config to PDF generator
+        config: invoiceConfig,
       };
 
       const pdfBuffer = await generateInvoicePDF(invoiceData);

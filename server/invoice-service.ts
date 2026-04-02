@@ -1,5 +1,7 @@
 import PDFDocument from 'pdfkit';
 import { PassThrough } from 'stream';
+import type { InvoiceConfig } from './invoice-config';
+import { DEFAULT_INVOICE_CONFIG } from './invoice-config';
 
 export interface InvoiceData {
   invoiceNo: string;
@@ -19,6 +21,7 @@ export interface InvoiceData {
   notes?: string;
   companyRep?: string;
   companyRepTitle?: string;
+  config?: InvoiceConfig; // Optional: use database config if provided
 }
 
 export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
@@ -36,6 +39,17 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     stream.on('error', reject);
 
     doc.pipe(stream);
+
+    // Use config from database or fall back to defaults
+    const cfg = data.config || DEFAULT_INVOICE_CONFIG;
+    const companyName = cfg.companyName;
+    const companyAddress = cfg.companyAddress;
+    const companyEmail = cfg.companyEmail;
+    const companyPhone = cfg.companyPhone;
+    const repName = data.companyRep || cfg.companyRepName;
+    const repTitle = data.companyRepTitle || cfg.companyRepTitle;
+    const sellerArtist = cfg.sellerArtistName;
+    const disclaimerText = cfg.disclaimerText;
 
     // ── Color palette ──
     const RED = '#C0392B';
@@ -59,12 +73,16 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       .fillColor(RED)
       .fontSize(11)
       .font('Helvetica')
-      .text('First Priority Asset Management LLC', 60, 68);
+      .text(companyName, 60, 68);
+
+    const headerSubLine = companyPhone
+      ? `${companyAddress}  |  ${companyEmail}  |  ${companyPhone}`
+      : `${companyAddress}  |  ${companyEmail}`;
 
     doc
       .fillColor('#BDC3C7')
       .fontSize(9)
-      .text('1640 Palm Ave, San Mateo, CA 94402  |  triumph.ali@itm-email.com', 60, 84);
+      .text(headerSubLine, 60, 84);
 
     // Invoice meta (top-right)
     const metaX = 370;
@@ -118,32 +136,35 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       .fillColor(DARK)
       .fontSize(10)
       .font('Helvetica-Bold')
-      .text('First Priority Asset Management LLC', col2X, y + 20, { width: 200 });
+      .text(companyName, col2X, y + 20, { width: 200 });
     doc
       .fillColor(GRAY)
       .fontSize(9)
       .font('Helvetica')
-      .text('1640 Palm Ave, San Mateo, CA 94402', col2X, y + 40, { width: 200 });
-    doc.text('triumph.ali@itm-email.com', col2X, y + 53, { width: 200 });
+      .text(companyAddress, col2X, y + 40, { width: 200 });
+    doc.text(companyEmail, col2X, y + 53, { width: 200 });
 
     // Seller / Artist
-    y += 80;
-    doc.fillColor(RED).fontSize(10).font('Helvetica-Bold').text('SELLER / ARTIST', col1X, y);
-    doc
-      .moveTo(col1X, y + 13)
-      .lineTo(col1X + 200, y + 13)
-      .strokeColor(RED)
-      .lineWidth(1)
-      .stroke();
-    doc
-      .fillColor(DARK)
-      .fontSize(10)
-      .font('Helvetica-Bold')
-      .text('Amina Karim', col1X, y + 20);
+    if (sellerArtist) {
+      y += 80;
+      doc.fillColor(RED).fontSize(10).font('Helvetica-Bold').text('SELLER / ARTIST', col1X, y);
+      doc
+        .moveTo(col1X, y + 13)
+        .lineTo(col1X + 200, y + 13)
+        .strokeColor(RED)
+        .lineWidth(1)
+        .stroke();
+      doc
+        .fillColor(DARK)
+        .fontSize(10)
+        .font('Helvetica-Bold')
+        .text(sellerArtist, col1X, y + 20);
+      y += 65;
+    } else {
+      y += 80;
+    }
 
     // ── Items table ──
-    y += 65;
-
     // Table header
     doc.rect(col1X, y, pageW, 22).fill(DARK);
     const cols = {
@@ -252,16 +273,16 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       .text('LEGAL / DISCLAIMER', col1X, y);
     y += 14;
 
-    const disclaimerLines = [
-      'All NFT sales are final and non-refundable.',
-      'NFTs are created and provided by third-party artists; First Priority Asset Management LLC acts only as a platform to facilitate the sale.',
-      'The Company does not guarantee authenticity, ownership, or future value of the NFT. NFTs are not investment products.',
-      'Platform does not resell NFTs on behalf of clients unless under separate written agreement.',
-      'Legal / Tax Disclaimer: Buyer is responsible for any taxes, duties, or reporting obligations. Retain this invoice for your records.',
-    ];
+    // Parse disclaimer text - split by newlines, handle bullet points
+    const disclaimerLines = disclaimerText
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
 
     disclaimerLines.forEach((line) => {
-      doc.fillColor(GRAY).fontSize(7.5).font('Helvetica').text(`• ${line}`, col1X + 8, y, {
+      // If line already starts with bullet, use as-is; otherwise add bullet
+      const displayLine = line.startsWith('•') ? line : `• ${line}`;
+      doc.fillColor(GRAY).fontSize(7.5).font('Helvetica').text(displayLine, col1X + 8, y, {
         width: pageW - 8,
       });
       y += 13;
@@ -271,9 +292,6 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     y += 15;
     doc.rect(col1X, y, pageW, 1).fill(LIGHT_GRAY);
     y += 12;
-
-    const repName = data.companyRep ?? '[Company Rep]';
-    const repTitle = data.companyRepTitle ?? '[Title]';
 
     doc
       .fillColor(DARK)
@@ -293,11 +311,15 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     doc.fillColor(GRAY).fontSize(8).text('Signature', col1X, y + 4);
 
     // ── Footer ──
+    const footerText = companyPhone
+      ? `${companyName}  •  ${companyAddress}  •  ${companyEmail}  •  ${companyPhone}`
+      : `${companyName}  •  ${companyAddress}  •  ${companyEmail}`;
+
     doc
       .fillColor(GRAY)
       .fontSize(7.5)
       .text(
-        'First Priority Asset Management LLC  •  1640 Palm Ave, San Mateo, CA 94402  •  triumph.ali@itm-email.com',
+        footerText,
         60,
         doc.page.height - 35,
         { align: 'center', width: pageW }

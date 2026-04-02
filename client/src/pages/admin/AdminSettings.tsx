@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Save, Store, Bell, Shield, Globe, CreditCard, Mail, Loader2, CheckCircle, AlertCircle, Send, Eye, EyeOff } from 'lucide-react';
+import { Save, Store, Bell, Shield, Globe, CreditCard, Mail, Loader2, Eye, EyeOff, Send, FileText } from 'lucide-react';
 import { AdminLayout } from './Dashboard';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
@@ -49,6 +49,17 @@ export default function AdminSettings() {
   const [testEmailAddress, setTestEmailAddress] = useState('');
   const [isSendingTest, setIsSendingTest] = useState(false);
 
+  // Invoice configuration state
+  const [invoiceCompanyName, setInvoiceCompanyName] = useState('');
+  const [invoiceCompanyAddress, setInvoiceCompanyAddress] = useState('');
+  const [invoiceCompanyEmail, setInvoiceCompanyEmail] = useState('');
+  const [invoiceCompanyPhone, setInvoiceCompanyPhone] = useState('');
+  const [invoiceRepName, setInvoiceRepName] = useState('');
+  const [invoiceRepTitle, setInvoiceRepTitle] = useState('');
+  const [invoiceSellerArtist, setInvoiceSellerArtist] = useState('');
+  const [invoiceDisclaimer, setInvoiceDisclaimer] = useState('');
+  const [isSavingInvoice, setIsSavingInvoice] = useState(false);
+
   // Stripe status query
   const { data: stripeStatus } = trpc.config.getStripeStatus.useQuery();
   const setStripeKeysMutation = trpc.config.setStripeKeys.useMutation();
@@ -59,6 +70,10 @@ export default function AdminSettings() {
   const setEmailConfigMutation = trpc.config.setEmailConfig.useMutation();
   const setEmailTemplateMutation = trpc.config.setEmailTemplate.useMutation();
   const sendTestEmailMutation = trpc.config.sendTestEmail.useMutation();
+
+  // Invoice config queries
+  const { data: invoiceConfig, refetch: refetchInvoiceConfig } = trpc.config.getInvoiceConfig.useQuery();
+  const setInvoiceConfigMutation = trpc.config.setInvoiceConfig.useMutation();
 
   // Load email config into state when data arrives
   useEffect(() => {
@@ -81,6 +96,20 @@ export default function AdminSettings() {
     }
   }, [emailTemplate]);
 
+  // Load invoice config into state when data arrives
+  useEffect(() => {
+    if (invoiceConfig) {
+      setInvoiceCompanyName(invoiceConfig.companyName);
+      setInvoiceCompanyAddress(invoiceConfig.companyAddress);
+      setInvoiceCompanyEmail(invoiceConfig.companyEmail);
+      setInvoiceCompanyPhone(invoiceConfig.companyPhone);
+      setInvoiceRepName(invoiceConfig.companyRepName);
+      setInvoiceRepTitle(invoiceConfig.companyRepTitle);
+      setInvoiceSellerArtist(invoiceConfig.sellerArtistName);
+      setInvoiceDisclaimer(invoiceConfig.disclaimerText);
+    }
+  }, [invoiceConfig]);
+
   const tabs = [
     { id: 'general', label: 'General', icon: Store },
     { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -88,6 +117,7 @@ export default function AdminSettings() {
     { id: 'localization', label: 'Localization', icon: Globe },
     { id: 'payment', label: 'Payment', icon: CreditCard },
     { id: 'email', label: 'Email', icon: Mail },
+    { id: 'invoice', label: 'Invoice', icon: FileText },
   ];
 
   const handleSave = () => {
@@ -154,6 +184,32 @@ export default function AdminSettings() {
       toast.error(error?.message || 'Failed to send test email');
     } finally {
       setIsSendingTest(false);
+    }
+  };
+
+  const handleSaveInvoiceConfig = async () => {
+    if (!invoiceCompanyName.trim() || !invoiceCompanyAddress.trim() || !invoiceCompanyEmail.trim() || !invoiceRepName.trim() || !invoiceRepTitle.trim() || !invoiceDisclaimer.trim()) {
+      toast.error('Please fill in all required invoice fields');
+      return;
+    }
+    setIsSavingInvoice(true);
+    try {
+      await setInvoiceConfigMutation.mutateAsync({
+        companyName: invoiceCompanyName.trim(),
+        companyAddress: invoiceCompanyAddress.trim(),
+        companyEmail: invoiceCompanyEmail.trim(),
+        companyPhone: invoiceCompanyPhone.trim(),
+        companyRepName: invoiceRepName.trim(),
+        companyRepTitle: invoiceRepTitle.trim(),
+        sellerArtistName: invoiceSellerArtist.trim(),
+        disclaimerText: invoiceDisclaimer.trim(),
+      });
+      toast.success('Invoice settings saved! New PDFs will use these settings.');
+      refetchInvoiceConfig();
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to save invoice settings');
+    } finally {
+      setIsSavingInvoice(false);
     }
   };
 
@@ -255,26 +311,25 @@ export default function AdminSettings() {
               <h2 className="text-lg font-semibold text-gray-800 mb-5">Notification Settings</h2>
               <div className="space-y-4 max-w-lg">
                 {[
-                  { label: 'Email Notifications', desc: 'Receive email updates for important events', value: emailNotifications, onChange: setEmailNotifications },
-                  { label: 'New Order Alerts', desc: 'Get notified when new orders are placed', value: orderAlerts, onChange: setOrderAlerts },
-                  { label: 'Low Stock Alerts', desc: 'Alert when product stock falls below 10', value: lowStockAlerts, onChange: setLowStockAlerts },
-                ].map((setting) => (
-                  <div key={setting.label} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+                  { label: 'Email Notifications', desc: 'Receive email alerts for important events', value: emailNotifications, set: setEmailNotifications },
+                  { label: 'Order Alerts', desc: 'Get notified when new orders are placed', value: orderAlerts, set: setOrderAlerts },
+                  { label: 'Low Stock Alerts', desc: 'Alert when product stock falls below threshold', value: lowStockAlerts, set: setLowStockAlerts },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
                     <div>
-                      <p className="text-sm font-medium text-gray-700">{setting.label}</p>
-                      <p className="text-xs text-gray-400">{setting.desc}</p>
+                      <p className="text-sm font-medium text-gray-700">{item.label}</p>
+                      <p className="text-xs text-gray-400">{item.desc}</p>
                     </div>
                     <button
-                      onClick={() => setting.onChange(!setting.value)}
-                      className={`relative w-11 h-6 rounded-full transition-colors ${setting.value ? 'bg-red-500' : 'bg-gray-200'}`}
+                      onClick={() => item.set(!item.value)}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${item.value ? 'bg-red-500' : 'bg-gray-200'}`}
                     >
-                      <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${setting.value ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                      <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${item.value ? 'translate-x-5' : 'translate-x-0.5'}`} />
                     </button>
                   </div>
                 ))}
                 <button onClick={handleSave} className="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2">
-                  <Save size={16} />
-                  Save Changes
+                  <Save size={16} />Save Changes
                 </button>
               </div>
             </div>
@@ -284,21 +339,12 @@ export default function AdminSettings() {
             <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-5">Security Settings</h2>
               <div className="space-y-4 max-w-lg">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-                  <input type="password" placeholder="••••••••" className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-                  <input type="password" placeholder="••••••••" className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-                  <input type="password" placeholder="••••••••" className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400" />
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                  <p className="text-sm text-blue-700 font-medium">Authentication via Manus OAuth</p>
+                  <p className="text-xs text-blue-500 mt-1">User authentication is handled securely through Manus OAuth. No password management required.</p>
                 </div>
                 <button onClick={handleSave} className="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2">
-                  <Save size={16} />
-                  Update Password
+                  <Save size={16} />Save Changes
                 </button>
               </div>
             </div>
@@ -306,7 +352,7 @@ export default function AdminSettings() {
 
           {activeTab === 'localization' && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-5">Localization</h2>
+              <h2 className="text-lg font-semibold text-gray-800 mb-5">Localization Settings</h2>
               <div className="space-y-4 max-w-lg">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
@@ -314,22 +360,20 @@ export default function AdminSettings() {
                     <option value="USD">USD - US Dollar</option>
                     <option value="EUR">EUR - Euro</option>
                     <option value="GBP">GBP - British Pound</option>
-                    <option value="CNY">CNY - Chinese Yuan</option>
-                    <option value="JPY">JPY - Japanese Yen</option>
+                    <option value="HKD">HKD - Hong Kong Dollar</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
                   <select value={timezone} onChange={(e) => setTimezone(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400">
-                    <option value="UTC+8">UTC+8 (Beijing, Shanghai)</option>
+                    <option value="UTC+8">UTC+8 (Hong Kong / Singapore)</option>
                     <option value="UTC+0">UTC+0 (London)</option>
                     <option value="UTC-5">UTC-5 (New York)</option>
                     <option value="UTC-8">UTC-8 (Los Angeles)</option>
                   </select>
                 </div>
                 <button onClick={handleSave} className="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2">
-                  <Save size={16} />
-                  Save Changes
+                  <Save size={16} />Save Changes
                 </button>
               </div>
             </div>
@@ -338,246 +382,109 @@ export default function AdminSettings() {
           {activeTab === 'payment' && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-5">Payment Settings</h2>
-              <div className="space-y-6">
-                {/* Stripe Configuration */}
-                <div className="border-t border-gray-100 pt-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-base font-semibold text-gray-800">Stripe Configuration</h3>
-                      <p className="text-sm text-gray-500 mt-1">Configure your Stripe API keys for payment processing</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {stripeStatus?.secretKeyConfigured && stripeStatus?.publishableKeyConfigured ? (
-                        <div className="flex items-center gap-1 text-green-600">
-                          <CheckCircle size={16} />
-                          <span className="text-xs font-medium">Configured</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1 text-orange-600">
-                          <AlertCircle size={16} />
-                          <span className="text-xs font-medium">Not Configured</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="space-y-4 max-w-lg">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Secret Key</label>
-                      <input
-                        type="password"
-                        value={stripeSecretKey}
-                        onChange={(e) => setStripeSecretKey(e.target.value)}
-                        placeholder="sk_test_..."
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Publishable Key</label>
-                      <input
-                        type="text"
-                        value={stripePublishableKey}
-                        onChange={(e) => setStripePublishableKey(e.target.value)}
-                        placeholder="pk_test_..."
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
-                      />
-                    </div>
-                    <button
-                      onClick={async () => {
-                        if (!stripeSecretKey.trim() || !stripePublishableKey.trim()) {
-                          toast.error('Please enter both Stripe keys');
-                          return;
-                        }
-                        setIsSavingStripe(true);
-                        try {
-                          await setStripeKeysMutation.mutateAsync({
-                            secretKey: stripeSecretKey,
-                            publishableKey: stripePublishableKey,
-                          });
-                          toast.success('Stripe keys configured successfully!');
-                          setStripeSecretKey('');
-                          setStripePublishableKey('');
-                        } catch (error: any) {
-                          toast.error(error?.message || 'Failed to save Stripe keys');
-                        } finally {
-                          setIsSavingStripe(false);
-                        }
-                      }}
-                      disabled={isSavingStripe}
-                      className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2"
-                    >
-                      {isSavingStripe ? <><Loader2 size={16} className="animate-spin" />Saving...</> : <><Save size={16} />Save Stripe Keys</>}
-                    </button>
-                  </div>
+              <div className="space-y-4 max-w-lg">
+                <div className="p-4 bg-green-50 rounded-lg border border-green-100">
+                  <p className="text-sm text-green-700 font-medium">Whop Payment Integration</p>
+                  <p className="text-xs text-green-500 mt-1">Whop webhook is configured and active. Payments are processed through Whop.</p>
                 </div>
+                {stripeStatus && (
+                  <div className={`p-4 rounded-lg border ${stripeStatus.secretKeyConfigured ? 'bg-green-50 border-green-100' : 'bg-gray-50 border-gray-100'}`}>
+                    <p className="text-sm font-medium text-gray-700">Stripe Integration</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Secret Key: {stripeStatus.secretKeyConfigured ? '✅ Configured' : '❌ Not set'} &nbsp;|&nbsp;
+                      Publishable Key: {stripeStatus.publishableKeyConfigured ? '✅ Configured' : '❌ Not set'}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {/* ─── Email Tab ─── */}
           {activeTab === 'email' && (
             <div className="space-y-6">
-              {/* SMTP Configuration Card */}
+              {/* SMTP Config Card */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                 <div className="flex items-center justify-between mb-5">
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-800">SMTP 邮件配置</h2>
-                    <p className="text-sm text-gray-500 mt-1">配置发件邮箱，用于向买家发送订单确认邮件</p>
+                    <h3 className="text-base font-semibold text-gray-800">SMTP Email Configuration</h3>
+                    <p className="text-sm text-gray-500 mt-1">Configure your email server for sending order confirmations</p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-600">启用邮件发送</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">Enable Email</span>
                     <button
                       onClick={() => setEmailEnabled(!emailEnabled)}
                       className={`relative w-11 h-6 rounded-full transition-colors ${emailEnabled ? 'bg-green-500' : 'bg-gray-200'}`}
                     >
                       <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${emailEnabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
                     </button>
-                    {emailConfig?.enabled ? (
-                      <div className="flex items-center gap-1 text-green-600">
-                        <CheckCircle size={15} />
-                        <span className="text-xs font-medium">已启用</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1 text-gray-400">
-                        <AlertCircle size={15} />
-                        <span className="text-xs font-medium">未启用</span>
-                      </div>
-                    )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      SMTP 服务器地址 <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={smtpHost}
-                      onChange={(e) => setSmtpHost(e.target.value)}
-                      placeholder="例如: smtp.gmail.com / smtp.qq.com"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
-                    />
-                    <p className="text-xs text-gray-400 mt-1">常用服务商：Gmail: smtp.gmail.com | QQ邮箱: smtp.qq.com | 163邮箱: smtp.163.com</p>
+                <div className="space-y-4 max-w-lg">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Host <span className="text-red-500">*</span></label>
+                      <input type="text" value={smtpHost} onChange={(e) => setSmtpHost(e.target.value)} placeholder="smtp.exmail.qq.com" className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Port</label>
+                      <input type="text" value={smtpPort} onChange={(e) => setSmtpPort(e.target.value)} placeholder="465" className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400" />
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">SMTP 端口</label>
-                    <input
-                      type="text"
-                      value={smtpPort}
-                      onChange={(e) => setSmtpPort(e.target.value)}
-                      placeholder="465"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
-                    />
-                    <p className="text-xs text-gray-400 mt-1">SSL: 465 | TLS: 587 | 无加密: 25</p>
-                  </div>
-
-                  <div className="flex items-center gap-3 pt-6">
-                    <button
-                      onClick={() => setSmtpSecure(!smtpSecure)}
-                      className={`relative w-11 h-6 rounded-full transition-colors ${smtpSecure ? 'bg-green-500' : 'bg-gray-200'}`}
-                    >
+                  <div className="flex items-center gap-3 py-2">
+                    <button onClick={() => setSmtpSecure(!smtpSecure)} className={`relative w-11 h-6 rounded-full transition-colors ${smtpSecure ? 'bg-green-500' : 'bg-gray-200'}`}>
                       <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${smtpSecure ? 'translate-x-5' : 'translate-x-0.5'}`} />
                     </button>
                     <div>
-                      <p className="text-sm font-medium text-gray-700">SSL/TLS 加密</p>
-                      <p className="text-xs text-gray-400">端口 465 推荐开启，端口 587 请关闭</p>
+                      <p className="text-sm font-medium text-gray-700">SSL/TLS Encryption</p>
+                      <p className="text-xs text-gray-400">Recommended for port 465</p>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      SMTP 用户名（邮箱账号） <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      value={smtpUser}
-                      onChange={(e) => setSmtpUser(e.target.value)}
-                      placeholder="your@email.com"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Username <span className="text-red-500">*</span></label>
+                    <input type="text" value={smtpUser} onChange={(e) => setSmtpUser(e.target.value)} placeholder="your@email.com" className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400" />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      SMTP 密码 / 授权码 {emailConfig?.smtpPassConfigured && <span className="text-green-600 text-xs">(已设置)</span>}
+                      SMTP Password / Auth Code {emailConfig?.smtpPassConfigured && <span className="text-green-600 text-xs">(Configured)</span>}
                     </label>
                     <div className="relative">
-                      <input
-                        type={showSmtpPass ? 'text' : 'password'}
-                        value={smtpPass}
-                        onChange={(e) => setSmtpPass(e.target.value)}
-                        placeholder={emailConfig?.smtpPassConfigured ? '留空则保持原密码不变' : '输入邮箱密码或授权码'}
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 pr-10 text-sm outline-none focus:border-red-400"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowSmtpPass(!showSmtpPass)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      >
+                      <input type={showSmtpPass ? 'text' : 'password'} value={smtpPass} onChange={(e) => setSmtpPass(e.target.value)} placeholder={emailConfig?.smtpPassConfigured ? 'Leave blank to keep existing password' : 'Enter password or auth code'} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 pr-10 text-sm outline-none focus:border-red-400" />
+                      <button type="button" onClick={() => setShowSmtpPass(!showSmtpPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                         {showSmtpPass ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">QQ/163邮箱需使用「授权码」而非登录密码</p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      发件人名称 <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={fromName}
-                      onChange={(e) => setFromName(e.target.value)}
-                      placeholder="例如: PinKoi 商城"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">From Name <span className="text-red-500">*</span></label>
+                    <input type="text" value={fromName} onChange={(e) => setFromName(e.target.value)} placeholder="PinKoi Store" className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400" />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      发件人邮箱地址 <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      value={fromAddress}
-                      onChange={(e) => setFromAddress(e.target.value)}
-                      placeholder="noreply@yourdomain.com"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
-                    />
-                    <p className="text-xs text-gray-400 mt-1">通常与 SMTP 用户名相同</p>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">From Email Address <span className="text-red-500">*</span></label>
+                    <input type="email" value={fromAddress} onChange={(e) => setFromAddress(e.target.value)} placeholder="noreply@yourdomain.com" className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400" />
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 mt-6 pt-5 border-t border-gray-100">
-                  <button
-                    onClick={handleSaveEmailConfig}
-                    disabled={isSavingEmail}
-                    className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2"
-                  >
-                    {isSavingEmail ? <><Loader2 size={16} className="animate-spin" />保存中...</> : <><Save size={16} />保存 SMTP 配置</>}
+                  <button onClick={handleSaveEmailConfig} disabled={isSavingEmail} className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2">
+                    {isSavingEmail ? <><Loader2 size={16} className="animate-spin" />Saving...</> : <><Save size={16} />Save SMTP Config</>}
                   </button>
                 </div>
               </div>
 
               {/* Test Email Card */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h3 className="text-base font-semibold text-gray-800 mb-2">发送测试邮件</h3>
-                <p className="text-sm text-gray-500 mb-4">保存 SMTP 配置后，发送一封测试邮件验证配置是否正确</p>
+                <h3 className="text-base font-semibold text-gray-800 mb-2">Send Test Email</h3>
+                <p className="text-sm text-gray-500 mb-4">After saving SMTP config, send a test email to verify the settings</p>
                 <div className="flex items-center gap-3 max-w-lg">
-                  <input
-                    type="email"
-                    value={testEmailAddress}
-                    onChange={(e) => setTestEmailAddress(e.target.value)}
-                    placeholder="输入接收测试邮件的邮箱地址"
-                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
-                  />
-                  <button
-                    onClick={handleSendTestEmail}
-                    disabled={isSendingTest}
-                    className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white px-5 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
-                  >
-                    {isSendingTest ? <><Loader2 size={16} className="animate-spin" />发送中...</> : <><Send size={16} />发送测试</>}
+                  <input type="email" value={testEmailAddress} onChange={(e) => setTestEmailAddress(e.target.value)} placeholder="Enter recipient email address" className="flex-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400" />
+                  <button onClick={handleSendTestEmail} disabled={isSendingTest} className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white px-5 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
+                    {isSendingTest ? <><Loader2 size={16} className="animate-spin" />Sending...</> : <><Send size={16} />Send Test</>}
                   </button>
                 </div>
               </div>
@@ -586,21 +493,17 @@ export default function AdminSettings() {
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                 <div className="flex items-center justify-between mb-5">
                   <div>
-                    <h3 className="text-base font-semibold text-gray-800">订单确认邮件模板</h3>
-                    <p className="text-sm text-gray-500 mt-1">用户付款成功后自动发送此邮件</p>
+                    <h3 className="text-base font-semibold text-gray-800">Order Confirmation Email Template</h3>
+                    <p className="text-sm text-gray-500 mt-1">This email is sent automatically after successful payment</p>
                   </div>
-                  <button
-                    onClick={() => setPreviewMode(!previewMode)}
-                    className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 rounded-lg px-3 py-1.5"
-                  >
+                  <button onClick={() => setPreviewMode(!previewMode)} className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-200 rounded-lg px-3 py-1.5">
                     <Eye size={14} />
-                    {previewMode ? '编辑模式' : '预览效果'}
+                    {previewMode ? 'Edit Mode' : 'Preview'}
                   </button>
                 </div>
 
-                {/* Template variables hint */}
                 <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 mb-4">
-                  <p className="text-xs font-medium text-blue-700 mb-1">可用变量（自动替换）：</p>
+                  <p className="text-xs font-medium text-blue-700 mb-1">Available variables (auto-replaced):</p>
                   <div className="flex flex-wrap gap-2">
                     {['{{orderNumber}}', '{{totalPrice}}', '{{customerName}}', '{{customerEmail}}', '{{items}}'].map(v => (
                       <code key={v} className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">{v}</code>
@@ -611,53 +514,185 @@ export default function AdminSettings() {
                 {!previewMode ? (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">邮件主题</label>
-                      <input
-                        type="text"
-                        value={templateSubject}
-                        onChange={(e) => setTemplateSubject(e.target.value)}
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
-                      />
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email Subject</label>
+                      <input type="text" value={templateSubject} onChange={(e) => setTemplateSubject(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">邮件正文（HTML 格式）</label>
-                      <textarea
-                        value={templateBody}
-                        onChange={(e) => setTemplateBody(e.target.value)}
-                        rows={16}
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400 font-mono resize-y"
-                        placeholder="输入 HTML 格式的邮件正文..."
-                      />
-                      <p className="text-xs text-gray-400 mt-1">支持 HTML 标签，使用上方变量占位符实现动态内容</p>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email Body (HTML format)</label>
+                      <textarea value={templateBody} onChange={(e) => setTemplateBody(e.target.value)} rows={16} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400 font-mono resize-y" placeholder="Enter HTML email body..." />
                     </div>
                     <div className="flex items-center gap-3 pt-2">
-                      <button
-                        onClick={handleSaveTemplate}
-                        disabled={isSavingTemplate}
-                        className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2"
-                      >
-                        {isSavingTemplate ? <><Loader2 size={16} className="animate-spin" />保存中...</> : <><Save size={16} />保存模板</>}
+                      <button onClick={handleSaveTemplate} disabled={isSavingTemplate} className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2">
+                        {isSavingTemplate ? <><Loader2 size={16} className="animate-spin" />Saving...</> : <><Save size={16} />Save Template</>}
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className="border border-gray-200 rounded-lg overflow-hidden">
                     <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                      <p className="text-xs text-gray-500">主题：<span className="font-medium text-gray-700">{templateSubject}</span></p>
+                      <p className="text-xs text-gray-500">Subject: <span className="font-medium text-gray-700">{templateSubject}</span></p>
                     </div>
-                    <div
-                      className="p-4"
-                      dangerouslySetInnerHTML={{
-                        __html: templateBody
-                          .replace(/\{\{orderNumber\}\}/g, 'ORD-20240101-dlksnfsadnjfaklsd93793udhfk')
-                          .replace(/\{\{totalPrice\}\}/g, '$99.00')
-                          .replace(/\{\{customerName\}\}/g, 'Guest')
-                          .replace(/\{\{customerEmail\}\}/g, 'customer@example.com')
-                          .replace(/\{\{items\}\}/g, 'NFT Artwork × 1'),
-                      }}
-                    />
+                    <div className="p-4" dangerouslySetInnerHTML={{
+                      __html: templateBody
+                        .replace(/\{\{orderNumber\}\}/g, 'ORD-20240101-dlksnfsadnjfaklsd93793udhfk')
+                        .replace(/\{\{totalPrice\}\}/g, '$99.00')
+                        .replace(/\{\{customerName\}\}/g, 'Guest')
+                        .replace(/\{\{customerEmail\}\}/g, 'customer@example.com')
+                        .replace(/\{\{items\}\}/g, 'NFT Artwork x 1'),
+                    }} />
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'invoice' && (
+            <div className="space-y-6">
+              {/* Company Info Card */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                <div className="mb-5">
+                  <h2 className="text-lg font-semibold text-gray-800">Invoice Settings</h2>
+                  <p className="text-sm text-gray-500 mt-1">Configure company information and legal text that appears on all generated PDF invoices</p>
+                </div>
+
+                <div className="space-y-4 max-w-lg">
+                  <div className="pb-3 border-b border-gray-100">
+                    <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Company Information</h3>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Company Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={invoiceCompanyName}
+                      onChange={(e) => setInvoiceCompanyName(e.target.value)}
+                      placeholder="e.g. First Priority Asset Management LLC"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">Appears in the invoice header, Sold By section, and footer</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Company Address <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      value={invoiceCompanyAddress}
+                      onChange={(e) => setInvoiceCompanyAddress(e.target.value)}
+                      placeholder="e.g. 1640 Palm Ave, San Mateo, CA 94402"
+                      rows={2}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400 resize-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Company Email <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={invoiceCompanyEmail}
+                      onChange={(e) => setInvoiceCompanyEmail(e.target.value)}
+                      placeholder="contact@yourcompany.com"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Company Phone</label>
+                    <input
+                      type="text"
+                      value={invoiceCompanyPhone}
+                      onChange={(e) => setInvoiceCompanyPhone(e.target.value)}
+                      placeholder="+1 (650) 555-0123"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
+                    />
+                  </div>
+
+                  <div className="pb-3 pt-2 border-b border-gray-100">
+                    <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Authorized Representative</h3>
+                    <p className="text-xs text-gray-400 mt-1">Appears in the "Authorized by" section at the bottom of the invoice</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Representative Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={invoiceRepName}
+                      onChange={(e) => setInvoiceRepName(e.target.value)}
+                      placeholder="e.g. Andy Chan"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Representative Title <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={invoiceRepTitle}
+                      onChange={(e) => setInvoiceRepTitle(e.target.value)}
+                      placeholder="e.g. CEO of PaiKoi"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
+                    />
+                  </div>
+
+                  <div className="pb-3 pt-2 border-b border-gray-100">
+                    <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Seller / Artist</h3>
+                    <p className="text-xs text-gray-400 mt-1">Appears in the "Seller / Artist" section of the invoice</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Seller / Artist Name</label>
+                    <input
+                      type="text"
+                      value={invoiceSellerArtist}
+                      onChange={(e) => setInvoiceSellerArtist(e.target.value)}
+                      placeholder="e.g. Amina Karim"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Disclaimer Card */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                <div className="mb-4">
+                  <h3 className="text-base font-semibold text-gray-800">Legal / Disclaimer Text</h3>
+                  <p className="text-sm text-gray-500 mt-1">This text appears in the disclaimer section at the bottom of every invoice PDF</p>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 mb-4">
+                  <p className="text-xs text-amber-700 font-medium">Format tip:</p>
+                  <p className="text-xs text-amber-600 mt-1">Each line starting with "•" will be rendered as a bullet point. You can use plain text or start lines with "•" for bullet formatting.</p>
+                </div>
+
+                <textarea
+                  value={invoiceDisclaimer}
+                  onChange={(e) => setInvoiceDisclaimer(e.target.value)}
+                  rows={10}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-red-400 font-mono resize-y"
+                  placeholder={`• All NFT sales are final and non-refundable.\n• NFTs are created and provided by third-party artists; the Company acts only as a platform to facilitate the sale.\n• Buyer is responsible for any taxes, duties, or reporting obligations.`}
+                />
+
+                <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100">
+                  <button
+                    onClick={handleSaveInvoiceConfig}
+                    disabled={isSavingInvoice}
+                    className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2"
+                  >
+                    {isSavingInvoice
+                      ? <><Loader2 size={16} className="animate-spin" />Saving...</>
+                      : <><Save size={16} />Save Invoice Settings</>
+                    }
+                  </button>
+                  <p className="text-xs text-gray-400">Changes apply to all newly generated invoice PDFs</p>
+                </div>
               </div>
             </div>
           )}
