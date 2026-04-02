@@ -78,6 +78,12 @@ export default function AdminSettings() {
   const setInvoiceConfigMutation = trpc.config.setInvoiceConfig.useMutation();
   const uploadInvoiceLogoMutation = trpc.config.uploadInvoiceLogo.useMutation();
   const deleteInvoiceLogoMutation = trpc.config.deleteInvoiceLogo.useMutation();
+  const previewInvoicePDFMutation = trpc.config.previewInvoicePDF.useMutation();
+  
+  // Preview PDF state
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
+  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
 
   // Load email config into state when data arrives
   useEffect(() => {
@@ -109,11 +115,43 @@ export default function AdminSettings() {
       setInvoiceCompanyPhone(invoiceConfig.companyPhone);
       setInvoiceRepName(invoiceConfig.companyRepName);
       setInvoiceRepTitle(invoiceConfig.companyRepTitle);
-      setInvoiceSellerArtist(invoiceConfig.sellerArtistName);
+      setInvoiceSellerArtist(invoiceConfig.sellerArtistName || '');
       setInvoiceDisclaimer(invoiceConfig.disclaimerText);
       setInvoiceLogoUrl(invoiceConfig.companyLogoUrl || '');
     }
   }, [invoiceConfig]);
+  
+  // Handle preview PDF generation
+  const handlePreviewInvoicePDF = async () => {
+    setIsGeneratingPreview(true);
+    try {
+      const result = await previewInvoicePDFMutation.mutateAsync();
+      console.log('[Preview] Mutation result:', result);
+      if (result?.success && result?.pdfBase64) {
+        // Convert base64 to Blob (browser-compatible)
+        const binaryString = atob(result.pdfBase64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        console.log('[Preview] URL created:', url);
+        setPreviewPdfUrl(url);
+        console.log('[Preview] Setting modal visible');
+        setShowPreviewModal(true);
+        console.log('[Preview] State updated');
+        toast.success('Invoice preview generated successfully');
+      } else {
+        console.log('[Preview] Missing success or pdfBase64');
+        toast.error('Failed to generate preview');
+      }
+    } catch (error: any) {
+      toast.error(`Failed to generate preview: ${error?.message || 'Unknown error'}`);
+    } finally {
+      setIsGeneratingPreview(false);
+    }
+  };
 
   const tabs = [
     { id: 'general', label: 'General', icon: Store },
@@ -229,6 +267,15 @@ export default function AdminSettings() {
     }
   };
 
+  // Cleanup preview URL when modal closes
+  useEffect(() => {
+    return () => {
+      if (previewPdfUrl) {
+        URL.revokeObjectURL(previewPdfUrl);
+      }
+    };
+  }, [previewPdfUrl]);
+  
   const handleSaveInvoiceConfig = async () => {
     if (!invoiceCompanyName.trim() || !invoiceCompanyAddress.trim() || !invoiceCompanyEmail.trim() || !invoiceRepName.trim() || !invoiceRepTitle.trim() || !invoiceDisclaimer.trim()) {
       toast.error('Please fill in all required invoice fields');
@@ -782,6 +829,16 @@ export default function AdminSettings() {
 
                 <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100">
                   <button
+                    onClick={handlePreviewInvoicePDF}
+                    disabled={isGeneratingPreview}
+                    className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2"
+                  >
+                    {isGeneratingPreview
+                      ? <><Loader2 size={16} className="animate-spin" />Generating...</>
+                      : <><Eye size={16} />Preview PDF</>
+                    }
+                  </button>
+                  <button
                     onClick={handleSaveInvoiceConfig}
                     disabled={isSavingInvoice}
                     className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2"
@@ -798,6 +855,58 @@ export default function AdminSettings() {
           )}
         </div>
       </div>
+      
+      {/* PDF Preview Modal */}
+      {showPreviewModal && previewPdfUrl && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-800">Invoice Preview</h2>
+              <button
+                onClick={() => setShowPreviewModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {/* Modal Body - PDF Viewer */}
+            <div className="flex-1 overflow-auto">
+              <iframe
+                src={previewPdfUrl}
+                className="w-full h-full"
+                title="Invoice Preview"
+              />
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+              <p className="text-sm text-gray-600">This is a preview of your invoice template with sample data</p>
+              <div className="flex items-center gap-3">
+                <a
+                  href={previewPdfUrl}
+                  download="invoice-preview.pdf"
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download
+                </a>
+                <button
+                  onClick={() => setShowPreviewModal(false)}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }
