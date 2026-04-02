@@ -564,3 +564,11 @@
 ## 🔐 修復登入邏輯
 
 - [x] 修復 OAuth callback 登入邏輯：改為 upsert，確保同一 openId 只對應一個帳號
+
+## 💳 後台支付功能開關 - 實時同步
+
+- [x] 後端：新增 paymentMethodsEnabled 設定到 siteConfig（whop_enabled, stripe_enabled）
+- [x] 後端：新增 config.getPaymentMethods 和 config.setPaymentMethods tRPC API
+- [x] 前端：Payment Settings 頁面新增 Whop / Stripe 開關 UI
+- [x] 前端：結帳頁面根據開關狀態動態顯示/隱藏支付選項
+- [x] 測試開關實時同步功能

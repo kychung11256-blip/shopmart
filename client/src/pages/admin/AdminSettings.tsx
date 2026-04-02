@@ -79,6 +79,15 @@ export default function AdminSettings() {
   const uploadInvoiceLogoMutation = trpc.config.uploadInvoiceLogo.useMutation();
   const deleteInvoiceLogoMutation = trpc.config.deleteInvoiceLogo.useMutation();
 
+  // Payment methods toggle state
+  const [whopEnabled, setWhopEnabled] = useState(true);
+  const [stripeEnabled, setStripeEnabled] = useState(false);
+  const [isSavingPaymentMethods, setIsSavingPaymentMethods] = useState(false);
+
+  // Payment methods queries
+  const { data: paymentMethods, refetch: refetchPaymentMethods } = trpc.config.getPaymentMethods.useQuery();
+  const setPaymentMethodsMutation = trpc.config.setPaymentMethods.useMutation();
+
   // Load email config into state when data arrives
   useEffect(() => {
     if (emailConfig) {
@@ -99,6 +108,14 @@ export default function AdminSettings() {
       setTemplateBody(emailTemplate.body);
     }
   }, [emailTemplate]);
+
+  // Load payment methods into state when data arrives
+  useEffect(() => {
+    if (paymentMethods) {
+      setWhopEnabled(paymentMethods.whopEnabled);
+      setStripeEnabled(paymentMethods.stripeEnabled);
+    }
+  }, [paymentMethods]);
 
   // Load invoice config into state when data arrives
   useEffect(() => {
@@ -423,22 +440,80 @@ export default function AdminSettings() {
           )}
 
           {activeTab === 'payment' && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-5">Payment Settings</h2>
-              <div className="space-y-4 max-w-lg">
-                <div className="p-4 bg-green-50 rounded-lg border border-green-100">
-                  <p className="text-sm text-green-700 font-medium">Whop Payment Integration</p>
-                  <p className="text-xs text-green-500 mt-1">Whop webhook is configured and active. Payments are processed through Whop.</p>
-                </div>
-                {stripeStatus && (
-                  <div className={`p-4 rounded-lg border ${stripeStatus.secretKeyConfigured ? 'bg-green-50 border-green-100' : 'bg-gray-50 border-gray-100'}`}>
-                    <p className="text-sm font-medium text-gray-700">Stripe Integration</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Secret Key: {stripeStatus.secretKeyConfigured ? '✅ Configured' : '❌ Not set'} &nbsp;|&nbsp;
-                      Publishable Key: {stripeStatus.publishableKeyConfigured ? '✅ Configured' : '❌ Not set'}
-                    </p>
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                <h2 className="text-lg font-semibold text-gray-800 mb-1">Payment Settings</h2>
+                <p className="text-sm text-gray-500 mb-5">Enable or disable payment methods for your store. Changes take effect immediately.</p>
+                <div className="space-y-4 max-w-lg">
+                  {/* Whop Payment Toggle */}
+                  <div className={`p-4 rounded-lg border transition-colors ${whopEnabled ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-800">Whop Payment Integration</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Process payments through Whop. Webhook is configured and active.</p>
+                        {whopEnabled && (
+                          <span className="inline-block mt-1.5 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">● Active</span>
+                        )}
+                        {!whopEnabled && (
+                          <span className="inline-block mt-1.5 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">○ Disabled</span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => setWhopEnabled(!whopEnabled)}
+                        className={`relative ml-4 w-12 h-6 rounded-full transition-colors flex-shrink-0 ${whopEnabled ? 'bg-green-500' : 'bg-gray-300'}`}
+                      >
+                        <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${whopEnabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                      </button>
+                    </div>
                   </div>
-                )}
+
+                  {/* Stripe Payment Toggle */}
+                  <div className={`p-4 rounded-lg border transition-colors ${stripeEnabled ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-800">Stripe Integration</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {stripeStatus?.secretKeyConfigured
+                            ? 'API keys configured. Enable to accept Stripe payments.'
+                            : 'API keys not configured. Please set up Stripe keys first.'}
+                        </p>
+                        {stripeEnabled && (
+                          <span className="inline-block mt-1.5 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">● Active</span>
+                        )}
+                        {!stripeEnabled && (
+                          <span className="inline-block mt-1.5 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">○ Disabled</span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => setStripeEnabled(!stripeEnabled)}
+                        className={`relative ml-4 w-12 h-6 rounded-full transition-colors flex-shrink-0 ${stripeEnabled ? 'bg-green-500' : 'bg-gray-300'}`}
+                      >
+                        <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${stripeEnabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Save Button */}
+                  <button
+                    onClick={async () => {
+                      setIsSavingPaymentMethods(true);
+                      try {
+                        await setPaymentMethodsMutation.mutateAsync({ whopEnabled, stripeEnabled });
+                        await refetchPaymentMethods();
+                        toast.success('Payment settings saved successfully!');
+                      } catch (err: any) {
+                        toast.error(err?.message || 'Failed to save payment settings');
+                      } finally {
+                        setIsSavingPaymentMethods(false);
+                      }
+                    }}
+                    disabled={isSavingPaymentMethods}
+                    className="bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2"
+                  >
+                    {isSavingPaymentMethods ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                    {isSavingPaymentMethods ? 'Saving...' : 'Save Payment Settings'}
+                  </button>
+                </div>
               </div>
             </div>
           )}

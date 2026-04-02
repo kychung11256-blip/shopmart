@@ -1536,6 +1536,48 @@ export const appRouter = router({
         await setConfig(INVOICE_CONFIG_KEYS.COMPANY_LOGO_URL, input.companyLogoUrl || '', 'Invoice Company Logo URL');
         return { success: true };
       }),
+
+    // Admin: Get payment methods enabled status
+    getPaymentMethods: adminProcedure.query(async () => {
+      const { getConfig } = await import('./db');
+      const whopEnabled = (await getConfig('PAYMENT_WHOP_ENABLED')) !== 'false'; // Default true
+      const stripeEnabled = (await getConfig('PAYMENT_STRIPE_ENABLED')) === 'true'; // Default false
+      return {
+        whopEnabled,
+        stripeEnabled,
+      };
+    }),
+
+    // Public: Get payment methods enabled status (for checkout page)
+    getPaymentMethodsPublic: publicProcedure.query(async () => {
+      const { getConfig } = await import('./db');
+      const whopEnabled = (await getConfig('PAYMENT_WHOP_ENABLED')) !== 'false'; // Default true
+      const stripeEnabled = (await getConfig('PAYMENT_STRIPE_ENABLED')) === 'true'; // Default false
+      return {
+        whopEnabled,
+        stripeEnabled,
+      };
+    }),
+
+    // Admin: Set payment methods enabled status
+    setPaymentMethods: adminProcedure
+      .input(z.object({
+        whopEnabled: z.boolean(),
+        stripeEnabled: z.boolean(),
+      }))
+      .mutation(async ({ input }) => {
+        const { setConfig } = await import('./db');
+        try {
+          await setConfig('PAYMENT_WHOP_ENABLED', String(input.whopEnabled), 'Whop Payment Enabled');
+          await setConfig('PAYMENT_STRIPE_ENABLED', String(input.stripeEnabled), 'Stripe Payment Enabled');
+          return { success: true };
+        } catch (error: any) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to save payment methods: ${error?.message || 'Unknown error'}`,
+          });
+        }
+      }),
   }),
 });
 
