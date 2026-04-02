@@ -133,6 +133,60 @@ async function startServer() {
     }
   });
   
+  // Invoice download endpoint
+  app.get("/api/invoice/:orderId", async (req, res) => {
+    try {
+      const { orderId } = req.params;
+      const { generateInvoicePDF } = await import("../invoice-service");
+      const { getDb } = await import("../db");
+      const { orders, orderItems } = await import("../../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+
+      const db = await getDb();
+      if (!db) {
+        return res.status(500).json({ error: "Database not available" });
+      }
+
+      const orderResult = await db.select().from(orders).where(eq(orders.id, parseInt(orderId))).limit(1);
+      if (!orderResult[0]) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+      const items = await db.select().from(orderItems).where(eq(orderItems.orderId, parseInt(orderId)));
+      const order = { ...orderResult[0], items };
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+
+      const invoiceData = {
+        invoiceNo: order.orderNumber,
+        date: new Date(order.createdAt).toISOString().split('T')[0],
+        buyer: {
+          name: (order as any).user?.name || 'Guest',
+          email: order.shippingAddress || (order as any).user?.email || 'N/A',
+        },
+        items: (order.items || []).map((item: any) => ({
+          nftTitle: item.productName,
+          quantity: item.quantity,
+          unitPrice: item.price,
+          platformFee: Math.round(item.price * 0.05),
+          artistRoyaltyPercent: 10,
+        })),
+        paymentMethod: order.whopPaymentId ? 'Whop' : order.stripePaymentIntentId ? 'Stripe' : 'Other',
+        notes: order.notes || undefined,
+        companyRep: 'Amina Karim',
+        companyRepTitle: 'CEO',
+      };
+
+      const pdfBuffer = await generateInvoicePDF(invoiceData);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="invoice-${order.orderNumber}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error('[Invoice] Error generating PDF:', error);
+      res.status(500).json({ error: 'Failed to generate invoice' });
+    }
+  });
+
   // tRPC API
   app.use(
     "/api/trpc",

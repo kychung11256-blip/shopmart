@@ -348,6 +348,19 @@ function OrderDetailModal({ order, onClose, onStatusUpdated }: { order: any; onC
                 )}
               </div>
             )}
+              </div>
+
+          {/* ── 下載發票 ── */}
+          <div className="pt-2">
+            <a
+              href={`/api/invoice/${order.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              {language === 'zh' ? '下載發票 PDF' : 'Download Invoice PDF'}
+            </a>
           </div>
         </div>
       </div>
@@ -355,7 +368,7 @@ function OrderDetailModal({ order, onClose, onStatusUpdated }: { order: any; onC
   );
 }
 
-// ── 主頁面 ────────────────────────────────────────────────────
+// ── 主頁面 ────────────────────────────────────────────
 export default function AdminOrders() {
   const { language } = useLanguage();
   const [searchQuery,   setSearchQuery]   = useState('');
