@@ -1509,59 +1509,6 @@ export const appRouter = router({
         return { success: true };
       }),
 
-    // Admin: Preview invoice PDF with current settings
-    previewInvoicePDF: adminProcedure.mutation(async () => {
-      const { generateInvoicePDF } = await import('./invoice-service');
-      const { loadInvoiceConfig } = await import('./invoice-config');
-      
-      const config = await loadInvoiceConfig();
-      
-      // Generate sample invoice data for preview
-      const sampleData = {
-        invoiceNo: 'PREVIEW-001',
-        date: new Date().toISOString().split('T')[0],
-        buyer: {
-          name: 'Sample Buyer',
-          email: 'buyer@example.com',
-        },
-        items: [
-          {
-            nftTitle: 'Sample NFT #1',
-            quantity: 1,
-            unitPrice: 50000,
-            platformFee: 2500,
-            artistRoyaltyPercent: 10,
-          },
-          {
-            nftTitle: 'Sample NFT #2',
-            quantity: 2,
-            unitPrice: 25000,
-            platformFee: 1250,
-            artistRoyaltyPercent: 5,
-          },
-        ],
-        paymentMethod: 'Stripe',
-        notes: 'This is a preview of your invoice template',
-        companyRep: config.companyRepName,
-        companyRepTitle: config.companyRepTitle,
-      };
-      
-      try {
-        const pdfBuffer = await generateInvoicePDF(sampleData);
-        const base64 = pdfBuffer.toString('base64');
-        return {
-          success: true,
-          pdfBase64: base64,
-          fileName: 'invoice-preview.pdf',
-        };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: `Failed to generate preview PDF: ${error?.message || 'Unknown error'}`,
-        });
-      }
-    }),
-
     // Admin: Save invoice configuration
     setInvoiceConfig: adminProcedure
       .input(z.object({
