@@ -483,10 +483,26 @@ export const appRouter = router({
             totalPrice,
             shippingAddress: input.shippingAddress,
           };
-          const orderResult = await db.insert(orders).values(newOrder);
+          await db.insert(orders).values(newOrder);
           // Query the newly created order to get its ID
           const createdOrder = await db.select().from(orders).where(eq(orders.orderNumber, orderNumber)).limit(1);
-          return { success: true, orderNumber, id: createdOrder[0]?.id || 0 };
+          const orderId = createdOrder[0]?.id;
+          // Insert order items
+          if (orderId) {
+            for (const item of input.items) {
+              const product = await db.select().from(products).where(eq(products.id, item.productId)).limit(1);
+              if (product[0]) {
+                const orderItem: InsertOrderItem = {
+                  orderId,
+                  productId: item.productId,
+                  quantity: item.quantity,
+                  price: product[0].price,
+                };
+                await db.insert(orderItems).values(orderItem);
+              }
+            }
+          }
+          return { success: true, orderNumber, id: orderId || 0 };
         } catch (error) {
           console.error("[API] Error creating order:", error);
           throw error;
@@ -567,8 +583,13 @@ export const appRouter = router({
         }
       }),
     markAsPaid: publicProcedure
-      .input(z.number())
-      .mutation(async ({ input: orderId, ctx }) => {
+      .input(z.object({
+        orderId: z.number(),
+        customerEmail: z.string().email().optional(),
+        customerName: z.string().optional(),
+        paymentMethod: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
         const db = await getDb();
         if (!db) throw new Error('Database not available');
         try {
@@ -580,7 +601,62 @@ export const appRouter = router({
               status: 'processing',
               updatedAt: new Date().toISOString(),
             })
-            .where(eq(orders.id, orderId));
+            .where(eq(orders.id, input.orderId));
+
+          // Send confirmation email
+          try {
+            const { sendOrderConfirmationEmail } = await import('./email-service');
+            const { generateInvoicePDF } = await import('./invoice-service');
+            const { loadInvoiceConfig } = await import('./invoice-config');
+
+            const orderResult = await db.select().from(orders).where(eq(orders.id, input.orderId)).limit(1);
+            const order = orderResult[0];
+            if (order) {
+              const customerEmail = input.customerEmail || order.shippingAddress || '';
+              if (customerEmail && customerEmail.includes('@')) {
+                const itemsWithProducts = await db
+                  .select({ name: products.name, quantity: orderItems.quantity, price: orderItems.price, qrCodeUrl: products.qrCodeUrl })
+                  .from(orderItems)
+                  .innerJoin(products, eq(orderItems.productId, products.id))
+                  .where(eq(orderItems.orderId, input.orderId));
+
+                const customerName = input.customerName || 'Customer';
+                const itemsSummary = itemsWithProducts.map(i => `${i.name} × ${i.quantity}`).join(', ') || 'Order details';
+                const totalPriceStr = `$${(order.totalPrice / 100).toFixed(2)}`;
+                const qrCodeItems = itemsWithProducts.filter(i => i.qrCodeUrl).map(i => ({ name: i.name, qrCodeUrl: i.qrCodeUrl! }));
+
+                let invoicePdfBuffer: Buffer | undefined;
+                try {
+                  const invoiceConfig = await loadInvoiceConfig();
+                  invoicePdfBuffer = await generateInvoicePDF({
+                    invoiceNo: order.orderNumber,
+                    date: new Date().toISOString().split('T')[0],
+                    buyer: { name: customerName, email: customerEmail },
+                    items: itemsWithProducts.map(i => ({ nftTitle: i.name, quantity: i.quantity, unitPrice: Math.round(i.price * 100) })),
+                    paymentMethod: input.paymentMethod || 'Online',
+                    config: invoiceConfig,
+                  });
+                } catch (pdfErr: any) {
+                  console.warn('[markAsPaid] Failed to generate invoice PDF:', pdfErr.message);
+                }
+
+                await sendOrderConfirmationEmail({
+                  toEmail: customerEmail,
+                  customerName,
+                  orderNumber: order.orderNumber,
+                  totalPrice: totalPriceStr,
+                  items: itemsSummary,
+                  invoicePdfBuffer,
+                  qrCodeItems: qrCodeItems.length > 0 ? qrCodeItems : undefined,
+                });
+                console.log(`[markAsPaid] Confirmation email sent to ${customerEmail} for order ${order.orderNumber}`);
+              }
+            }
+          } catch (emailError: any) {
+            console.error('[markAsPaid] Failed to send confirmation email:', emailError.message);
+            // Don't fail the mutation if email fails
+          }
+
           return { success: true };
         } catch (error) {
           console.error('[API] Error marking order as paid:', error);

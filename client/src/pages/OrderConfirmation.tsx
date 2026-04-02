@@ -59,7 +59,10 @@ export default function OrderConfirmation() {
     if ((redirectStatus === 'succeeded' || paymentMethod === 'nexapay' || paymentMethod === 'whop') && id && !hasMarkedAsPaid) {
       console.log(`[OrderConfirmation] Payment succeeded for order ${id}, marking as paid...`);
       setHasMarkedAsPaid(true);
-      markAsPaidMutation.mutate(id, {
+      const storedEmail = sessionStorage.getItem('orderCustomerEmail') || '';
+      const storedName = sessionStorage.getItem('orderCustomerName') || '';
+      const paymentMethodParam = params.get('payment') || (redirectStatus === 'succeeded' ? 'Stripe' : 'Online');
+      markAsPaidMutation.mutate({ orderId: id, customerEmail: storedEmail || undefined, customerName: storedName || undefined, paymentMethod: paymentMethodParam }, {
         onSuccess: () => {
           console.log(`[OrderConfirmation] Order ${id} marked as paid successfully`);
           toast.success(language === 'zh' ? '訂單已更新為已支付' : 'Order marked as paid');

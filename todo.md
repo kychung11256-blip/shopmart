@@ -597,3 +597,11 @@
 - [x] 新增 `trpc.config.getPaymentMethodsPublic.useQuery()` 查詢後台支付開關狀態
 - [x] 用 `stripeEnabled` 和 `whopEnabled` 動態控制按鈕顯示/隱藏
 - [x] 測試驗證：後台開啟 Stripe 後，前端結帳頁面立即顯示 Stripe 按鈕
+
+## 🐛 訂單商品記錄缺失 + 確認郵件未發送 - 待修復
+
+- [x] 診斷訂單商品記錄為空的原因（orderItems 表未正確寫入）
+- [x] 修復訂單創建流程中 orderItems 的保存邏輯
+- [x] 診斷下單後確認郵件未發送的原因
+- [x] 修復下單後自動發送確認郵件功能
+- [x] 測試完整下單流程：下單 → 商品記錄正確 → 收到確認郵件

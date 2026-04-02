@@ -340,6 +340,8 @@ export default function Checkout() {
       if (!orderResult.success) throw new Error('Failed to create order');
       const orderId = orderResult.id || 1;
       sessionStorage.setItem('lastOrderId', orderId.toString());
+      sessionStorage.setItem('orderCustomerEmail', isAuthenticated ? (user?.email || '') : guestEmail);
+      sessionStorage.setItem('orderCustomerName', isAuthenticated ? (user?.name || '') : guestName);
       const origin = window.location.origin;
       const result = await createWhopCheckoutMutation.mutateAsync({
         orderId,
@@ -409,6 +411,8 @@ export default function Checkout() {
 
       const orderId = orderResult.id || 1;
       sessionStorage.setItem('lastOrderId', orderId.toString());
+      sessionStorage.setItem('orderCustomerEmail', isAuthenticated ? (user?.email || '') : guestEmail);
+      sessionStorage.setItem('orderCustomerName', isAuthenticated ? (user?.name || '') : guestName);
       // NexaPayButton will handle redirect, no modal needed
     } catch (error: any) {
       console.error('Nexapay checkout error:', error);
@@ -552,9 +556,10 @@ export default function Checkout() {
 
       const orderId = orderResult.id || 1;
       sessionStorage.setItem('lastOrderId', orderId.toString());
+      sessionStorage.setItem('orderCustomerEmail', isAuthenticated ? (user?.email || '') : guestEmail);
+      sessionStorage.setItem('orderCustomerName', isAuthenticated ? (user?.name || '') : guestName);
       setStarPayOrderId(Number(orderId));
-
-      // Create Stripe payment intent
+      // Create Stripe payment intentt
       const paymentResult = await createPaymentIntentMutation.mutateAsync({
         orderId,
         items: cartItems.map(item => ({
