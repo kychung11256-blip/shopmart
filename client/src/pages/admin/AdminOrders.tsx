@@ -371,10 +371,12 @@ function OrderDetailModal({ order, onClose, onStatusUpdated }: { order: any; onC
 // ── 主頁面 ────────────────────────────────────────────
 export default function AdminOrders() {
   const { language } = useLanguage();
+  const PAGE_SIZE = 40;
   const [searchQuery,   setSearchQuery]   = useState('');
   const [filterStatus,  setFilterStatus]  = useState('All');
   const [filterPayment, setFilterPayment] = useState('All');
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [currentPage,   setCurrentPage]   = useState(1);
 
   const { data: orderList = [], isLoading, refetch } = trpc.orders.list.useQuery({} as any);
 
@@ -392,6 +394,11 @@ export default function AdminOrders() {
     const matchPayment = filterPayment === 'All' || (o.paymentStatus || 'unpaid') === filterPayment;
     return matchSearch && matchStatus && matchPayment;
   });
+
+  // ── 分頁 ──
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage   = Math.min(currentPage, totalPages);
+  const paginated  = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   // ── 統計 ──
   const paidCount    = (orderList as any[]).filter((o: any) => o.paymentStatus === 'paid').length;
@@ -453,14 +460,14 @@ export default function AdminOrders() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
               placeholder={language === 'zh' ? '搜索訂單 ID、客戶、商品名稱...' : 'Search by order ID, customer or product...'}
               className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-red-400"
             />
           </div>
           <select
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
+            onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400"
           >
             <option value="All">{language === 'zh' ? '所有訂單狀態' : 'All Order Status'}</option>
@@ -470,7 +477,7 @@ export default function AdminOrders() {
           </select>
           <select
             value={filterPayment}
-            onChange={(e) => setFilterPayment(e.target.value)}
+            onChange={(e) => { setFilterPayment(e.target.value); setCurrentPage(1); }}
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400"
           >
             <option value="All">{language === 'zh' ? '所有付款狀態' : 'All Payment Status'}</option>
@@ -525,7 +532,7 @@ export default function AdminOrders() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filtered.map((order: any) => {
+                {paginated.map((order: any) => {
                   const orderCfg  = orderStatusConfig[order.status] || orderStatusConfig.pending;
                   const payCfg    = paymentStatusConfig[order.paymentStatus || 'unpaid'] || paymentStatusConfig.unpaid;
                   const payMethod = detectPaymentMethod(order);
@@ -625,6 +632,33 @@ export default function AdminOrders() {
                 <p>{language === 'zh' ? '暫無訂單' : 'No orders found'}</p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── 分頁控制列 ── */}
+        {!isLoading && filtered.length > PAGE_SIZE && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50">
+            <span className="text-sm text-gray-500">
+              {language === 'zh'
+                ? `第 ${safePage} 頁 / 共 ${totalPages} 頁（${filtered.length} 筆訂單）`
+                : `Page ${safePage} of ${totalPages} (${filtered.length} orders)`}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={safePage <= 1}
+                className="flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                ← {language === 'zh' ? '上一頁' : 'Prev'}
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={safePage >= totalPages}
+                className="flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {language === 'zh' ? '下一頁' : 'Next'} →
+              </button>
+            </div>
           </div>
         )}
       </div>
