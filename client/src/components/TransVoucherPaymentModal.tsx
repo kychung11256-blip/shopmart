@@ -109,10 +109,10 @@ export default function TransVoucherPaymentModal({
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">TV</span>
+              <span className="text-white text-xs font-bold">TB</span>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 text-sm">TransVoucher 安全支付</h3>
+              <h3 className="font-semibold text-gray-900 text-sm">TrB Pay 安全支付</h3>
               <p className="text-xs text-gray-500">訂單金額：${orderTotal.toFixed(2)} USD</p>
             </div>
           </div>
@@ -192,7 +192,7 @@ export default function TransVoucherPaymentModal({
             style={{ minHeight: '500px' }}
             onLoad={() => setIframeLoaded(true)}
             allow="payment; camera; microphone"
-            title="TransVoucher Payment"
+            title="TrB Pay Payment"
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation-by-user-activation"
           />
         </div>
@@ -200,7 +200,7 @@ export default function TransVoucherPaymentModal({
         {/* Footer */}
         <div className="px-5 py-3 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
           <p className="text-xs text-gray-400">
-            🔒 由 TransVoucher 提供安全支付保障
+            🔒 由 TrB Pay 提供安全支付保障
           </p>
           <button
             onClick={onCancel}
