@@ -7,7 +7,7 @@ import { TRPCError } from "@trpc/server";
 import { getDb } from "./db";
 import type { User } from "../drizzle/schema";
 import { products, categories, orders, orderItems, cart, users, InsertProduct, InsertOrder, InsertOrderItem, InsertCartItem } from "../drizzle/schema";
-import { eq, and, desc, asc, count, sql, sum } from "drizzle-orm";
+import { eq, and, desc, asc, count, sql, sum, inArray } from "drizzle-orm";
 import { convertProductsToAPI, convertProductToAPI, centsToDollars } from "./price-utils";
 
 export const appRouter = router({
@@ -383,34 +383,70 @@ export const appRouter = router({
         }
       }),
     delete: adminProcedure
-      .input(z.number())
+      .input(z.object({
+        id: z.number(),
+        force: z.boolean().default(false),
+      }))
       .mutation(async ({ input }) => {
         const db = await getDb();
         if (!db) throw new Error('Database not available');
         try {
-          await db.update(categories).set({ status: 'inactive' }).where(eq(categories.id, input));
-          console.log('[API] Category deleted successfully:', input);
+          // Check if any products are using this category
+          const linkedProducts = await db.select({ id: products.id })
+            .from(products)
+            .where(and(eq(products.categoryId, input.id), eq(products.status, 'active')))
+            .limit(1);
+          if (linkedProducts.length > 0 && !input.force) {
+            throw new TRPCError({
+              code: 'PRECONDITION_FAILED',
+              message: 'CATEGORY_HAS_PRODUCTS',
+            });
+          }
+          // If force=true, unlink products from this category first
+          if (input.force) {
+            await db.update(products).set({ categoryId: null }).where(eq(products.categoryId, input.id));
+          }
+          await db.delete(categories).where(eq(categories.id, input.id));
+          console.log('[API] Category hard-deleted successfully:', input.id);
           return { success: true };
         } catch (error) {
+          if (error instanceof TRPCError) throw error;
           console.error('[API] Error deleting category:', error);
           throw error;
         }
       }),
     batchDelete: adminProcedure
-      .input(z.array(z.number()))
+      .input(z.object({
+        ids: z.array(z.number()),
+        force: z.boolean().default(false),
+      }))
       .mutation(async ({ input }) => {
         const db = await getDb();
         if (!db) throw new Error('Database not available');
         try {
-          if (input.length === 0) {
+          if (input.ids.length === 0) {
             throw new Error('No categories selected for deletion');
           }
-          for (const id of input) {
-            await db.update(categories).set({ status: 'inactive' }).where(eq(categories.id, id));
+          // Check if any products are linked to these categories
+          const linkedProducts = await db.select({ id: products.id })
+            .from(products)
+            .where(and(inArray(products.categoryId, input.ids), eq(products.status, 'active')))
+            .limit(1);
+          if (linkedProducts.length > 0 && !input.force) {
+            throw new TRPCError({
+              code: 'PRECONDITION_FAILED',
+              message: 'CATEGORY_HAS_PRODUCTS',
+            });
           }
-          console.log('[API] Batch delete completed successfully');
-          return { success: true, deletedCount: input.length };
+          // If force=true, unlink products from these categories first
+          if (input.force) {
+            await db.update(products).set({ categoryId: null }).where(inArray(products.categoryId, input.ids));
+          }
+          await db.delete(categories).where(inArray(categories.id, input.ids));
+          console.log('[API] Batch hard-delete completed successfully');
+          return { success: true, deletedCount: input.ids.length };
         } catch (error) {
+          if (error instanceof TRPCError) throw error;
           console.error('[API] Error batch deleting categories:', error);
           throw error;
         }

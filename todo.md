@@ -651,3 +651,14 @@
 - [x] 找出 testbanner 的來源：banners.test.ts 測試在真實 DB 插入資料後未正確清理（insertId 取得錯誤導致刪除失敗）
 - [x] 刪除殘留的 Test Banner 資料（id: 150002）
 - [x] 修復 banners.test.ts：新增 afterAll 清理邏輯，修正 insertId 取得方式，防止未來再次發生
+
+## 🗑️ 後台品類刪除功能
+
+- [x] 查看現有品類管理後端 API（categories router）
+- [x] 查看現有品類管理前端 UI（AdminCategories 或相關頁面）
+- [x] 後端升級 categories.delete 為硬刪除，刪除前檢查關聯商品
+- [x] 後端升級 categories.batchDelete 為硬刪除，支援 force 參數
+- [x] 前端品類列表新增 Dialog 確認對話框（取代 confirm()）
+- [x] 前端新增強制刪除對話框（品類有商品時顯示警告）
+- [x] 前端 UI 中文化（品類管理、新增品類、啟用/停用等）
+- [x] 測試刪除功能
