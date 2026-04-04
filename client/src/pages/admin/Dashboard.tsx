@@ -300,7 +300,7 @@ export default function Dashboard() {
               </ResponsiveContainer>
               <div className="space-y-1.5 mt-2">
                 {categoryData.map((item: any, index: number) => (
-                  <div key={item.name} className="flex items-center justify-between text-xs">
+                  <div key={`cat-${index}`} className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color || ['#E93323', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6'][index % 5] }} />
                       <span className="text-gray-600">{item.name}</span>

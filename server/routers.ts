@@ -1265,10 +1265,13 @@ export const appRouter = router({
         // Join with category names
         const cats = await db.select().from(categories);
         const catMap = new Map(cats.map(c => [c.id, c.name]));
-        return result.map(r => ({
-          name: catMap.get(r.categoryId || 0) || 'Uncategorized',
-          count: r.count,
-        }));
+        // Merge entries with the same name (e.g. multiple null categoryIds all become 'Uncategorized')
+        const merged = new Map<string, number>();
+        for (const r of result) {
+          const name = catMap.get(r.categoryId || 0) || 'Uncategorized';
+          merged.set(name, (merged.get(name) || 0) + Number(r.count));
+        }
+        return Array.from(merged.entries()).map(([name, cnt]) => ({ name, count: cnt }));
       } catch (error) {
         console.error('[API] Error fetching category data:', error);
         return [];
