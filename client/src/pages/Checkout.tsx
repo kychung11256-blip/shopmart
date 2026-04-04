@@ -808,12 +808,12 @@ export default function Checkout() {
                       <Loader2 size={20} className="animate-spin text-blue-600" />
                     ) : (
                       <div className="w-5 h-5 rounded bg-blue-600 flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">TV</span>
+                        <span className="text-white text-xs font-bold">TB</span>
                       </div>
                     )}
                     <div className="text-left">
-                      <div className="font-semibold">TransVoucher</div>
-                      <div className="text-sm text-gray-600">Pay with crypto, voucher & more</div>
+                      <div className="font-semibold">TrB Pay</div>
+                      <div className="text-sm text-gray-600">Pay with visa,master & more</div>
                     </div>
                   </button>
                   )}
