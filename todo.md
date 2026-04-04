@@ -662,3 +662,11 @@
 - [x] 前端新增強制刪除對話框（品類有商品時顯示警告）
 - [x] 前端 UI 中文化（品類管理、新增品類、啟用/停用等）
 - [x] 測試刪除功能
+
+## 💳 訂單詳情頁顯示支付方式
+
+- [x] 查看 orders 表結構，確認有 paymentMethod 欄位
+- [x] 查看後端訂單 API，確認 getById 已回傳 paymentMethod
+- [x] 查看前端 OrderConfirmation.tsx 和 OrderHistory.tsx
+- [x] OrderConfirmation.tsx：支付資訊卡片新增支付方式顯示
+- [x] OrderHistory.tsx：訂單列表卡片新增支付方式顯示

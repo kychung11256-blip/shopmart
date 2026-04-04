@@ -199,19 +199,30 @@ export default function OrderConfirmation() {
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <CreditCard size={20} className="text-green-500" />
-                {language === 'zh' ? '支付狀態' : 'Payment Status'}
+                {language === 'zh' ? '支付資訊' : 'Payment Info'}
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 mb-1">{language === 'zh' ? '狀態' : 'Status'}</p>
-              <div className="flex items-center gap-2">
-                <p className="text-lg font-bold capitalize text-green-600">
-                  {language === 'zh' 
-                    ? (order.paymentStatus === 'paid' ? '已支付' : order.paymentStatus === 'unpaid' ? '未支付' : '已退款')
-                    : order.paymentStatus}
-                </p>
-                {markAsPaidMutation.isPending && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>}
+            <CardContent className="space-y-2">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">{language === 'zh' ? '支付狀態' : 'Status'}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-lg font-bold capitalize text-green-600">
+                    {language === 'zh' 
+                      ? (order.paymentStatus === 'paid' ? '已支付' : order.paymentStatus === 'unpaid' ? '未支付' : '已退款')
+                      : order.paymentStatus}
+                  </p>
+                  {markAsPaidMutation.isPending && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>}
+                </div>
               </div>
+              {order.paymentMethod && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">{language === 'zh' ? '支付方式' : 'Payment Method'}</p>
+                  <p className="text-base font-semibold text-gray-800 flex items-center gap-1">
+                    <CreditCard size={15} className="text-gray-400" />
+                    {order.paymentMethod}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

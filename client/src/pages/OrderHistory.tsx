@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
-import { ChevronRight, Package, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { ChevronRight, Package, Clock, CheckCircle, AlertCircle, CreditCard } from 'lucide-react';
 
 interface Order {
   id: number;
@@ -17,6 +17,7 @@ interface Order {
   totalPrice: number;
   status: string;
   paymentStatus: string;
+  paymentMethod?: string | null;
   shippingAddress: string | null;
   createdAt: Date | string;
 }
@@ -151,6 +152,15 @@ export default function OrderHistory() {
                           : 'Unpaid'}
                       </span>
                     </div>
+
+                    {/* Payment Method */}
+                    {order.paymentMethod && (
+                      <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+                        <CreditCard size={13} className="text-gray-400" />
+                        <span className="font-medium">Payment:</span>{' '}
+                        <span className="text-gray-700">{order.paymentMethod}</span>
+                      </p>
+                    )}
 
                     {/* Delivery Email */}
                     {order.shippingAddress && (
