@@ -639,3 +639,9 @@
 - [ ] 建立 TransVoucherPaymentModal 元件（iframe + 輪詢付款狀態）
 - [ ] 更新結帳頁面使用 Modal 取代跳轉
 - [ ] 後端新增 checkTransVoucherStatus API（輪詢用）
+
+## 🐛 TransVoucher checkTransVoucherStatus 404 修復
+
+- [ ] 查明正確的 TransVoucher 狀態查詢 API 端點
+- [ ] 修復 checkTransVoucherStatus API 端點和錯誤處理
+- [ ] 輪詢錯誤時改為靜默處理（不拋出錯誤）

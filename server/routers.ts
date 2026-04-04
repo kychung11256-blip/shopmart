@@ -1748,7 +1748,7 @@ export const appRouter = router({
           if (!apiKey || !apiSecret) {
             throw new Error('TransVoucher API credentials not configured');
           }
-          const response = await fetch(`https://api.trans-voucher.com/v1.0/payment-link/status/${input.transactionId}`, {
+          const response = await fetch(`https://api.trans-voucher.com/v1.0/payment/status/${input.transactionId}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
