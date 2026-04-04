@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from 'sonner';
 import { ArrowLeft, Loader2, CreditCard, X } from 'lucide-react';
 import { NexaPayButton } from '@/components/NexaPayButton';
+import TransVoucherPaymentModal from '@/components/TransVoucherPaymentModal';
 import { useLocation } from 'wouter';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -108,6 +109,12 @@ export default function Checkout() {
   const [showWhopModal, setShowWhopModal] = useState<boolean>(false);
   const [whopPlanId, setWhopPlanId] = useState<string | null>(null);
   const [whopOrderId, setWhopOrderId] = useState<number | null>(null);
+  // TransVoucher Modal state
+  const [showTransVoucherModal, setShowTransVoucherModal] = useState<boolean>(false);
+  const [transVoucherEmbedUrl, setTransVoucherEmbedUrl] = useState<string>('');
+  const [transVoucherTransactionId, setTransVoucherTransactionId] = useState<string>('');
+  const [transVoucherOrderId, setTransVoucherOrderId] = useState<number>(0);
+  const [transVoucherOrderTotal, setTransVoucherOrderTotal] = useState<number>(0);
   // Use ref to avoid stale closure in WhopCheckoutEmbed onComplete callback
   const whopOrderIdRef = useRef<number | null>(null);
 
@@ -401,8 +408,13 @@ export default function Checkout() {
         successUrl: `${origin}/orders/confirmation?orderId=${orderId}&payment=transvoucher`,
         cancelUrl: `${origin}/checkout`,
       });
-      toast.success('Redirecting to TransVoucher payment...');
-      window.open(result.paymentUrl, '_blank');
+      // Open embedded payment modal instead of redirecting
+      setTransVoucherEmbedUrl(result.embedUrl || result.paymentUrl);
+      setTransVoucherTransactionId(result.transactionId || '');
+      setTransVoucherOrderId(orderId);
+      setTransVoucherOrderTotal(totalPrice);
+      setShowTransVoucherModal(true);
+      toast.success('支付頁面已開啟，請在彈窗中完成付款');
     } catch (error: any) {
       console.error('TransVoucher checkout error:', error);
       toast.error(error?.message || 'Failed to create TransVoucher payment');
@@ -951,6 +963,25 @@ export default function Checkout() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* TransVoucher Embedded Payment Modal */}
+      <TransVoucherPaymentModal
+        isOpen={showTransVoucherModal}
+        embedUrl={transVoucherEmbedUrl}
+        transactionId={transVoucherTransactionId}
+        orderId={transVoucherOrderId}
+        orderTotal={transVoucherOrderTotal}
+        onSuccess={() => {
+          setShowTransVoucherModal(false);
+          if (!isAuthenticated) {
+            localStorage.removeItem('shopmart_cart');
+          }
+          navigate(`/orders/confirmation?orderId=${transVoucherOrderId}&payment=transvoucher`);
+        }}
+        onCancel={() => {
+          setShowTransVoucherModal(false);
+        }}
+      />
     </div>
   );
 }

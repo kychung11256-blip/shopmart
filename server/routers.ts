@@ -1720,14 +1720,105 @@ export const appRouter = router({
           return {
             success: true,
             paymentUrl: data.data.payment_url,
+            embedUrl: data.data.embed_url || data.data.payment_url,
             transactionId: data.data.transaction_id,
             referenceId: data.data.reference_id,
+            paymentLinkId: data.data.id || data.data.payment_link_id,
           };
         } catch (error: any) {
           console.error('[TransVoucher] Error creating payment session:', error);
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to create TransVoucher payment session: ${error.message}`,
+          });
+        }
+      }),
+
+    // TransVoucher: Check payment status (for polling)
+    checkTransVoucherStatus: publicProcedure
+      .input(z.object({
+        transactionId: z.string(),
+        orderId: z.number(),
+      }))
+      .query(async ({ input }) => {
+        try {
+          const { ENV } = await import('./_core/env');
+          const apiKey = ENV.transVoucherApiKey;
+          const apiSecret = ENV.transVoucherApiSecret;
+          if (!apiKey || !apiSecret) {
+            throw new Error('TransVoucher API credentials not configured');
+          }
+          const response = await fetch(`https://api.trans-voucher.com/v1.0/payment-link/status/${input.transactionId}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Key': apiKey,
+              'X-API-Secret': apiSecret,
+            },
+          });
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('[TransVoucher] Status check error:', response.status, errorText);
+            throw new Error(`TransVoucher status check failed: ${response.status}`);
+          }
+          const data = await response.json();
+          const status = data.data?.status || 'pending';
+          console.log('[TransVoucher] Payment status for', input.transactionId, ':', status);
+          // If payment completed, update order
+          if (status === 'completed') {
+            const db = await getDb();
+            if (db) {
+              const [order] = await db.select().from(orders).where(eq(orders.id, input.orderId)).limit(1);
+              if (order && order.paymentStatus !== 'paid') {
+                await db.update(orders)
+                  .set({
+                    paymentStatus: 'paid',
+                    status: 'processing',
+                    paymentMethod: 'transvoucher',
+                    updatedAt: new Date().toISOString(),
+                  })
+                  .where(eq(orders.id, input.orderId));
+                // Send confirmation email
+                if (order.guestEmail) {
+                  try {
+                    const { sendOrderConfirmationEmail } = await import('./email-service');
+                    const items = await db.select({
+                      id: orderItems.id,
+                      productId: orderItems.productId,
+                      quantity: orderItems.quantity,
+                      price: orderItems.price,
+                      productName: products.name,
+                      productImage: products.image,
+                    })
+                    .from(orderItems)
+                    .leftJoin(products, eq(orderItems.productId, products.id))
+                    .where(eq(orderItems.orderId, input.orderId));
+                    const itemsText = items.map(item =>
+                      `${item.productName || 'Product'} x${item.quantity} - $${(item.price / 100).toFixed(2)}`
+                    ).join('\n');
+                    await sendOrderConfirmationEmail({
+                      toEmail: order.guestEmail,
+                      customerName: order.guestName || 'Customer',
+                      orderNumber: order.orderNumber || String(order.id),
+                      totalPrice: `$${(order.totalPrice / 100).toFixed(2)} USD`,
+                      items: itemsText,
+                    });
+                  } catch (emailError) {
+                    console.error('[TransVoucher] Failed to send confirmation email:', emailError);
+                  }
+                }
+              }
+            }
+          }
+          return {
+            status,
+            transactionId: input.transactionId,
+          };
+        } catch (error: any) {
+          console.error('[TransVoucher] Error checking payment status:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to check TransVoucher payment status: ${error.message}`,
           });
         }
       }),

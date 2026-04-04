@@ -633,3 +633,9 @@
 - [x] 資料庫 orders 表新增 paymentMethod、guestEmail、guestName 欄位
 - [x] 執行 pnpm db:push 完成資料庫遷移
 - [x] 8 個 TransVoucher 單元測試全部通過
+
+## 💳 TransVoucher Modal 嵌入式支付
+
+- [ ] 建立 TransVoucherPaymentModal 元件（iframe + 輪詢付款狀態）
+- [ ] 更新結帳頁面使用 Modal 取代跳轉
+- [ ] 後端新增 checkTransVoucherStatus API（輪詢用）
