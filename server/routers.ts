@@ -1649,14 +1649,96 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // TransVoucher: Create payment session
+    createTransVoucherSession: publicProcedure
+      .input(z.object({
+        orderId: z.number(),
+        amount: z.number(),
+        currency: z.string().default('USD'),
+        title: z.string().optional(),
+        customerEmail: z.string().email().optional(),
+        customerFirstName: z.string().optional(),
+        customerLastName: z.string().optional(),
+        successUrl: z.string(),
+        cancelUrl: z.string(),
+        origin: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          const { ENV } = await import('./_core/env');
+          const apiKey = ENV.transVoucherApiKey;
+          const apiSecret = ENV.transVoucherApiSecret;
+          if (!apiKey || !apiSecret) {
+            throw new Error('TransVoucher API credentials not configured');
+          }
+          const origin = input.origin || (input.successUrl ? new URL(input.successUrl).origin : '');
+          const payload: any = {
+            amount: input.amount,
+            currency: input.currency,
+            title: input.title || `Order #${input.orderId}`,
+            description: `Order #${input.orderId} - ShopMart`,
+            multiple_use: false,
+            cancel_on_first_fail: false,
+            success_url: input.successUrl,
+            cancel_url: input.cancelUrl,
+            metadata: {
+              order_id: String(input.orderId),
+              source: 'shopmart',
+            },
+          };
+          // Pre-fill customer details if available
+          const customerDetails: any = {};
+          if (input.customerEmail) customerDetails.email = input.customerEmail;
+          if (input.customerFirstName) customerDetails.first_name = input.customerFirstName;
+          if (input.customerLastName) customerDetails.last_name = input.customerLastName;
+          if (Object.keys(customerDetails).length > 0) {
+            payload.customer_details = customerDetails;
+          }
+          console.log('[TransVoucher] Creating payment session:', { orderId: input.orderId, amount: input.amount });
+          const response = await fetch('https://api.trans-voucher.com/v1.0/payment/create', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Key': apiKey,
+              'X-API-Secret': apiSecret,
+            },
+            body: JSON.stringify(payload),
+          });
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('[TransVoucher] API Error:', response.status, errorText);
+            throw new Error(`TransVoucher API Error: ${response.status} ${errorText}`);
+          }
+          const data = await response.json();
+          console.log('[TransVoucher] Response:', JSON.stringify(data));
+          if (!data.success || !data.data?.payment_url) {
+            throw new Error('TransVoucher API returned invalid response');
+          }
+          return {
+            success: true,
+            paymentUrl: data.data.payment_url,
+            transactionId: data.data.transaction_id,
+            referenceId: data.data.reference_id,
+          };
+        } catch (error: any) {
+          console.error('[TransVoucher] Error creating payment session:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to create TransVoucher payment session: ${error.message}`,
+          });
+        }
+      }),
+
     // Admin: Get payment methods enabled status
     getPaymentMethods: adminProcedure.query(async () => {
       const { getConfig } = await import('./db');
       const whopEnabled = (await getConfig('PAYMENT_WHOP_ENABLED')) !== 'false'; // Default true
       const stripeEnabled = (await getConfig('PAYMENT_STRIPE_ENABLED')) === 'true'; // Default false
+      const transVoucherEnabled = (await getConfig('PAYMENT_TRANSVOUCHER_ENABLED')) === 'true'; // Default false
       return {
         whopEnabled,
         stripeEnabled,
+        transVoucherEnabled,
       };
     }),
 
@@ -1665,9 +1747,11 @@ export const appRouter = router({
       const { getConfig } = await import('./db');
       const whopEnabled = (await getConfig('PAYMENT_WHOP_ENABLED')) !== 'false'; // Default true
       const stripeEnabled = (await getConfig('PAYMENT_STRIPE_ENABLED')) === 'true'; // Default false
+      const transVoucherEnabled = (await getConfig('PAYMENT_TRANSVOUCHER_ENABLED')) === 'true'; // Default false
       return {
         whopEnabled,
         stripeEnabled,
+        transVoucherEnabled,
       };
     }),
 
@@ -1676,12 +1760,14 @@ export const appRouter = router({
       .input(z.object({
         whopEnabled: z.boolean(),
         stripeEnabled: z.boolean(),
+        transVoucherEnabled: z.boolean().optional().default(false),
       }))
       .mutation(async ({ input }) => {
         const { setConfig } = await import('./db');
         try {
           await setConfig('PAYMENT_WHOP_ENABLED', String(input.whopEnabled), 'Whop Payment Enabled');
           await setConfig('PAYMENT_STRIPE_ENABLED', String(input.stripeEnabled), 'Stripe Payment Enabled');
+          await setConfig('PAYMENT_TRANSVOUCHER_ENABLED', String(input.transVoucherEnabled ?? false), 'TransVoucher Payment Enabled');
           return { success: true };
         } catch (error: any) {
           throw new TRPCError({

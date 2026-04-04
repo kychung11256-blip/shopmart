@@ -11,6 +11,7 @@ import { handleStripeWebhook } from "../stripe-webhook";
 import { handleStarPayWebhook } from "../star-pay-webhook";
 import { handleNexapayWebhook } from "../nexapay-webhook";
 import { handleWhopWebhook, getSuccessPage } from "../whop-webhook";
+import { handleTransVoucherWebhook } from "../transvoucher-webhook";
 import Stripe from "stripe";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -112,6 +113,15 @@ async function startServer() {
     express.raw({ type: "*/*" }),
     async (req, res) => {
       await handleWhopWebhook(req, res);
+    }
+  );
+
+  // TransVoucher webhook
+  app.post(
+    "/api/transvoucher/webhook",
+    express.raw({ type: "application/json" }),
+    async (req, res) => {
+      await handleTransVoucherWebhook(req, res);
     }
   );
 

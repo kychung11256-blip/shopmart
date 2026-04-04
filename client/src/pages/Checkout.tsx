@@ -237,11 +237,13 @@ export default function Checkout() {
   const createStarPayOrderMutation = trpc.payments.createStarPayOrder.useMutation();
   const createNexapaySessionMutation = trpc.orders.createNexapaySession.useMutation();
   const createWhopCheckoutMutation = trpc.orders.createWhopCheckout.useMutation();
+  const createTransVoucherSessionMutation = trpc.config.createTransVoucherSession.useMutation();
   const stripeKeyQuery = trpc.config.getStripePublishableKey.useQuery();
   // Fetch enabled payment methods from backend settings
   const { data: paymentMethodsData } = trpc.config.getPaymentMethodsPublic.useQuery();
   const whopEnabled = paymentMethodsData?.whopEnabled ?? true;
   const stripeEnabled = paymentMethodsData?.stripeEnabled ?? false;
+  const transVoucherEnabled = paymentMethodsData?.transVoucherEnabled ?? false;
 
   // Initialize Stripe
   useEffect(() => {
@@ -359,6 +361,51 @@ export default function Checkout() {
     } catch (error: any) {
       console.error('Whop checkout error:', error);
       toast.error(error?.message || 'Failed to create Whop checkout');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleTransVoucherCheckout = async () => {
+    if (!shippingAddress.trim()) { toast.error('Please enter your email address'); return; }
+    if (!isAuthenticated && (!guestEmail.trim() || !guestName.trim())) { toast.error('Please enter email and name for guest checkout'); return; }
+    if (cartItems.length === 0) { toast.error('Your cart is empty'); return; }
+    setIsProcessing(true);
+    try {
+      let orderResult;
+      if (isAuthenticated) {
+        orderResult = await createOrderMutation.mutateAsync({
+          items: cartItems.map(item => ({ productId: item.productId, quantity: item.quantity })),
+          shippingAddress,
+        });
+      } else {
+        orderResult = await createGuestOrderMutation.mutateAsync({
+          items: cartItems.map(item => ({ productId: item.productId, quantity: item.quantity })),
+          shippingAddress, guestEmail, guestName,
+        });
+      }
+      if (!orderResult.success) throw new Error('Failed to create order');
+      const orderId = orderResult.id || 1;
+      sessionStorage.setItem('lastOrderId', orderId.toString());
+      sessionStorage.setItem('orderCustomerEmail', isAuthenticated ? (user?.email || '') : guestEmail);
+      sessionStorage.setItem('orderCustomerName', isAuthenticated ? (user?.name || '') : guestName);
+      const origin = window.location.origin;
+      const result = await createTransVoucherSessionMutation.mutateAsync({
+        orderId,
+        amount: totalPrice,
+        currency: 'USD',
+        title: `Order #${orderId}`,
+        customerEmail: isAuthenticated ? user?.email || undefined : guestEmail || undefined,
+        customerFirstName: isAuthenticated ? (user?.name?.split(' ')[0] || undefined) : (guestName?.split(' ')[0] || undefined),
+        customerLastName: isAuthenticated ? (user?.name?.split(' ').slice(1).join(' ') || undefined) : (guestName?.split(' ').slice(1).join(' ') || undefined),
+        successUrl: `${origin}/orders/confirmation?orderId=${orderId}&payment=transvoucher`,
+        cancelUrl: `${origin}/checkout`,
+      });
+      toast.success('Redirecting to TransVoucher payment...');
+      window.open(result.paymentUrl, '_blank');
+    } catch (error: any) {
+      console.error('TransVoucher checkout error:', error);
+      toast.error(error?.message || 'Failed to create TransVoucher payment');
     } finally {
       setIsProcessing(false);
     }
@@ -736,6 +783,27 @@ export default function Checkout() {
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                     />
                   </div>
+                  )}
+
+                  {/* TransVoucher Payment - controlled by admin toggle */}
+                  {transVoucherEnabled && (
+                  <button
+                    onClick={handleTransVoucherCheckout}
+                    disabled={isProcessing}
+                    className="w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isProcessing ? (
+                      <Loader2 size={20} className="animate-spin text-blue-600" />
+                    ) : (
+                      <div className="w-5 h-5 rounded bg-blue-600 flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">TV</span>
+                      </div>
+                    )}
+                    <div className="text-left">
+                      <div className="font-semibold">TransVoucher</div>
+                      <div className="text-sm text-gray-600">Pay with crypto, voucher & more</div>
+                    </div>
+                  </button>
                   )}
 
                   {/* Whop Payment - controlled by admin toggle */}

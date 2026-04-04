@@ -609,3 +609,27 @@
 ## 📄 後台訂單頁分頁功能
 
 - [x] 後台訂單頁新增分頁（每頁 40 筆，上一頁/下一頁按鈕）
+
+## 💳 TransVoucher 支付接入
+
+- [ ] 儲存 TransVoucher API 金鑰到環境變數
+- [ ] 建立後端 TransVoucher 支付 API（創建支付連結）
+- [ ] 建立 TransVoucher Webhook 處理（payment_intent.succeeded）
+- [ ] 後台設定頁新增 TransVoucher 開關
+- [ ] 前端結帳頁新增 TransVoucher 支付按鈕
+- [ ] 測試 TransVoucher 支付流程（Sandbox）
+
+## 💳 TransVoucher 支付接入 - 已完成
+
+- [x] 儲存 TransVoucher API 金鑰到環境變數
+- [x] 在 env.ts 新增 TRANSVOUCHER_API_KEY 和 TRANSVOUCHER_API_SECRET
+- [x] 建立後端 createTransVoucherSession API（在 config router 下）
+- [x] 建立 TransVoucher Webhook 處理器（payment_intent.succeeded/failed/payment_link.expired）
+- [x] Webhook 驗證 HMAC-SHA256 簽名
+- [x] Webhook 成功後更新訂單狀態並發送確認郵件
+- [x] 在 server/_core/index.ts 註冊 /api/transvoucher/webhook 路由
+- [x] 後台 Settings → Payment 新增 TransVoucher 開關
+- [x] 前端結帳頁新增 TransVoucher 支付按鈕（受後台開關控制）
+- [x] 資料庫 orders 表新增 paymentMethod、guestEmail、guestName 欄位
+- [x] 執行 pnpm db:push 完成資料庫遷移
+- [x] 8 個 TransVoucher 單元測試全部通過
