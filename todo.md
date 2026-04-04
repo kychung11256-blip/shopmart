@@ -645,3 +645,9 @@
 - [ ] 查明正確的 TransVoucher 狀態查詢 API 端點
 - [ ] 修復 checkTransVoucherStatus API 端點和錯誤處理
 - [ ] 輪詢錯誤時改為靜默處理（不拋出錯誤）
+
+## 🐛 testbanner 持續顯示問題 - 已修復
+
+- [x] 找出 testbanner 的來源：banners.test.ts 測試在真實 DB 插入資料後未正確清理（insertId 取得錯誤導致刪除失敗）
+- [x] 刪除殘留的 Test Banner 資料（id: 150002）
+- [x] 修復 banners.test.ts：新增 afterAll 清理邏輯，修正 insertId 取得方式，防止未來再次發生

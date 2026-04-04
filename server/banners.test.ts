@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { 
   getAllBanners, 
   getActiveBanners, 
@@ -17,6 +17,18 @@ describe('Banner Management', () => {
     console.log('Banner tests initialized');
   });
 
+  afterAll(async () => {
+    // Always clean up test data after all tests complete
+    if (testBannerId) {
+      try {
+        await deleteBanner(testBannerId);
+        console.log(`Cleaned up test banner id: ${testBannerId}`);
+      } catch (e) {
+        console.warn(`Failed to clean up test banner id: ${testBannerId}`, e);
+      }
+    }
+  });
+
   it('should create a banner', async () => {
     const result = await createBanner({
       title: 'Test Banner',
@@ -31,7 +43,9 @@ describe('Banner Management', () => {
     });
     
     expect(result).toBeDefined();
-    testBannerId = result.insertId || 1;
+    // Drizzle ORM returns insertId in the result array
+    testBannerId = (result as any)[0]?.insertId ?? (result as any).insertId ?? 1;
+    console.log('Created test banner with id:', testBannerId);
   });
 
   it('should get all banners', async () => {
@@ -94,6 +108,9 @@ describe('Banner Management', () => {
       // Verify deletion
       const deleted = await getBannerById(testBannerId);
       expect(deleted).toBeNull();
+      
+      // Mark as cleaned up so afterAll doesn't try again
+      testBannerId = 0;
     }
   });
 });
