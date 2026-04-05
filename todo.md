@@ -670,3 +670,9 @@
 - [x] 查看前端 OrderConfirmation.tsx 和 OrderHistory.tsx
 - [x] OrderConfirmation.tsx：支付資訊卡片新增支付方式顯示
 - [x] OrderHistory.tsx：訂單列表卡片新增支付方式顯示
+
+## 🔧 TrB Pay 白名單問題修復
+
+- [x] 查看 TransVoucher embed URL 格式
+- [x] 檢查 iframe sandbox 屬性：發現 sandbox 阻止 Referer 傳遞，導致白名單檢測失敗
+- [x] 修復：新增 referrerPolicy="origin-when-cross-origin" 和 allow-popups-to-escape-sandbox

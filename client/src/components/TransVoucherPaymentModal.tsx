@@ -193,7 +193,8 @@ export default function TransVoucherPaymentModal({
             onLoad={() => setIframeLoaded(true)}
             allow="payment; camera; microphone"
             title="TrB Pay Payment"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation-by-user-activation"
+            referrerPolicy="origin-when-cross-origin"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation-by-user-activation allow-popups-to-escape-sandbox"
           />
         </div>
 
