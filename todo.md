@@ -714,3 +714,8 @@
 - [x] 新增 EcomTrade24PaymentModal 組件（iframe + 輪詢 + 備用「開新分頁」）
 - [x] 後端新增 checkEcomTrade24Status API（輪詢 session_status.php）
 - [ ] 儲存 checkpoint
+
+## 🔧 EcomTrade24 Pay 改回 redirect 模式
+
+- [x] Checkout.tsx：handler 改回 window.open 跳轉（iframe 因 CSRF 保護不支持嵌入）
+- [ ] 儲存 checkpoint
