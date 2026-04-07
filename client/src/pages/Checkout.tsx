@@ -404,7 +404,15 @@ export default function Checkout() {
         title: `Order #${orderId}`,
         customerEmail: isAuthenticated ? user?.email || undefined : guestEmail || undefined,
         customerFirstName: isAuthenticated ? (user?.name?.split(' ')[0] || undefined) : (guestName?.split(' ')[0] || undefined),
-        customerLastName: isAuthenticated ? (user?.name?.split(' ').slice(1).join(' ') || undefined) : (guestName?.split(' ').slice(1).join(' ') || undefined),
+        // TransVoucher requires last_name to be at least 2 characters
+        // If name has no space (e.g. single Chinese name), don't send last_name to avoid 422 error
+        customerLastName: (() => {
+          const fullName = isAuthenticated ? user?.name : guestName;
+          if (!fullName) return undefined;
+          const parts = fullName.trim().split(/\s+/);
+          const lastName = parts.slice(1).join(' ');
+          return lastName.length >= 2 ? lastName : undefined;
+        })(),
         successUrl: `${origin}/orders/confirmation?orderId=${orderId}&payment=transvoucher`,
         cancelUrl: `${origin}/checkout`,
       });

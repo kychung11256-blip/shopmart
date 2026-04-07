@@ -681,3 +681,8 @@
 
 - [x] 將 sales_channel_id 加入環境變數（TRANSVOUCHER_SALES_CHANNEL_ID）
 - [x] 將 sales_channel_id 加入後端 createTransVoucherSession payload
+
+## 🐛 TransVoucher 422 錯誤：last_name 少於 2 字元
+
+- [x] 查看後端傳送 customer_details 的邏輯（last_name 分割方式）
+- [x] 修復：名稱少於 2 字元時不傳送 last_name，避免 TransVoucher 422 錯誤
