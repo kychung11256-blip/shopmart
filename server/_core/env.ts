@@ -14,4 +14,5 @@ export const ENV = {
   starPayProducts: process.env.STAR_PAY_PRODUCTS ?? "",
   transVoucherApiKey: process.env.TRANSVOUCHER_API_KEY ?? "",
   transVoucherApiSecret: process.env.TRANSVOUCHER_API_SECRET ?? "",
+  transVoucherSalesChannelId: process.env.TRANSVOUCHER_SALES_CHANNEL_ID ?? "",
 };

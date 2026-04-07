@@ -676,3 +676,8 @@
 - [x] 查看 TransVoucher embed URL 格式
 - [x] 檢查 iframe sandbox 屬性：發現 sandbox 阻止 Referer 傳遞，導致白名單檢測失敗
 - [x] 修復：新增 referrerPolicy="origin-when-cross-origin" 和 allow-popups-to-escape-sandbox
+
+## 💳 TransVoucher sales_channel_id 修復
+
+- [x] 將 sales_channel_id 加入環境變數（TRANSVOUCHER_SALES_CHANNEL_ID）
+- [x] 將 sales_channel_id 加入後端 createTransVoucherSession payload

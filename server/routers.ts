@@ -1707,6 +1707,7 @@ export const appRouter = router({
           const { ENV } = await import('./_core/env');
           const apiKey = ENV.transVoucherApiKey;
           const apiSecret = ENV.transVoucherApiSecret;
+          const salesChannelId = ENV.transVoucherSalesChannelId;
           if (!apiKey || !apiSecret) {
             throw new Error('TransVoucher API credentials not configured');
           }
@@ -1725,6 +1726,10 @@ export const appRouter = router({
               source: 'shopmart',
             },
           };
+          // Add sales_channel_id if configured
+          if (salesChannelId) {
+            payload.sales_channel_id = salesChannelId;
+          }
           // Pre-fill customer details if available
           const customerDetails: any = {};
           if (input.customerEmail) customerDetails.email = input.customerEmail;
@@ -1781,6 +1786,7 @@ export const appRouter = router({
           const { ENV } = await import('./_core/env');
           const apiKey = ENV.transVoucherApiKey;
           const apiSecret = ENV.transVoucherApiSecret;
+          const salesChannelId = ENV.transVoucherSalesChannelId;
           if (!apiKey || !apiSecret) {
             throw new Error('TransVoucher API credentials not configured');
           }
