@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Loader2, CreditCard, X } from 'lucide-react';
 import { NexaPayButton } from '@/components/NexaPayButton';
 import TransVoucherPaymentModal from '@/components/TransVoucherPaymentModal';
+import EcomTrade24PaymentModal from '@/components/EcomTrade24PaymentModal';
 import { useLocation } from 'wouter';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -109,8 +110,13 @@ export default function Checkout() {
   const [showWhopModal, setShowWhopModal] = useState<boolean>(false);
   const [whopPlanId, setWhopPlanId] = useState<string | null>(null);
   const [whopOrderId, setWhopOrderId] = useState<number | null>(null);
-  // EcomTrade24 loading state
+  // EcomTrade24 state
   const [isEcomTrade24Processing, setIsEcomTrade24Processing] = useState<boolean>(false);
+  const [showEcomTrade24Modal, setShowEcomTrade24Modal] = useState<boolean>(false);
+  const [ecomTrade24CheckoutUrl, setEcomTrade24CheckoutUrl] = useState<string>('');
+  const [ecomTrade24SessionId, setEcomTrade24SessionId] = useState<string>('');
+  const [ecomTrade24OrderId, setEcomTrade24OrderId] = useState<number>(0);
+  const [ecomTrade24OrderTotal, setEcomTrade24OrderTotal] = useState<number>(0);
   // TransVoucher Modal state
   const [showTransVoucherModal, setShowTransVoucherModal] = useState<boolean>(false);
   const [transVoucherEmbedUrl, setTransVoucherEmbedUrl] = useState<string>('');
@@ -517,15 +523,21 @@ export default function Checkout() {
         successUrl: `${origin}/orders/confirmation?orderId=${orderId}&payment=ecomtrade24`,
         cancelUrl: `${origin}/checkout`,
       });
-      // Redirect to EcomTrade24 checkout page
+      // Open EcomTrade24 checkout in iframe modal
       if (result.checkoutUrl) {
-        window.location.href = result.checkoutUrl;
+        setEcomTrade24CheckoutUrl(result.checkoutUrl);
+        setEcomTrade24SessionId(String(result.sessionId || ''));
+        setEcomTrade24OrderId(orderId);
+        setEcomTrade24OrderTotal(totalPrice);
+        setShowEcomTrade24Modal(true);
+        toast.success('Payment page opened. Please complete payment in the popup.');
       } else {
         throw new Error('No checkout URL returned from EcomTrade24');
       }
     } catch (error: any) {
       console.error('EcomTrade24 checkout error:', error);
       toast.error(error?.message || 'Failed to create EcomTrade24 payment');
+    } finally {
       setIsEcomTrade24Processing(false);
     }
   };
@@ -1050,6 +1062,25 @@ export default function Checkout() {
         }}
         onCancel={() => {
           setShowTransVoucherModal(false);
+        }}
+      />
+
+      {/* EcomTrade24 Embedded Payment Modal */}
+      <EcomTrade24PaymentModal
+        isOpen={showEcomTrade24Modal}
+        checkoutUrl={ecomTrade24CheckoutUrl}
+        sessionId={ecomTrade24SessionId}
+        orderId={ecomTrade24OrderId}
+        orderTotal={ecomTrade24OrderTotal}
+        onSuccess={() => {
+          setShowEcomTrade24Modal(false);
+          if (!isAuthenticated) {
+            localStorage.removeItem('shopmart_cart');
+          }
+          navigate(`/orders/confirmation?orderId=${ecomTrade24OrderId}&payment=ecomtrade24`);
+        }}
+        onCancel={() => {
+          setShowEcomTrade24Modal(false);
         }}
       />
     </div>

@@ -707,3 +707,10 @@
 - [x] 前端 Checkout.tsx 新增 EcomTrade24 Pay 按鈕（管理員開關控制）- 已完成
 - [x] 後台 AdminSettings.tsx 新增 EcomTrade24 Integration 開關卡片 - 已完成
 - [x] 撰寫 ecomtrade24.test.ts 單元測試 - 15 個測試全部通過 - 已完成
+
+## 🔧 EcomTrade24 Pay iframe 嵌入模式
+
+- [x] 修改 Checkout.tsx：將 EcomTrade24 改為 Modal + iframe 嵌入模式
+- [x] 新增 EcomTrade24PaymentModal 組件（iframe + 輪詢 + 備用「開新分頁」）
+- [x] 後端新增 checkEcomTrade24Status API（輪詢 session_status.php）
+- [ ] 儲存 checkpoint

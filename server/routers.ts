@@ -1919,6 +1919,103 @@ export const appRouter = router({
         }
       }),
 
+    // EcomTrade24: Check payment session status (for polling)
+    checkEcomTrade24Status: publicProcedure
+      .input(z.object({
+        sessionId: z.string(),
+        orderId: z.number(),
+      }))
+      .query(async ({ input }) => {
+        try {
+          const { ENV } = await import('./_core/env');
+          const apiKey = ENV.ecomTrade24ApiKey;
+          if (!apiKey) throw new Error('EcomTrade24 API key not configured');
+
+          const response = await fetch(
+            `https://pay.ecomtrade24.com/gateway/session_status.php?session_id=${encodeURIComponent(input.sessionId)}`,
+            {
+              method: 'GET',
+              headers: { 'Authorization': `Bearer ${apiKey}` },
+            }
+          );
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('[EcomTrade24] Status check error:', response.status, errorText);
+            throw new Error(`EcomTrade24 status check failed: ${response.status}`);
+          }
+          const data = await response.json();
+          // Map EcomTrade24 status to internal status
+          const rawStatus: string = data.status || 'pending';
+          let status: string;
+          if (rawStatus === 'paid' || rawStatus === 'completed') {
+            status = 'completed';
+          } else if (rawStatus === 'failed' || rawStatus === 'declined') {
+            status = 'failed';
+          } else if (rawStatus === 'expired') {
+            status = 'expired';
+          } else if (rawStatus === 'cancelled') {
+            status = 'cancelled';
+          } else {
+            status = 'pending';
+          }
+          console.log('[EcomTrade24] Session status for', input.sessionId, ':', rawStatus, '->', status);
+
+          // If completed, update order
+          if (status === 'completed') {
+            const db = await getDb();
+            if (db) {
+              const [order] = await db.select().from(orders).where(eq(orders.id, input.orderId)).limit(1);
+              if (order && order.paymentStatus !== 'paid') {
+                await db.update(orders)
+                  .set({
+                    paymentStatus: 'paid',
+                    status: 'processing',
+                    paymentMethod: 'ecomtrade24',
+                    updatedAt: new Date().toISOString(),
+                  })
+                  .where(eq(orders.id, input.orderId));
+                // Send confirmation email
+                if (order.guestEmail) {
+                  try {
+                    const { sendOrderConfirmationEmail } = await import('./email-service');
+                    const items = await db.select({
+                      id: orderItems.id,
+                      productId: orderItems.productId,
+                      quantity: orderItems.quantity,
+                      price: orderItems.price,
+                      productName: products.name,
+                      productImage: products.image,
+                    })
+                    .from(orderItems)
+                    .leftJoin(products, eq(orderItems.productId, products.id))
+                    .where(eq(orderItems.orderId, input.orderId));
+                    const itemsText = items.map(item =>
+                      `${item.productName || 'Product'} x${item.quantity} - $${(item.price / 100).toFixed(2)}`
+                    ).join('\n');
+                    await sendOrderConfirmationEmail({
+                      toEmail: order.guestEmail,
+                      customerName: order.guestName || 'Customer',
+                      orderNumber: order.orderNumber || String(order.id),
+                      totalPrice: `$${(order.totalPrice / 100).toFixed(2)} USD`,
+                      items: itemsText,
+                    });
+                  } catch (emailError) {
+                    console.error('[EcomTrade24] Failed to send confirmation email:', emailError);
+                  }
+                }
+              }
+            }
+          }
+          return { status, sessionId: input.sessionId };
+        } catch (error: any) {
+          console.error('[EcomTrade24] Error checking payment status:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to check EcomTrade24 payment status: ${error.message}`,
+          });
+        }
+      }),
+
     // EcomTrade24: Create payment session
     createEcomTrade24Session: publicProcedure
       .input(z.object({
