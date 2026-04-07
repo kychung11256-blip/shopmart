@@ -1871,10 +1871,12 @@ export const appRouter = router({
       const whopEnabled = (await getConfig('PAYMENT_WHOP_ENABLED')) !== 'false'; // Default true
       const stripeEnabled = (await getConfig('PAYMENT_STRIPE_ENABLED')) === 'true'; // Default false
       const transVoucherEnabled = (await getConfig('PAYMENT_TRANSVOUCHER_ENABLED')) === 'true'; // Default false
+      const ecomTrade24Enabled = (await getConfig('PAYMENT_ECOMTRADE24_ENABLED')) === 'true'; // Default false
       return {
         whopEnabled,
         stripeEnabled,
         transVoucherEnabled,
+        ecomTrade24Enabled,
       };
     }),
 
@@ -1884,10 +1886,12 @@ export const appRouter = router({
       const whopEnabled = (await getConfig('PAYMENT_WHOP_ENABLED')) !== 'false'; // Default true
       const stripeEnabled = (await getConfig('PAYMENT_STRIPE_ENABLED')) === 'true'; // Default false
       const transVoucherEnabled = (await getConfig('PAYMENT_TRANSVOUCHER_ENABLED')) === 'true'; // Default false
+      const ecomTrade24Enabled = (await getConfig('PAYMENT_ECOMTRADE24_ENABLED')) === 'true'; // Default false
       return {
         whopEnabled,
         stripeEnabled,
         transVoucherEnabled,
+        ecomTrade24Enabled,
       };
     }),
 
@@ -1897,6 +1901,7 @@ export const appRouter = router({
         whopEnabled: z.boolean(),
         stripeEnabled: z.boolean(),
         transVoucherEnabled: z.boolean().optional().default(false),
+        ecomTrade24Enabled: z.boolean().optional().default(false),
       }))
       .mutation(async ({ input }) => {
         const { setConfig } = await import('./db');
@@ -1904,11 +1909,73 @@ export const appRouter = router({
           await setConfig('PAYMENT_WHOP_ENABLED', String(input.whopEnabled), 'Whop Payment Enabled');
           await setConfig('PAYMENT_STRIPE_ENABLED', String(input.stripeEnabled), 'Stripe Payment Enabled');
           await setConfig('PAYMENT_TRANSVOUCHER_ENABLED', String(input.transVoucherEnabled ?? false), 'TransVoucher Payment Enabled');
+          await setConfig('PAYMENT_ECOMTRADE24_ENABLED', String(input.ecomTrade24Enabled ?? false), 'EcomTrade24 Payment Enabled');
           return { success: true };
         } catch (error: any) {
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to save payment methods: ${error?.message || 'Unknown error'}`,
+          });
+        }
+      }),
+
+    // EcomTrade24: Create payment session
+    createEcomTrade24Session: publicProcedure
+      .input(z.object({
+        orderId: z.number(),
+        amount: z.number(),
+        currency: z.string().default('USD'),
+        customerEmail: z.string().email().optional(),
+        successUrl: z.string(),
+        cancelUrl: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          const { ENV } = await import('./_core/env');
+          const apiKey = ENV.ecomTrade24ApiKey;
+          if (!apiKey) {
+            throw new Error('EcomTrade24 API key not configured');
+          }
+          const payload: any = {
+            amount: input.amount,
+            currency: input.currency,
+            order_id: String(input.orderId),
+            domain: new URL(input.successUrl).hostname,
+            return_url: input.successUrl,
+            cancel_url: input.cancelUrl,
+          };
+          if (input.customerEmail) {
+            payload.email = input.customerEmail;
+          }
+          console.log('[EcomTrade24] Creating payment session:', { orderId: input.orderId, amount: input.amount });
+          const response = await fetch('https://pay.ecomtrade24.com/gateway/session.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify(payload),
+          });
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('[EcomTrade24] API Error:', response.status, errorText);
+            throw new Error(`EcomTrade24 API Error: ${response.status} ${errorText}`);
+          }
+          const data = await response.json();
+          console.log('[EcomTrade24] Response:', JSON.stringify(data));
+          if (!data.checkout_url) {
+            throw new Error('EcomTrade24 API returned invalid response: missing checkout_url');
+          }
+          return {
+            success: true,
+            checkoutUrl: data.checkout_url,
+            sessionId: data.session_id,
+          };
+        } catch (error: any) {
+          console.error('[EcomTrade24] Error creating payment session:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Failed to create EcomTrade24 payment session: ${error.message}`,
           });
         }
       }),

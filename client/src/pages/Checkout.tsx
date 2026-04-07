@@ -109,6 +109,8 @@ export default function Checkout() {
   const [showWhopModal, setShowWhopModal] = useState<boolean>(false);
   const [whopPlanId, setWhopPlanId] = useState<string | null>(null);
   const [whopOrderId, setWhopOrderId] = useState<number | null>(null);
+  // EcomTrade24 loading state
+  const [isEcomTrade24Processing, setIsEcomTrade24Processing] = useState<boolean>(false);
   // TransVoucher Modal state
   const [showTransVoucherModal, setShowTransVoucherModal] = useState<boolean>(false);
   const [transVoucherEmbedUrl, setTransVoucherEmbedUrl] = useState<string>('');
@@ -245,12 +247,14 @@ export default function Checkout() {
   const createNexapaySessionMutation = trpc.orders.createNexapaySession.useMutation();
   const createWhopCheckoutMutation = trpc.orders.createWhopCheckout.useMutation();
   const createTransVoucherSessionMutation = trpc.config.createTransVoucherSession.useMutation();
+  const createEcomTrade24SessionMutation = trpc.config.createEcomTrade24Session.useMutation();
   const stripeKeyQuery = trpc.config.getStripePublishableKey.useQuery();
   // Fetch enabled payment methods from backend settings
   const { data: paymentMethodsData } = trpc.config.getPaymentMethodsPublic.useQuery();
   const whopEnabled = paymentMethodsData?.whopEnabled ?? true;
   const stripeEnabled = paymentMethodsData?.stripeEnabled ?? false;
   const transVoucherEnabled = paymentMethodsData?.transVoucherEnabled ?? false;
+  const ecomTrade24Enabled = paymentMethodsData?.ecomTrade24Enabled ?? false;
 
   // Initialize Stripe
   useEffect(() => {
@@ -478,6 +482,51 @@ export default function Checkout() {
       toast.error(error?.message || 'Failed to process payment');
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleEcomTrade24Checkout = async () => {
+    if (!shippingAddress.trim()) { toast.error('Please enter your email address'); return; }
+    if (!isAuthenticated && (!guestEmail.trim() || !guestName.trim())) { toast.error('Please enter email and name for guest checkout'); return; }
+    if (cartItems.length === 0) { toast.error('Your cart is empty'); return; }
+    setIsEcomTrade24Processing(true);
+    try {
+      let orderResult;
+      if (isAuthenticated) {
+        orderResult = await createOrderMutation.mutateAsync({
+          items: cartItems.map(item => ({ productId: item.productId, quantity: item.quantity })),
+          shippingAddress,
+        });
+      } else {
+        orderResult = await createGuestOrderMutation.mutateAsync({
+          items: cartItems.map(item => ({ productId: item.productId, quantity: item.quantity })),
+          shippingAddress, guestEmail, guestName,
+        });
+      }
+      if (!orderResult.success) throw new Error('Failed to create order');
+      const orderId = orderResult.id || 1;
+      sessionStorage.setItem('lastOrderId', orderId.toString());
+      sessionStorage.setItem('orderCustomerEmail', isAuthenticated ? (user?.email || '') : guestEmail);
+      sessionStorage.setItem('orderCustomerName', isAuthenticated ? (user?.name || '') : guestName);
+      const origin = window.location.origin;
+      const result = await createEcomTrade24SessionMutation.mutateAsync({
+        orderId,
+        amount: totalPrice,
+        currency: 'USD',
+        customerEmail: isAuthenticated ? user?.email || undefined : guestEmail || undefined,
+        successUrl: `${origin}/orders/confirmation?orderId=${orderId}&payment=ecomtrade24`,
+        cancelUrl: `${origin}/checkout`,
+      });
+      // Redirect to EcomTrade24 checkout page
+      if (result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+      } else {
+        throw new Error('No checkout URL returned from EcomTrade24');
+      }
+    } catch (error: any) {
+      console.error('EcomTrade24 checkout error:', error);
+      toast.error(error?.message || 'Failed to create EcomTrade24 payment');
+      setIsEcomTrade24Processing(false);
     }
   };
 
@@ -814,6 +863,27 @@ export default function Checkout() {
                     <div className="text-left">
                       <div className="font-semibold">TrB Pay</div>
                       <div className="text-sm text-gray-600">Pay with visa,master & more</div>
+                    </div>
+                  </button>
+                  )}
+
+                  {/* EcomTrade24 Payment - controlled by admin toggle */}
+                  {ecomTrade24Enabled && (
+                  <button
+                    onClick={handleEcomTrade24Checkout}
+                    disabled={isEcomTrade24Processing}
+                    className="w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isEcomTrade24Processing ? (
+                      <Loader2 size={20} className="animate-spin text-green-600" />
+                    ) : (
+                      <div className="w-5 h-5 rounded bg-green-600 flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">E</span>
+                      </div>
+                    )}
+                    <div className="text-left">
+                      <div className="font-semibold">EcomTrade24 Pay</div>
+                      <div className="text-sm text-gray-600">Pay with credit card & more</div>
                     </div>
                   </button>
                   )}

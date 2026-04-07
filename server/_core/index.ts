@@ -12,6 +12,7 @@ import { handleStarPayWebhook } from "../star-pay-webhook";
 import { handleNexapayWebhook } from "../nexapay-webhook";
 import { handleWhopWebhook, getSuccessPage } from "../whop-webhook";
 import { handleTransVoucherWebhook } from "../transvoucher-webhook";
+import { handleEcomTrade24Webhook } from "../ecomtrade24-webhook";
 import Stripe from "stripe";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -122,6 +123,15 @@ async function startServer() {
     express.raw({ type: "application/json" }),
     async (req, res) => {
       await handleTransVoucherWebhook(req, res);
+    }
+  );
+
+  // EcomTrade24 webhook
+  app.post(
+    "/api/ecomtrade24/webhook",
+    express.raw({ type: "application/json" }),
+    async (req, res) => {
+      await handleEcomTrade24Webhook(req, res);
     }
   );
 

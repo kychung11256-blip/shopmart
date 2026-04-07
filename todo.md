@@ -686,3 +686,24 @@
 
 - [x] 查看後端傳送 customer_details 的邏輯（last_name 分割方式）
 - [x] 修復：名稱少於 2 字元時不傳送 last_name，避免 TransVoucher 422 錯誤
+
+## 💳 EcomTrade24 Pay 整合
+
+- [ ] 設定環境變數 ECOMTRADE24_API_KEY 和 ECOMTRADE24_WEBHOOK_SECRET
+- [ ] 後端 env.ts 新增 ecomTrade24 環境變數
+- [ ] 後端 routers.ts 新增 createEcomTrade24Session tRPC procedure
+- [ ] 後端新增 /api/ecomtrade24/webhook 路由處理支付回調
+- [ ] 前端 Checkout.tsx 新增 EcomTrade24 Pay 按鈕（跳轉模式）
+- [ ] 後台 AdminSettings 新增 EcomTrade24 Pay 開關
+- [ ] 後台 config.getPaymentMethodsPublic 新增 ecomTrade24Enabled 欄位
+
+## 💳 EcomTrade24 Pay 第六個支付方式整合 - 已完成
+
+- [x] 後端 createEcomTrade24Session API（config router）- 已完成
+- [x] 後端 getPaymentMethods / getPaymentMethodsPublic 新增 ecomTrade24Enabled - 已完成
+- [x] 後端 setPaymentMethods 新增 ecomTrade24Enabled 參數 - 已完成
+- [x] Webhook 處理器 /api/ecomtrade24/webhook（HMAC-SHA256 簽名驗證）- 已完成
+- [x] 前端 Checkout.tsx 新增 handleEcomTrade24Checkout handler - 已完成
+- [x] 前端 Checkout.tsx 新增 EcomTrade24 Pay 按鈕（管理員開關控制）- 已完成
+- [x] 後台 AdminSettings.tsx 新增 EcomTrade24 Integration 開關卡片 - 已完成
+- [x] 撰寫 ecomtrade24.test.ts 單元測試 - 15 個測試全部通過 - 已完成

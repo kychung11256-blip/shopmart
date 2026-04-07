@@ -15,4 +15,6 @@ export const ENV = {
   transVoucherApiKey: process.env.TRANSVOUCHER_API_KEY ?? "",
   transVoucherApiSecret: process.env.TRANSVOUCHER_API_SECRET ?? "",
   transVoucherSalesChannelId: process.env.TRANSVOUCHER_SALES_CHANNEL_ID ?? "",
+  ecomTrade24ApiKey: process.env.ECOMTRADE24_API_KEY ?? "",
+  ecomTrade24WebhookSecret: process.env.ECOMTRADE24_WEBHOOK_SECRET ?? "",
 };
