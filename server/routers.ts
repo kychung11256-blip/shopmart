@@ -1940,7 +1940,8 @@ export const appRouter = router({
             amount: input.amount,
             currency: input.currency,
             order_id: String(input.orderId),
-            domain: new URL(input.successUrl).hostname,
+            // Always use the whitelisted production domain, not the dev preview URL
+            domain: 'mynft01.eu.cc',
             return_url: input.successUrl,
             cancel_url: input.cancelUrl,
           };
