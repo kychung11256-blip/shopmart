@@ -523,10 +523,13 @@ export default function Checkout() {
         successUrl: `${origin}/orders/confirmation?orderId=${orderId}&payment=ecomtrade24`,
         cancelUrl: `${origin}/checkout`,
       });
-      // Redirect to EcomTrade24 checkout page (iframe not supported due to CSRF protection)
+      // Redirect to EcomTrade24 checkout page in the same tab
       if (result.checkoutUrl) {
-        window.open(result.checkoutUrl, '_blank');
-        toast.success('EcomTrade24 payment page opened in a new tab. Please complete your payment there.');
+        toast.success('Redirecting to EcomTrade24 payment page...');
+        // Small delay to let the toast show before navigation
+        setTimeout(() => {
+          window.location.href = result.checkoutUrl;
+        }, 800);
       } else {
         throw new Error('No checkout URL returned from EcomTrade24');
       }

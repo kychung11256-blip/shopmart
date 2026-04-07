@@ -719,3 +719,8 @@
 
 - [x] Checkout.tsx：handler 改回 window.open 跳轉（iframe 因 CSRF 保護不支持嵌入）
 - [ ] 儲存 checkpoint
+
+## 🔧 EcomTrade24 Pay 同頁跳轉模式
+
+- [x] Checkout.tsx：改為 window.location.href 同頁跳轉
+- [ ] 儲存 checkpoint
