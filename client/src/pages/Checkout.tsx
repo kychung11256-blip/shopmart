@@ -893,7 +893,7 @@ export default function Checkout() {
                       </div>
                     )}
                     <div className="text-left">
-                      <div className="font-semibold">EcomTrade24 Pay</div>
+                      <div className="font-semibold">Eco Pay</div>
                       <div className="text-sm text-gray-600">Pay with credit card & more</div>
                     </div>
                   </button>
