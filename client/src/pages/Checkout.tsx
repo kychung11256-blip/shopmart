@@ -524,12 +524,9 @@ export default function Checkout() {
         cancelUrl: `${origin}/checkout`,
       });
       // Redirect to EcomTrade24 checkout page in the same tab
+      // Must use direct assignment (not setTimeout) to avoid browser navigation blocking
       if (result.checkoutUrl) {
-        toast.success('Redirecting to EcomTrade24 payment page...');
-        // Small delay to let the toast show before navigation
-        setTimeout(() => {
-          window.location.href = result.checkoutUrl;
-        }, 800);
+        window.location.href = result.checkoutUrl;
       } else {
         throw new Error('No checkout URL returned from EcomTrade24');
       }
