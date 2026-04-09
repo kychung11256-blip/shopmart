@@ -50,11 +50,13 @@ export default function Cart() {
   const { user, isAuthenticated, logout } = useAuth();
 
   // 使用 TRPC 獲取購物車數據（只在登入時）
-  const { data: apiCartItems = [], isLoading: cartLoading, refetch: refetchCart } = trpc.cart.list.useQuery(undefined, {
-    enabled: isAuthenticated,
+  const { data: apiCartItems = [], isLoading: cartLoading } = trpc.cart.list.useQuery(undefined, {
+    enabled: isAuthenticated === true,
+    staleTime: 0, // 每次都重新獲取最新數據
+    refetchOnWindowFocus: true,
   });
-  const { data: allProducts = [] } = trpc.products.list.useQuery({ limit: 200 });
   const removeCartMutation = trpc.cart.remove.useMutation();
+  const utils = trpc.useUtils();
 
   // ============ SINGLE EFFECT - 唯一的初始化 effect ============
   // 這個 effect 只依賴於原始數據，不依賴任何計算結果
@@ -83,21 +85,34 @@ export default function Cart() {
     const items: CartItem[] = [];
     
     for (const cartItem of apiCartItems) {
-      const dbProduct = allProducts.find(p => p.id === cartItem.productId);
-      if (dbProduct) {
-        const product = convertApiProductToFrontend(dbProduct);
-        items.push({
-          id: cartItem.id,
-          product: product,
-          qty: cartItem.quantity,
-          selected: true,
-        });
-      }
+      // cart.list 已包含 price 和 productName，直接使用
+      const product: Product = {
+        id: cartItem.productId,
+        name: (cartItem as any).productName || `Product #${cartItem.productId}`,
+        price: (cartItem as any).price || 0,
+        originalPrice: (cartItem as any).originalPrice || undefined,
+        image: (cartItem as any).image || '',
+        categoryId: (cartItem as any).categoryId || 0,
+        sold: 0,
+        rating: 0,
+        description: '',
+        stock: 0,
+        status: 'active',
+        createdAt: cartItem.createdAt,
+        updatedAt: cartItem.updatedAt,
+      };
+      items.push({
+        id: cartItem.id,
+        product: product,
+        qty: cartItem.quantity,
+        selected: true,
+      });
     }
 
     setCartItems(items);
     setIsLoading(false);
-  }, [isAuthenticated, cartLoading, apiCartItems.length]); // 只依賴基本屬性，不依賴陣列本身
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, cartLoading, apiCartItems]); // 依賴完整的 apiCartItems 確保內容變更時也能更新
 
   // ============ 計算選中項目和總價 ============
   // 直接計算，不使用 useMemo
@@ -135,7 +150,7 @@ export default function Cart() {
       setRemovingIds(prev => new Set(prev).add(cartItemId));
       await removeCartMutation.mutateAsync(cartItemId);
       setCartItems(prev => prev.filter(item => item.product.id !== productId));
-      await refetchCart();
+      await utils.cart.list.invalidate();
       toast.success(language === 'zh' ? '已移除商品' : 'Item removed from cart');
     } catch (error: any) {
       toast.error(error.message || (language === 'zh' ? '移除失敗' : 'Failed to remove item'));

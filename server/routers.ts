@@ -925,7 +925,10 @@ export const appRouter = router({
             return {
               ...item,
               price: product?.price ? centsToDollars(product.price) : 0,
+              originalPrice: product?.originalPrice ? centsToDollars(product.originalPrice) : undefined,
               productName: product?.name || 'Unknown Product',
+              image: product?.image || '',
+              categoryId: product?.categoryId || 0,
             };
           })
         );

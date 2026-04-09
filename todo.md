@@ -724,3 +724,11 @@
 
 - [x] Checkout.tsx：改為 window.location.href 同頁跳轉
 - [ ] 儲存 checkpoint
+
+## 🐛 購物車加入後不更新問題修復
+
+- [x] 查看 ProductDetail.tsx 和 Home.tsx 的 cart.add mutation onSuccess 邏輯
+- [x] 修復 Cart.tsx useEffect 依賴陣列（改為依賴完整 apiCartItems）
+- [x] 後端 cart.list 補充 image、categoryId、originalPrice 欄位
+- [x] 移除對 allProducts 的依賴，直接使用 cart.list 回傳的商品資訊
+- [ ] 儲存 checkpoint
