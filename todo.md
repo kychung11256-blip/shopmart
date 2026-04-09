@@ -732,3 +732,9 @@
 - [x] 後端 cart.list 補充 image、categoryId、originalPrice 欄位
 - [x] 移除對 allProducts 的依賴，直接使用 cart.list 回傳的商品資訊
 - [ ] 儲存 checkpoint
+
+## 🐛 購物車誤判商品沽清修復
+
+- [x] 後端 cart.list 補充 stock、sold、rating、description 欄位
+- [x] 前端 Cart.tsx 更新 product 映射使用後端回傳的正確 stock 値
+- [ ] 儲存 checkpoint

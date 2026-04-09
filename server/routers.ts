@@ -929,6 +929,10 @@ export const appRouter = router({
               productName: product?.name || 'Unknown Product',
               image: product?.image || '',
               categoryId: product?.categoryId || 0,
+              stock: product?.stock ?? 999,
+              sold: product?.sold ?? 0,
+              rating: product?.rating ?? 0,
+              description: product?.description || '',
             };
           })
         );
