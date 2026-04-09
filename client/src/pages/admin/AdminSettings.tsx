@@ -85,6 +85,7 @@ export default function AdminSettings() {
   const [transVoucherEnabled, setTransVoucherEnabled] = useState(false);
   const [ecomTrade24Enabled, setEcomTrade24Enabled] = useState(false);
   const [nexaPayEnabled, setNexaPayEnabled] = useState(false);
+  const [starPayEnabled, setStarPayEnabled] = useState(false);
   const [isSavingPaymentMethods, setIsSavingPaymentMethods] = useState(false);
 
   // Payment methods queries
@@ -144,6 +145,7 @@ export default function AdminSettings() {
       setTransVoucherEnabled(paymentMethods.transVoucherEnabled ?? false);
       setEcomTrade24Enabled(paymentMethods.ecomTrade24Enabled ?? false);
       setNexaPayEnabled(paymentMethods.nexaPayEnabled ?? false);
+      setStarPayEnabled(paymentMethods.starPayEnabled ?? false);
     }
   }, [paymentMethods]);
 
@@ -568,6 +570,28 @@ export default function AdminSettings() {
                     </div>
                   </div>
 
+                  {/* Star Pay Payment Toggle */}
+                  <div className={`p-4 rounded-lg border transition-colors ${starPayEnabled ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-800">Star Pay Integration</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Accept crypto payments via Star Pay. Webhook URL: <code className="text-xs bg-gray-100 px-1 rounded">/api/star-pay/webhook</code></p>
+                        {starPayEnabled && (
+                          <span className="inline-block mt-1.5 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">● Active</span>
+                        )}
+                        {!starPayEnabled && (
+                          <span className="inline-block mt-1.5 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">○ Disabled</span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => setStarPayEnabled(!starPayEnabled)}
+                        className={`relative ml-4 w-12 h-6 rounded-full transition-colors flex-shrink-0 ${starPayEnabled ? 'bg-green-500' : 'bg-gray-300'}`}
+                      >
+                        <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${starPayEnabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                      </button>
+                    </div>
+                  </div>
+
                   {/* NexaPay Payment Toggle */}
                   <div className={`p-4 rounded-lg border transition-colors ${nexaPayEnabled ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
                     <div className="flex items-center justify-between">
@@ -595,7 +619,7 @@ export default function AdminSettings() {
                     onClick={async () => {
                       setIsSavingPaymentMethods(true);
                       try {
-                        await setPaymentMethodsMutation.mutateAsync({ whopEnabled, stripeEnabled, transVoucherEnabled, ecomTrade24Enabled, nexaPayEnabled });
+                        await setPaymentMethodsMutation.mutateAsync({ whopEnabled, stripeEnabled, transVoucherEnabled, ecomTrade24Enabled, nexaPayEnabled, starPayEnabled });
                         await refetchPaymentMethods();
                         toast.success('Payment settings saved successfully!');
                       } catch (err: any) {

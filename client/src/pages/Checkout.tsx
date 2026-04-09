@@ -262,6 +262,7 @@ export default function Checkout() {
   const transVoucherEnabled = paymentMethodsData?.transVoucherEnabled ?? false;
   const ecomTrade24Enabled = paymentMethodsData?.ecomTrade24Enabled ?? false;
   const nexaPayEnabled = paymentMethodsData?.nexaPayEnabled ?? false;
+  const starPayEnabled = paymentMethodsData?.starPayEnabled ?? false;
 
   // Initialize Stripe
   useEffect(() => {
@@ -832,8 +833,8 @@ export default function Checkout() {
                   </button>
                   )}
 
-                  {/* USD PAY (Star Pay) - Hidden, code preserved for future use */}
-                  {false && (
+                  {/* USD PAY (Star Pay) - controlled by admin toggle */}
+                  {starPayEnabled && (
                   <button
                     onClick={() => handleStarPayCheckout('TRC20Buy')}
                     disabled={isProcessing}

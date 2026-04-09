@@ -745,3 +745,10 @@
 - [x] 前端 AdminSettings.tsx 新增 NexaPay Integration 開關卡片
 - [x] 前端 Checkout.tsx NexaPay 按鈕改由後台開關控制（移除 {false &&} 硬編碼）
 - [ ] 儲存 checkpoint
+
+## 🔧 新增 Star Pay 後台開關
+
+- [x] 後端 getPaymentMethods/getPaymentMethodsPublic/setPaymentMethods 新增 starPayEnabled 欄位
+- [x] 前端 AdminSettings.tsx 新增 Star Pay 開關卡片
+- [x] 前端 Checkout.tsx Star Pay 按鈕改由後台開關控制
+- [ ] 儲存 checkpoint
