@@ -84,6 +84,7 @@ export default function AdminSettings() {
   const [stripeEnabled, setStripeEnabled] = useState(false);
   const [transVoucherEnabled, setTransVoucherEnabled] = useState(false);
   const [ecomTrade24Enabled, setEcomTrade24Enabled] = useState(false);
+  const [nexaPayEnabled, setNexaPayEnabled] = useState(false);
   const [isSavingPaymentMethods, setIsSavingPaymentMethods] = useState(false);
 
   // Payment methods queries
@@ -142,6 +143,7 @@ export default function AdminSettings() {
       setStripeEnabled(paymentMethods.stripeEnabled);
       setTransVoucherEnabled(paymentMethods.transVoucherEnabled ?? false);
       setEcomTrade24Enabled(paymentMethods.ecomTrade24Enabled ?? false);
+      setNexaPayEnabled(paymentMethods.nexaPayEnabled ?? false);
     }
   }, [paymentMethods]);
 
@@ -548,7 +550,7 @@ export default function AdminSettings() {
                   <div className={`p-4 rounded-lg border transition-colors ${ecomTrade24Enabled ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className="text-sm font-semibold text-gray-800">EcomTrade24 Integration</p>
+                        <p className="text-sm font-semibold text-gray-800">EcomTrade24 Integration (Eco Pay)</p>
                         <p className="text-xs text-gray-500 mt-0.5">Accept credit card & more payments via EcomTrade24. Webhook URL: <code className="text-xs bg-gray-100 px-1 rounded">/api/ecomtrade24/webhook</code></p>
                         {ecomTrade24Enabled && (
                           <span className="inline-block mt-1.5 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">● Active</span>
@@ -566,12 +568,34 @@ export default function AdminSettings() {
                     </div>
                   </div>
 
+                  {/* NexaPay Payment Toggle */}
+                  <div className={`p-4 rounded-lg border transition-colors ${nexaPayEnabled ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-800">NexaPay Integration</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Accept crypto & card payments via NexaPay. Webhook URL: <code className="text-xs bg-gray-100 px-1 rounded">/api/webhooks/nexapay</code></p>
+                        {nexaPayEnabled && (
+                          <span className="inline-block mt-1.5 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">● Active</span>
+                        )}
+                        {!nexaPayEnabled && (
+                          <span className="inline-block mt-1.5 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">○ Disabled</span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => setNexaPayEnabled(!nexaPayEnabled)}
+                        className={`relative ml-4 w-12 h-6 rounded-full transition-colors flex-shrink-0 ${nexaPayEnabled ? 'bg-green-500' : 'bg-gray-300'}`}
+                      >
+                        <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${nexaPayEnabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Save Button */}
                   <button
                     onClick={async () => {
                       setIsSavingPaymentMethods(true);
                       try {
-                        await setPaymentMethodsMutation.mutateAsync({ whopEnabled, stripeEnabled, transVoucherEnabled, ecomTrade24Enabled });
+                        await setPaymentMethodsMutation.mutateAsync({ whopEnabled, stripeEnabled, transVoucherEnabled, ecomTrade24Enabled, nexaPayEnabled });
                         await refetchPaymentMethods();
                         toast.success('Payment settings saved successfully!');
                       } catch (err: any) {

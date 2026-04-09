@@ -738,3 +738,10 @@
 - [x] 後端 cart.list 補充 stock、sold、rating、description 欄位
 - [x] 前端 Cart.tsx 更新 product 映射使用後端回傳的正確 stock 値
 - [ ] 儲存 checkpoint
+
+## 🔧 新增 NexaPay 後台開關
+
+- [x] 後端 getPaymentMethods/getPaymentMethodsPublic/setPaymentMethods 新增 nexaPayEnabled 欄位
+- [x] 前端 AdminSettings.tsx 新增 NexaPay Integration 開關卡片
+- [x] 前端 Checkout.tsx NexaPay 按鈕改由後台開關控制（移除 {false &&} 硬編碼）
+- [ ] 儲存 checkpoint

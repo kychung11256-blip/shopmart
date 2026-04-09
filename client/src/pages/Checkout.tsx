@@ -261,6 +261,7 @@ export default function Checkout() {
   const stripeEnabled = paymentMethodsData?.stripeEnabled ?? false;
   const transVoucherEnabled = paymentMethodsData?.transVoucherEnabled ?? false;
   const ecomTrade24Enabled = paymentMethodsData?.ecomTrade24Enabled ?? false;
+  const nexaPayEnabled = paymentMethodsData?.nexaPayEnabled ?? false;
 
   // Initialize Stripe
   useEffect(() => {
@@ -846,8 +847,8 @@ export default function Checkout() {
                   </button>
                   )}
 
-                  {/* NexaPay Payment - Hidden, code preserved for future use */}
-                  {false && (
+                  {/* NexaPay Payment - controlled by admin toggle */}
+                  {nexaPayEnabled && (
                   <div className="w-full">
                     <NexaPayButton
                       amount={totalPrice}

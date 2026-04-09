@@ -1879,11 +1879,13 @@ export const appRouter = router({
       const stripeEnabled = (await getConfig('PAYMENT_STRIPE_ENABLED')) === 'true'; // Default false
       const transVoucherEnabled = (await getConfig('PAYMENT_TRANSVOUCHER_ENABLED')) === 'true'; // Default false
       const ecomTrade24Enabled = (await getConfig('PAYMENT_ECOMTRADE24_ENABLED')) === 'true'; // Default false
+      const nexaPayEnabled = (await getConfig('PAYMENT_NEXAPAY_ENABLED')) === 'true'; // Default false
       return {
         whopEnabled,
         stripeEnabled,
         transVoucherEnabled,
         ecomTrade24Enabled,
+        nexaPayEnabled,
       };
     }),
 
@@ -1894,11 +1896,13 @@ export const appRouter = router({
       const stripeEnabled = (await getConfig('PAYMENT_STRIPE_ENABLED')) === 'true'; // Default false
       const transVoucherEnabled = (await getConfig('PAYMENT_TRANSVOUCHER_ENABLED')) === 'true'; // Default false
       const ecomTrade24Enabled = (await getConfig('PAYMENT_ECOMTRADE24_ENABLED')) === 'true'; // Default false
+      const nexaPayEnabled = (await getConfig('PAYMENT_NEXAPAY_ENABLED')) === 'true'; // Default false
       return {
         whopEnabled,
         stripeEnabled,
         transVoucherEnabled,
         ecomTrade24Enabled,
+        nexaPayEnabled,
       };
     }),
 
@@ -1909,6 +1913,7 @@ export const appRouter = router({
         stripeEnabled: z.boolean(),
         transVoucherEnabled: z.boolean().optional().default(false),
         ecomTrade24Enabled: z.boolean().optional().default(false),
+        nexaPayEnabled: z.boolean().optional().default(false),
       }))
       .mutation(async ({ input }) => {
         const { setConfig } = await import('./db');
@@ -1917,6 +1922,7 @@ export const appRouter = router({
           await setConfig('PAYMENT_STRIPE_ENABLED', String(input.stripeEnabled), 'Stripe Payment Enabled');
           await setConfig('PAYMENT_TRANSVOUCHER_ENABLED', String(input.transVoucherEnabled ?? false), 'TransVoucher Payment Enabled');
           await setConfig('PAYMENT_ECOMTRADE24_ENABLED', String(input.ecomTrade24Enabled ?? false), 'EcomTrade24 Payment Enabled');
+          await setConfig('PAYMENT_NEXAPAY_ENABLED', String(input.nexaPayEnabled ?? false), 'NexaPay Payment Enabled');
           return { success: true };
         } catch (error: any) {
           throw new TRPCError({
