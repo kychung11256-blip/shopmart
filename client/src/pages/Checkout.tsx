@@ -496,6 +496,7 @@ export default function Checkout() {
     if (!isAuthenticated && (!guestEmail.trim() || !guestName.trim())) { toast.error('Please enter email and name for guest checkout'); return; }
     if (cartItems.length === 0) { toast.error('Your cart is empty'); return; }
     setIsEcomTrade24Processing(true);
+    let redirecting = false;
     try {
       let orderResult;
       if (isAuthenticated) {
@@ -524,9 +525,12 @@ export default function Checkout() {
         cancelUrl: `${origin}/checkout`,
       });
       // Redirect to EcomTrade24 checkout page in the same tab
-      // Must use direct assignment (not setTimeout) to avoid browser navigation blocking
       if (result.checkoutUrl) {
+        redirecting = true;
+        // Keep the loading spinner visible during navigation
+        // Do NOT reset isEcomTrade24Processing - let the page unload naturally
         window.location.href = result.checkoutUrl;
+        return; // prevent finally from resetting state
       } else {
         throw new Error('No checkout URL returned from EcomTrade24');
       }
@@ -534,7 +538,10 @@ export default function Checkout() {
       console.error('EcomTrade24 checkout error:', error);
       toast.error(error?.message || 'Failed to create EcomTrade24 payment');
     } finally {
-      setIsEcomTrade24Processing(false);
+      // Only reset loading state if we are NOT redirecting
+      if (!redirecting) {
+        setIsEcomTrade24Processing(false);
+      }
     }
   };
 
