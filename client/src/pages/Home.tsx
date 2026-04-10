@@ -538,7 +538,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-start gap-2">
                   <MapPin size={14} className="mt-0.5 shrink-0" />
-                  <span>1640 Palm Ave, San Mateo, CA 94402</span>
+                  <span className="whitespace-pre-line">{`UNIT 2703, 27/F YEN SHENG CENTRE 64\nHOI YUEN ROAD, KWUN TONG\nKowloon`}</span>
                 </div>
               </div>
             </div>
