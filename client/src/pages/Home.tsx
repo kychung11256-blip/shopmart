@@ -16,7 +16,6 @@ import { t } from '@/lib/translations';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 import TermsAndConditionsModal from '@/components/TermsAndConditionsModal';
-import { TrustPilotWidget } from '@/components/TrustPilotWidget';
 import { useTermsAgreement } from '@/hooks/useTermsAgreement';
 
 
@@ -544,9 +543,6 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-gray-700 pt-6 pb-2">
-            <div className="mb-4">
-              <TrustPilotWidget />
-            </div>
             <p className="text-center text-xs">Copyright © 2013-2026 PinKoi Network Technology Co., Ltd. All rights reserved.</p>
           </div>
         </div>
