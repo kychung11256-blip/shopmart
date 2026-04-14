@@ -1,160 +1,151 @@
 import { Link } from 'wouter';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: '#FAF7FF' }}>
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-40">
+      <header className="bg-white sticky top-0 z-40" style={{ borderBottom: '1px solid #E8D5F5', boxShadow: '0 2px 12px rgba(74,29,107,0.06)' }}>
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
           <Link href="/">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <ChevronLeft size={18} />
+            <Button variant="ghost" size="sm" className="gap-2" style={{ color: '#7B3FA0' }}>
+              <ChevronLeft size={16} />
               返回
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-800">隱私權政策</h1>
+          <div className="flex items-center gap-2">
+            <Shield size={18} style={{ color: '#4A1D6B' }} />
+            <h1 className="text-xl font-medium tracking-widest" style={{ color: '#2D1B4E', fontFamily: "'Cormorant Garamond', Georgia, serif" }}>隱私權政策</h1>
+          </div>
         </div>
       </header>
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-sm p-8 space-y-6">
+        <div className="bg-white rounded-sm p-8 space-y-6" style={{ border: '1px solid #E8D5F5', boxShadow: '0 2px 8px rgba(74,29,107,0.06)' }}>
           <div>
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Privacy Policy</h2>
-            <p className="text-sm text-gray-500">Last updated: March 29, 2026</p>
+            <h2 className="text-2xl font-light tracking-widest mb-2" style={{ color: '#2D1B4E', fontFamily: "'Cormorant Garamond', Georgia, serif" }}>Privacy Policy</h2>
+            <div style={{ height: '1px', background: 'linear-gradient(90deg, #C9A84C, transparent)', width: '120px', margin: '8px 0 12px 0' }} />
+            <p className="text-sm font-light" style={{ color: '#B07FCC' }}>Last updated: April 14, 2026</p>
           </div>
 
-          <div className="prose prose-sm max-w-none space-y-4 text-gray-700">
+          <div className="space-y-6 text-sm font-light leading-relaxed" style={{ color: '#2D1B4E', lineHeight: '1.9' }}>
+            <p>
+              This Privacy Policy describes how <strong>Jade Emporium</strong> ("we", "us", or "our") collects, uses, and protects your personal information when you visit our website or make a purchase. We are committed to safeguarding your privacy and handling your data with transparency and care.
+            </p>
+
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mt-6 mb-3">1. Information We Collect</h3>
-              
-              <h4 className="font-semibold text-gray-800 mt-4 mb-2">1.1 Personal Information</h4>
-              <p>We may collect the following types of personal information:</p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>Contact information (such as name, email address, phone number, and postal address)</li>
-                <li>Business information (such as company name, job title, and business type)</li>
-                <li>Financial information (such as bank account details and transaction history)</li>
-                <li>Identity verification information (such as date of birth and identification documents)</li>
-                <li>User account information (such as username, password, and account preferences)</li>
+              <h3 className="text-base font-medium mb-3 tracking-wide" style={{ color: '#4A1D6B', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.05rem' }}>1. Information We Collect</h3>
+
+              <p className="font-medium mb-2" style={{ color: '#7B3FA0' }}>1.1 Personal Information</p>
+              <p>When you create an account, place an order, or contact us, we may collect:</p>
+              <ul className="list-disc list-inside space-y-1 ml-4 mt-2">
+                <li>Name, email address, phone number, and postal/shipping address</li>
+                <li>Payment information (processed securely via our payment partners; we do not store full card details)</li>
+                <li>Order history and purchase records</li>
+                <li>Account credentials (username and encrypted password)</li>
+                <li>Communications with our customer service team</li>
               </ul>
 
-              <h4 className="font-semibold text-gray-800 mt-4 mb-2">1.2 Usage Information</h4>
-              <p>When you use our services, we may automatically collect information about your interactions with our platform, including:</p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
+              <p className="font-medium mb-2 mt-4" style={{ color: '#7B3FA0' }}>1.2 Usage Information</p>
+              <p>When you browse our website, we automatically collect:</p>
+              <ul className="list-disc list-inside space-y-1 ml-4 mt-2">
                 <li>IP address and device information</li>
                 <li>Browser type and settings</li>
-                <li>Operating system</li>
-                <li>Pages visited and features used</li>
-                <li>Date and time of access</li>
-                <li>Referral source</li>
+                <li>Pages visited, products viewed, and features used</li>
+                <li>Date, time, and duration of visits</li>
+                <li>Referral source (how you found our website)</li>
               </ul>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mt-6 mb-3">2. How We Use Your Information</h3>
-              <p>We use the information we collect for various purposes, including to:</p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>Provide, maintain, and improve our services</li>
-                <li>Process transactions and send related information</li>
-                <li>Verify your identity and prevent fraud</li>
-                <li>Communicate with you about our services, updates, and promotional offers</li>
-                <li>Respond to your inquiries and provide customer support</li>
-                <li>Monitor and analyze usage patterns and trends</li>
-                <li>Comply with legal and regulatory requirements</li>
+              <h3 className="text-base font-medium mb-3 tracking-wide" style={{ color: '#4A1D6B', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.05rem' }}>2. How We Use Your Information</h3>
+              <p>We use your personal information to:</p>
+              <ul className="list-disc list-inside space-y-1 ml-4 mt-2">
+                <li>Process and fulfil your orders, including shipping and delivery</li>
+                <li>Send order confirmations, shipping notifications, and receipts</li>
+                <li>Provide customer support and respond to enquiries</li>
+                <li>Verify your identity and prevent fraudulent transactions</li>
+                <li>Improve our website, product offerings, and customer experience</li>
+                <li>Send promotional communications (only with your consent; you may unsubscribe at any time)</li>
+                <li>Comply with legal and regulatory obligations in Hong Kong and other applicable jurisdictions</li>
               </ul>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mt-6 mb-3">3. Data Sharing and Disclosure</h3>
-              <p>We may share your information with the following categories of third parties:</p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>Service providers that help us operate our business and provide services</li>
-                <li>Financial institutions and payment processors to facilitate transactions</li>
-                <li>Identity verification services to verify your identity</li>
-                <li>Professional advisors, such as lawyers, accountants, and insurers</li>
-                <li>Regulatory authorities and law enforcement agencies when required by law</li>
-                <li>Potential buyers or investors in the event of a business transaction (such as a merger or acquisition)</li>
+              <h3 className="text-base font-medium mb-3 tracking-wide" style={{ color: '#4A1D6B', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.05rem' }}>3. Data Sharing and Disclosure</h3>
+              <p>We do not sell your personal information. We may share your data with trusted third parties solely for the purpose of operating our business:</p>
+              <ul className="list-disc list-inside space-y-1 ml-4 mt-2">
+                <li><strong>Logistics and shipping providers</strong> — to deliver your orders</li>
+                <li><strong>Payment processors</strong> — to securely handle transactions</li>
+                <li><strong>Customer communication platforms</strong> — to manage support enquiries</li>
+                <li><strong>Analytics services</strong> — to understand website usage (data is anonymised where possible)</li>
+                <li><strong>Legal and regulatory authorities</strong> — when required by applicable law or court order</li>
               </ul>
+              <p className="mt-3">All third-party partners are required to handle your data in accordance with applicable data protection laws and our data processing agreements.</p>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mt-6 mb-3">4. Data Security</h3>
+              <h3 className="text-base font-medium mb-3 tracking-wide" style={{ color: '#4A1D6B', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.05rem' }}>4. Data Security</h3>
               <p>
-                We implement appropriate technical and organizational measures to protect your personal information from unauthorized access, disclosure, alteration, or destruction. These measures include encryption, access controls, and regular security assessments.
+                We implement appropriate technical and organisational measures to protect your personal information from unauthorised access, disclosure, alteration, or destruction. These measures include SSL/TLS encryption for data transmission, access controls, and regular security assessments.
               </p>
-              <p>
-                However, no method of transmission over the internet or electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your personal information, we cannot guarantee its absolute security.
+              <p className="mt-2">
+                While we take every reasonable precaution, no method of transmission over the internet is 100% secure. We encourage you to use a strong, unique password for your account and to contact us immediately if you suspect any unauthorised activity.
               </p>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mt-6 mb-3">5. Data Retention</h3>
+              <h3 className="text-base font-medium mb-3 tracking-wide" style={{ color: '#4A1D6B', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.05rem' }}>5. Data Retention</h3>
               <p>
-                We retain your personal information for as long as necessary to fulfill the purposes outlined in this Privacy Policy, unless a longer retention period is required or permitted by law. The criteria used to determine our retention periods include:
+                We retain your personal information for as long as necessary to fulfil the purposes outlined in this Privacy Policy, or as required by applicable law. Order records are typically retained for 7 years in compliance with Hong Kong tax and commercial regulations. You may request deletion of your account data at any time, subject to our legal retention obligations.
               </p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>The length of time we have an ongoing relationship with you</li>
-                <li>Legal obligations to which we are subject</li>
-                <li>Whether retention is advisable in light of our legal position (such as for statutes of limitations, litigation, or regulatory investigations)</li>
+            </div>
+
+            <div>
+              <h3 className="text-base font-medium mb-3 tracking-wide" style={{ color: '#4A1D6B', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.05rem' }}>6. Your Rights</h3>
+              <p>Under the Personal Data (Privacy) Ordinance (Cap. 486) of Hong Kong and other applicable laws, you have the right to:</p>
+              <ul className="list-disc list-inside space-y-1 ml-4 mt-2">
+                <li>Access and receive a copy of your personal information</li>
+                <li>Correct inaccurate or incomplete personal information</li>
+                <li>Request deletion of your personal information (subject to legal obligations)</li>
+                <li>Withdraw consent for marketing communications at any time</li>
+                <li>Lodge a complaint with the Office of the Privacy Commissioner for Personal Data (Hong Kong)</li>
               </ul>
+              <p className="mt-3">To exercise any of these rights, please contact us at the address provided in Section 10.</p>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mt-6 mb-3">6. Your Rights</h3>
+              <h3 className="text-base font-medium mb-3 tracking-wide" style={{ color: '#4A1D6B', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.05rem' }}>7. Cookies and Similar Technologies</h3>
               <p>
-                Depending on your location, you may have certain rights regarding your personal information, including:
-              </p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>The right to access and receive a copy of your personal information</li>
-                <li>The right to correct inaccurate or incomplete personal information</li>
-                <li>The right to delete your personal information</li>
-                <li>The right to restrict or object to processing of your personal information</li>
-                <li>The right to data portability</li>
-                <li>The right to withdraw consent where processing is based on consent</li>
-              </ul>
-              <p className="mt-3">
-                To exercise these rights, please contact us using the information provided in the "Contact Us" section below.
+                We use cookies and similar technologies to enhance your browsing experience, remember your preferences, and analyse website traffic. Essential cookies are required for the website to function properly. You may disable non-essential cookies through your browser settings, though this may affect certain features of our website.
               </p>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mt-6 mb-3">7. Cookies and Similar Technologies</h3>
+              <h3 className="text-base font-medium mb-3 tracking-wide" style={{ color: '#4A1D6B', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.05rem' }}>8. International Data Transfers</h3>
               <p>
-                We use cookies and similar technologies to collect information about your browsing activities and to distinguish you from other users of our website. Cookies help us provide you with a better experience and allow us to improve our services.
-              </p>
-              <p>
-                You can set your browser to refuse all or some browser cookies, or to alert you when cookies are being sent. If you disable or refuse cookies, please note that some parts of our website may become inaccessible or not function properly.
+                As we ship worldwide, your personal information (particularly shipping addresses) may be transferred to and processed in countries outside Hong Kong. We take appropriate safeguards to ensure your information is protected in accordance with this Privacy Policy and applicable data protection laws.
               </p>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mt-6 mb-3">8. International Data Transfers</h3>
+              <h3 className="text-base font-medium mb-3 tracking-wide" style={{ color: '#4A1D6B', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.05rem' }}>9. Changes to this Privacy Policy</h3>
               <p>
-                We may transfer your personal information to countries other than the one in which you reside. When we transfer personal information across borders, we take appropriate safeguards to ensure that your information is protected in accordance with this Privacy Policy and applicable data protection laws.
+                We may update this Privacy Policy from time to time. When we make significant changes, we will notify you by posting a notice on our website or sending an email to your registered address. Your continued use of our website after the effective date of the updated policy constitutes your acceptance of the changes.
               </p>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mt-6 mb-3">9. Children's Privacy</h3>
-              <p>
-                Our services are not directed to individuals under the age of 18. We do not knowingly collect personal information from children. If we become aware that we have collected personal information from a child without verification of parental consent, we will take steps to remove that information from our servers.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mt-6 mb-3">10. Changes to this Privacy Policy</h3>
-              <p>
-                We may update this Privacy Policy from time to time in response to changing legal, technical, or business developments. When we update our Privacy Policy, we will take appropriate measures to inform you, consistent with the significance of the changes we make.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mt-6 mb-3">11. Contact Us</h3>
-              <p>
-                If you have any questions, concerns, or requests regarding this Privacy Policy or our privacy practices, please contact us using the information provided on our website.
-              </p>
+              <h3 className="text-base font-medium mb-3 tracking-wide" style={{ color: '#4A1D6B', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.05rem' }}>10. Contact Us</h3>
+              <p>If you have any questions or concerns regarding this Privacy Policy, please contact us at:</p>
+              <div className="mt-3 p-4 rounded-sm" style={{ background: '#F5EEFF', border: '1px solid #E8D5F5' }}>
+                <p className="font-medium" style={{ color: '#4A1D6B' }}>Jade Emporium — Data Privacy Officer</p>
+                <p className="mt-1">UNIT 2703, 27/F YEN SHENG CENTRE 64</p>
+                <p>HOI YUEN ROAD, KWUN TONG</p>
+                <p>Kowloon, Hong Kong</p>
+              </div>
             </div>
           </div>
         </div>
