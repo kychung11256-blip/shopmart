@@ -1,5 +1,5 @@
 /**
- * PinKoi - Shared Type Definitions
+ * Jade Emporium - Shared Type Definitions
  * All fake/test data has been removed.
  * Data is now fetched exclusively from backend APIs via tRPC.
  */

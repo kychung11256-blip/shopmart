@@ -1,5 +1,5 @@
 /**
- * PinKoi Admin - Orders Management
+ * Jade Emporium Admin - Orders Management
  * 改善: 顯示商品名稱、數量、付款狀態、付款方式
  */
 

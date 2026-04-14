@@ -1,5 +1,5 @@
 /**
- * PinKoi - Multi-language Translations
+ * Jade Emporium - Multi-language Translations
  * 支援中文和英文的翻譯系統
  */
 

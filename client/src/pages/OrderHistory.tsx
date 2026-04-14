@@ -1,5 +1,5 @@
 /**
- * PinKoi - Order History Page
+ * Jade Emporium - Order History Page
  * Display all user orders with status and details
  */
 

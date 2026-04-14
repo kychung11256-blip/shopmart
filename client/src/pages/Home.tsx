@@ -1,5 +1,5 @@
 /**
- * PinKoi - Home Page (Frontend)
+ * Jade Emporium - Home Page (Frontend)
  * Design: 奢華翡翠珠寶電商風 - 深紫金色調
  * Layout: 頂部雙層導航 + 左側分類欄 + 主內容區域
  * Primary: #4A1D6B (Deep Purple), Accent: #C9A84C (Gold)
@@ -243,7 +243,7 @@ export default function Home() {
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #4A1D6B, #7B3FA0)' }}>
               <Gem size={16} className="text-white" />
             </div>
-            <span className="font-semibold hidden sm:block tracking-widest text-sm" style={{ color: '#2D1B4E', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.2rem', letterSpacing: '0.15em' }}>PinKoi</span>
+            <span className="font-semibold hidden sm:block tracking-widest text-sm" style={{ color: '#2D1B4E', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.2rem', letterSpacing: '0.15em' }}>Jade Emporium</span>
           </Link>
 
           {/* Search bar */}
@@ -553,7 +553,7 @@ export default function Home() {
                 <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #4A1D6B, #7B3FA0)' }}>
                   <Gem size={15} className="text-white" />
                 </div>
-                <span className="text-white font-light tracking-[0.2em]" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.1rem' }}>PinKoi</span>
+                <span className="text-white font-light tracking-[0.2em]" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.1rem' }}>Jade Emporium</span>
               </div>
               <p className="text-sm font-light leading-relaxed tracking-wide" style={{ color: '#B07FCC' }}>
                 {language === 'zh' ? '您的一站式翡翠珠寶購物中心' : 'Your premier jadeite jewellery destination.'}
@@ -594,7 +594,7 @@ export default function Home() {
           {/* Gold divider */}
           <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, #C9A84C, transparent)', margin: '0 0 1.5rem 0' }} />
           <p className="text-center text-xs tracking-widest font-light" style={{ color: '#7B3FA0' }}>
-            Copyright © 2013-2026 PinKoi Network Technology Co., Ltd. All rights reserved.
+            Copyright © 2013-2026 Jade Emporium Ltd. All rights reserved.
           </p>
         </div>
       </footer>

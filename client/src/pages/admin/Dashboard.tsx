@@ -1,5 +1,5 @@
 /**
- * PinKoi Admin - Dashboard
+ * Jade Emporium Admin - Dashboard
  * Design: 深色側邊欄 + 白色內容區域
  * 包含: 銷售統計、訂單概覽、商品管理入口
  * 數據來源: 完全從後端 API 獲取真實數據
@@ -67,7 +67,7 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
         <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center shrink-0">
           <ShoppingCart size={16} className="text-white" />
         </div>
-        {!collapsed && <span className="font-bold text-lg">PinKoi</span>}
+        {!collapsed && <span className="font-bold text-lg">Jade Emporium</span>}
         <button
           onClick={onToggle}
           className="ml-auto text-gray-400 hover:text-white transition-colors"

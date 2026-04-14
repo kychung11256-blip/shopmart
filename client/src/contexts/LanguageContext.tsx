@@ -1,5 +1,5 @@
 /**
- * PinKoi - Language Context
+ * Jade Emporium - Language Context
  * 管理全局語言狀態
  */
 

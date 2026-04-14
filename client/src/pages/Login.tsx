@@ -1,5 +1,5 @@
 /**
- * PinKoi - Login Page
+ * Jade Emporium - Login Page
  * Design: 活力促銷電商風 - 紅白主色調
  */
 
@@ -56,7 +56,7 @@ export default function Login() {
             <div className="w-8 h-8 bg-[#7B3FA0] rounded flex items-center justify-center">
               <ShoppingCart size={16} className="text-white" />
             </div>
-            <span className="font-bold text-gray-800 text-lg">PinKoi</span>
+            <span className="font-bold text-gray-800 text-lg">Jade Emporium</span>
           </Link>
           <Link href="/" className="text-sm text-gray-500 hover:text-[#4A1D6B]">
             {language === 'zh' ? '← 返回首頁' : '← Back to Home'}
