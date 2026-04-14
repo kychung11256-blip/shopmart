@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { Upload, X, ImagePlus, Loader2 } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
 import type { Product } from '@/lib/data';
 
 interface ProductEditDialogProps {
@@ -22,6 +24,10 @@ export default function ProductEditDialog({ isOpen, product, onClose, onSave }: 
     status: 'active',
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadImageMutation = trpc.products.uploadImage.useMutation();
 
   useEffect(() => {
     if (product) {
@@ -49,8 +55,49 @@ export default function ProductEditDialog({ isOpen, product, onClose, onSave }: 
     }
   }, [product, isOpen]);
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      return;
+    }
+    setIsUploadingImage(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const base64 = (event.target?.result as string).split(',')[1];
+          const result = await uploadImageMutation.mutateAsync({
+            base64,
+            fileName: file.name,
+            mimeType: file.type,
+          });
+          setFormData((prev) => ({ ...prev, image: result.url }));
+          toast.success('Image uploaded successfully');
+        } catch (error: any) {
+          toast.error('Failed to upload image: ' + (error?.message || 'Unknown error'));
+        } finally {
+          setIsUploadingImage(false);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      toast.error('Failed to read file');
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData((prev) => ({ ...prev, image: '' }));
+  };
+
   const handleSave = async () => {
-    window.alert('[ProductEditDialog] handleSave called!');
     // 驗證必填欄位
     if (!formData.name || formData.price === undefined || formData.price < 0) {
       toast.error('Please fill in all required fields (Name and Price)');
@@ -85,16 +132,87 @@ export default function ProductEditDialog({ isOpen, product, onClose, onSave }: 
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-lg w-full flex flex-col max-h-[90vh]">
+        <DialogHeader className="shrink-0">
           <DialogTitle>{formData.id ? 'Edit Product' : 'Add New Product'}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        {/* Scrollable content area */}
+        <div className="flex-1 overflow-y-auto pr-1 space-y-4 py-2">
+
+          {/* Product Image Upload */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Product Image</label>
+            {formData.image ? (
+              <div className="relative w-full rounded-lg overflow-hidden border border-gray-200 bg-gray-50" style={{ aspectRatio: '4/3' }}>
+                <img
+                  src={formData.image}
+                  alt="Product"
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=400&h=300&fit=crop';
+                  }}
+                />
+                <div className="absolute inset-0 bg-black/0 hover:bg-black/30 transition-colors flex items-center justify-center gap-2 opacity-0 hover:opacity-100">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingImage}
+                    className="bg-white text-gray-700 px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1 hover:bg-gray-100 transition-colors"
+                  >
+                    <Upload size={12} />
+                    Replace
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="bg-red-500 text-white px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1 hover:bg-red-600 transition-colors"
+                  >
+                    <X size={12} />
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingImage}
+                className="w-full border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center gap-2 py-8 text-gray-400 hover:border-purple-400 hover:text-purple-500 transition-colors bg-gray-50 hover:bg-purple-50"
+              >
+                {isUploadingImage ? (
+                  <>
+                    <Loader2 size={28} className="animate-spin text-purple-500" />
+                    <span className="text-sm">Uploading...</span>
+                  </>
+                ) : (
+                  <>
+                    <ImagePlus size={28} />
+                    <span className="text-sm font-medium">Click to upload image</span>
+                    <span className="text-xs">PNG, JPG, WEBP up to 5MB</span>
+                  </>
+                )}
+              </button>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageUpload}
+            />
+            {/* Manual URL input */}
+            <div className="mt-2">
+              <Input
+                placeholder="Or paste image URL directly"
+                value={formData.image || ''}
+                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                className="text-xs"
+              />
+            </div>
+          </div>
           {/* Product Name */}
           <div>
             <label className="block text-sm font-medium mb-1">Product Name *</label>
@@ -215,12 +333,14 @@ export default function ProductEditDialog({ isOpen, product, onClose, onSave }: 
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0 pt-2 border-t border-gray-100">
           <Button variant="outline" onClick={onClose} disabled={isSaving}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Changes'}
+          <Button onClick={handleSave} disabled={isSaving || isUploadingImage}>
+            {isSaving ? (
+              <><Loader2 size={14} className="animate-spin mr-1" /> Saving...</>
+            ) : 'Save Changes'}
           </Button>
         </DialogFooter>
       </DialogContent>

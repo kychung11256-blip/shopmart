@@ -752,3 +752,10 @@
 - [x] 前端 AdminSettings.tsx 新增 Star Pay 開關卡片
 - [x] 前端 Checkout.tsx Star Pay 按鈕改由後台開關控制
 - [ ] 儲存 checkpoint
+
+## 🖼️ Edit Product 彈窗圖片上傳與滾動功能
+
+- [x] 後端已有 products.uploadImage tRPC procedure（S3 上傳）
+- [x] 前端 Edit Product 彈窗加入圖片上傳區塊（點擊上傳、預覽、替換、刪除、URL 直接輸入）
+- [x] Edit Product 彈窗加入上下滾動功能（flex flex-col max-h-[90vh] overflow-y-auto）
+- [ ] 儲存 checkpoint
