@@ -106,9 +106,9 @@ export default function OrderConfirmation() {
 
   if (isLoading || orderLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4 flex items-center justify-center">
+      <div className="min-h-screen bg-[#FAF7FF] p-4 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7B3FA0] mx-auto mb-4"></div>
           <p className="text-gray-600">
             {language === 'zh' ? '加載訂單詳情...' : 'Loading order details...'}
           </p>
@@ -119,11 +119,11 @@ export default function OrderConfirmation() {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
+      <div className="min-h-screen bg-[#FAF7FF] p-4">
         <div className="max-w-2xl mx-auto">
           <button
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 text-red-500 hover:text-red-600 mb-6"
+            className="flex items-center gap-2 text-[#4A1D6B] hover:text-[#7B3FA0] mb-6"
           >
             <ArrowLeft size={20} />
             {language === 'zh' ? '返回首頁' : 'Back to Home'}
@@ -135,7 +135,7 @@ export default function OrderConfirmation() {
             <p className="text-gray-600 mb-6">
               {language === 'zh' ? '我們無法找到您的訂單詳情。' : 'We couldn\'t find your order details.'}
             </p>
-            <Button onClick={() => navigate('/')} className="bg-red-500 hover:bg-red-600">
+            <Button onClick={() => navigate('/')} className="bg-[#4A1D6B] hover:bg-[#7B3FA0]">
               {language === 'zh' ? '返回首頁' : 'Go to Home'}
             </Button>
           </div>
@@ -145,12 +145,12 @@ export default function OrderConfirmation() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-[#FAF7FF] p-4">
       <div className="max-w-4xl mx-auto">
         {/* Back button */}
         <button
           onClick={() => navigate('/')}
-          className="flex items-center gap-2 text-red-500 hover:text-red-600 mb-6"
+          className="flex items-center gap-2 text-[#4A1D6B] hover:text-[#7B3FA0] mb-6"
         >
           <ArrowLeft size={20} />
           {language === 'zh' ? '返回首頁' : 'Back to Home'}
@@ -258,7 +258,7 @@ export default function OrderConfirmation() {
                   </h3>
                   <div className="space-y-2">
                     {order.items.map((item: any, idx: number) => (
-                      <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                      <div key={idx} className="flex justify-between items-center p-3 bg-[#FAF7FF] rounded">
                         <div>
                           <p className="font-medium text-gray-800">{item.productName || `Product #${item.productId}`}</p>
                           <p className="text-sm text-gray-600">
@@ -284,7 +284,7 @@ export default function OrderConfirmation() {
                 </div>
                 <div className="flex justify-between items-center border-t pt-2">
                   <p className="font-bold text-gray-800">{language === 'zh' ? '總計' : 'Total'}</p>
-                  <p className="text-2xl font-bold text-red-500">${(order.totalPrice / 100).toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-[#4A1D6B]">${(order.totalPrice / 100).toFixed(2)}</p>
                 </div>
               </div>
             </div>
@@ -353,7 +353,7 @@ export default function OrderConfirmation() {
           </Button>
           <Button
             onClick={() => navigate('/')}
-            className="bg-red-500 hover:bg-red-600"
+            className="bg-[#4A1D6B] hover:bg-[#7B3FA0]"
           >
             {language === 'zh' ? '繼續購物' : 'Continue Shopping'}
           </Button>

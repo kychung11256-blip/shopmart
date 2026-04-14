@@ -96,10 +96,10 @@ function ProductCard({ product }: { product: Product }) {
           onClick={(e) => { e.stopPropagation(); setIsWishlisted(!isWishlisted); }}
           className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity"
         >
-          <Heart size={14} className={isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
+          <Heart size={14} className={isWishlisted ? 'fill-red-500 text-[#4A1D6B]' : 'text-gray-400'} />
         </button>
         {product.originalPrice && product.originalPrice > product.price && (
-          <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded">
+          <div className="absolute top-2 left-2 bg-[#4A1D6B] text-white text-xs px-1.5 py-0.5 rounded">
             -{Math.round((1 - product.price / product.originalPrice) * 100)}%
           </div>
         )}
@@ -121,7 +121,7 @@ function ProductCard({ product }: { product: Product }) {
         <button 
           onClick={handleAddToCart}
           disabled={isAddingToCart}
-          className="mt-2 w-full bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white text-xs py-1.5 rounded transition-colors"
+          className="mt-2 w-full bg-[#4A1D6B] hover:bg-[#7B3FA0] disabled:bg-red-300 text-white text-xs py-1.5 rounded transition-colors"
         >
           {isAddingToCart ? 'Adding...' : 'Add to Cart'}
         </button>
@@ -187,18 +187,18 @@ export default function Products() {
   }, [filteredProducts, sortBy]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FAF7FF]">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-[1200px] mx-auto px-2 sm:px-4 py-2 sm:py-3 flex items-center gap-2 sm:gap-4">
           <Link href="/" className="flex items-center gap-1 sm:gap-2 shrink-0">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-red-600 rounded flex items-center justify-center">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#7B3FA0] rounded flex items-center justify-center">
               <ShoppingCart size={16} className="text-white" />
             </div>
             <span className="font-bold text-gray-800 text-base sm:text-lg hidden sm:block">PinKoi</span>
           </Link>
           <div className="flex-1 max-w-2xl hidden md:block">
-            <div className="flex border-2 border-red-500 rounded overflow-hidden">
+            <div className="flex border-2 border-[#7B3FA0] rounded overflow-hidden">
               <input
                 type="text"
                 value={searchQuery}
@@ -206,7 +206,7 @@ export default function Products() {
                 placeholder="Search products..."
                 className="flex-1 px-3 py-1.5 text-xs sm:text-sm outline-none"
               />
-              <button className="bg-red-500 hover:bg-red-600 text-white px-3 sm:px-5 py-1.5 sm:py-2 transition-colors">
+              <button className="bg-[#4A1D6B] hover:bg-[#7B3FA0] text-white px-3 sm:px-5 py-1.5 sm:py-2 transition-colors">
                 <Search size={16} />
               </button>
             </div>
@@ -214,20 +214,20 @@ export default function Products() {
           <div className="flex items-center gap-1 sm:gap-3 shrink-0">
             <button
               onClick={toggleLanguage}
-              className="flex items-center justify-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-red-500 hover:bg-gray-100 rounded transition-colors"
+              className="flex items-center justify-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-[#4A1D6B] hover:bg-gray-100 rounded transition-colors"
               title={language === 'zh' ? 'Switch to English' : 'Switch to Chinese'}
             >
               <Globe size={18} />
               <span className="font-medium text-xs sm:text-sm">{language === 'zh' ? 'EN' : 'ZH'}</span>
             </button>
-            <Link href="/cart" className="relative p-2 hover:text-red-500 transition-colors">
+            <Link href="/cart" className="relative p-2 hover:text-[#4A1D6B] transition-colors">
               <ShoppingCart size={22} className="text-gray-600" />
             </Link>
             {isAuthenticated && user ? (
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-red-500 transition-colors"
+                  className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-[#4A1D6B] transition-colors"
                 >
                   <User size={20} />
                   <span className="hidden sm:block font-medium">{user.name}</span>
@@ -251,7 +251,7 @@ export default function Products() {
                         logout();
                         setShowUserMenu(false);
                       }}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 border-t border-gray-100"
+                      className="w-full text-left px-4 py-2 text-sm text-[#7B3FA0] hover:bg-red-50 transition-colors flex items-center gap-2 border-t border-gray-100"
                     >
                       <LogOut size={16} />
                       {language === 'zh' ? '登出' : 'Logout'}
@@ -260,7 +260,7 @@ export default function Products() {
                 )}
               </div>
             ) : (
-              <Link href="/login" className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-red-500 transition-colors">
+              <Link href="/login" className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-[#4A1D6B] transition-colors">
                 <User size={20} />
                 <span className="hidden sm:block font-medium">{language === 'zh' ? '登入' : 'SIGN IN'}</span>
               </Link>
@@ -272,7 +272,7 @@ export default function Products() {
       {/* Breadcrumb */}
       <div className="max-w-[1200px] mx-auto px-4 py-3">
         <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/" className="hover:text-red-500">{language === 'zh' ? '首頁' : 'Home'}</Link>
+          <Link href="/" className="hover:text-[#4A1D6B]">{language === 'zh' ? '首頁' : 'Home'}</Link>
           <ChevronRight size={14} />
           <span className="text-gray-700">{language === 'zh' ? '商品' : 'Products'}</span>
         </div>
@@ -294,7 +294,7 @@ export default function Products() {
                     onClick={() => setActiveCategory(null)}
                     className={`block w-full text-left px-3 py-2 rounded text-sm transition-colors ${
                       activeCategory === null
-                        ? 'bg-red-100 text-red-600 font-medium'
+                        ? 'bg-red-100 text-[#7B3FA0] font-medium'
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
@@ -309,7 +309,7 @@ export default function Products() {
                         onClick={() => setActiveCategory(cat.id)}
                         className={`block w-full text-left px-3 py-2 rounded text-sm transition-colors ${
                           activeCategory === cat.id
-                            ? 'bg-red-100 text-red-600 font-medium'
+                            ? 'bg-red-100 text-[#7B3FA0] font-medium'
                             : 'text-gray-600 hover:bg-gray-100'
                         }`}
                       >
@@ -338,7 +338,7 @@ export default function Products() {
                       onClick={() => setPriceRange([range.min, range.max])}
                       className={`block w-full text-left px-3 py-2 rounded text-sm transition-colors ${
                         priceRange[0] === range.min && priceRange[1] === range.max
-                          ? 'bg-red-100 text-red-600 font-medium'
+                          ? 'bg-red-100 text-[#7B3FA0] font-medium'
                           : 'text-gray-600 hover:bg-gray-100'
                       }`}
                     >

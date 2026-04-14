@@ -1,24 +1,22 @@
 /**
  * PinKoi - Home Page (Frontend)
- * Design: 活力促銷電商風 - 紅白主色調
+ * Design: 奢華翡翠珠寶電商風 - 深紫金色調
  * Layout: 頂部雙層導航 + 左側分類欄 + 主內容區域
- * Primary: #E93323 (Red), Background: #F5F5F5
- * 
+ * Primary: #4A1D6B (Deep Purple), Accent: #C9A84C (Gold)
+ * Background: #FAF7FF (Ivory White)
+ *
  * API Integration: 使用 TRPC 實時獲取商品和分類數據
  */
 
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
-import { ShoppingCart, Search, User, ChevronRight, Phone, MessageCircle, ArrowUp, Heart, MapPin, Globe, LogOut } from 'lucide-react';
+import { ShoppingCart, Search, User, ChevronRight, Phone, MessageCircle, ArrowUp, Heart, MapPin, Globe, LogOut, Gem, Shield, Truck, Award } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { t } from '@/lib/translations';
 import { trpc } from '@/lib/trpc';
-import { toast } from 'sonner';
 import TermsAndConditionsModal from '@/components/TermsAndConditionsModal';
 import { useTermsAgreement } from '@/hooks/useTermsAgreement';
-
-
 
 // 默認 Banner 幻燈片（備用 - 當 API 無法加載時使用）
 const defaultBannerSlides: any[] = [];
@@ -57,10 +55,10 @@ function ProductCard({ product }: { product: Product }) {
 
   return (
     <div
-      className={`product-card bg-white border rounded overflow-hidden group ${
+      className={`product-card bg-white border rounded-sm overflow-hidden group ${
         isSoldOut
-          ? 'border-gray-200 opacity-60 cursor-not-allowed'
-          : 'border-gray-100 cursor-pointer'
+          ? 'border-purple-100 opacity-60 cursor-not-allowed'
+          : 'border-purple-100 cursor-pointer'
       }`}
       onClick={() => !isSoldOut && navigate(`/product/${product.id}`)}
     >
@@ -68,8 +66,8 @@ function ProductCard({ product }: { product: Product }) {
         <img
           src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop'}
           alt={product.name}
-          className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ${
-            isSoldOut ? 'grayscale' : 'group-hover:scale-105'
+          className={`absolute inset-0 w-full h-full object-cover transition-transform duration-500 ${
+            isSoldOut ? 'grayscale' : 'group-hover:scale-108'
           }`}
           onError={(e) => {
             (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop';
@@ -77,29 +75,29 @@ function ProductCard({ product }: { product: Product }) {
         />
         {/* Sold out overlay */}
         {isSoldOut && (
-          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-            <span className="bg-gray-800 text-white text-xs font-bold px-3 py-1 rounded-full">
-              {language === 'zh' ? '已售罄' : 'Sold Out'}
+          <div className="absolute inset-0 bg-purple-900/40 flex items-center justify-center">
+            <span className="bg-purple-900 text-white text-xs font-medium px-3 py-1 rounded-full tracking-wider">
+              {language === 'zh' ? '已售罄' : 'SOLD OUT'}
             </span>
           </div>
         )}
         {!isSoldOut && (
           <button
             onClick={(e) => { e.stopPropagation(); setIsWishlisted(!isWishlisted); }}
-            className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute top-2 right-2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity"
           >
-            <Heart size={14} className={isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
+            <Heart size={13} className={isWishlisted ? 'fill-purple-600 text-purple-600' : 'text-purple-300'} />
           </button>
         )}
         {!isSoldOut && product.originalPrice && product.originalPrice > product.price && (
-          <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded">
+          <div className="absolute top-2 left-2 bg-[#C9A84C] text-white text-xs px-2 py-0.5 rounded-sm tracking-wider font-medium">
             -{Math.round((1 - product.price / product.originalPrice) * 100)}%
           </div>
         )}
       </div>
-      <div className="p-3">
-        <p className={`text-sm line-clamp-2 min-h-[2.5rem] leading-tight ${
-          isSoldOut ? 'text-gray-400' : 'text-gray-700'
+      <div className="p-3 border-t border-purple-50">
+        <p className={`text-sm line-clamp-2 min-h-[2.5rem] leading-snug font-light tracking-wide ${
+          isSoldOut ? 'text-gray-400' : 'text-[#2D1B4E]'
         }`}>{product.name}</p>
         <div className="mt-2 flex items-baseline gap-2">
           <span className={`price-current text-base ${isSoldOut ? 'text-gray-400' : ''}`}>${product.price.toFixed(2)}</span>
@@ -108,14 +106,14 @@ function ProductCard({ product }: { product: Product }) {
           )}
         </div>
         {isSoldOut ? (
-          <p className="text-xs text-red-400 font-medium mt-1">{language === 'zh' ? '已售罄' : 'Out of Stock'}</p>
+          <p className="text-xs text-purple-400 font-medium mt-1">{language === 'zh' ? '已售罄' : 'Out of Stock'}</p>
         ) : (
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs text-gray-400">{language === 'zh' ? '已售' : 'Sold'}: {product.sold || 0}</span>
+            <span className="text-xs text-purple-300">{language === 'zh' ? '已售' : 'Sold'}: {product.sold || 0}</span>
             {typeof product.stock === 'number' && product.stock > 0 && (
               <>
-                <span className="text-gray-200">|</span>
-                <span className="text-xs text-green-600">{language === 'zh' ? '庫存' : 'Stock'}: {product.stock}</span>
+                <span className="text-purple-100">|</span>
+                <span className="text-xs text-purple-500">{language === 'zh' ? '庫存' : 'Stock'}: {product.stock}</span>
               </>
             )}
           </div>
@@ -128,30 +126,29 @@ function ProductCard({ product }: { product: Product }) {
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<number | null>(1);
+  const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { language, toggleLanguage } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
   const [, navigate] = useLocation();
-  
+
   // Terms and Conditions agreement
   const { hasAgreed, isLoading: termsLoading, acceptTerms, rejectTerms } = useTermsAgreement();
   const showTermsModal = hasAgreed === false && !termsLoading;
-  
+
   // 使用 TRPC 獲取購物車數據
   const { data: cartItems = [] } = trpc.cart.list.useQuery(undefined, { enabled: isAuthenticated });
-  
+
   // 計算購物車項目總數
   const cartCount = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
-  
+
   // 使用 TRPC 獲取商品、分類和 Banner 數據
   const { data: apiProducts = [], isLoading: productsLoading } = trpc.products.list.useQuery({ limit: 100 });
   const { data: apiCategories = [], isLoading: categoriesLoading } = trpc.categories.list.useQuery();
-  const { data: bannerData = [], isLoading: bannersLoading } = trpc.banners.getActive.useQuery();
-  
-  // 直接使用 API 數據，不再轉換
+  const { data: bannerData = [] } = trpc.banners.getActive.useQuery();
+
+  // 直接使用 API 數據
   const products: Product[] = apiProducts.map((p: any) => ({
     id: p.id,
     name: p.name,
@@ -169,9 +166,14 @@ export default function Home() {
     id: c.id,
     name: c.name,
     nameEn: c.nameEn,
-    icon: c.icon || '📦',
+    icon: c.icon || '💎',
     order: c.order || 0,
   }));
+
+  // 過濾商品
+  const filteredProducts = activeCategory
+    ? products.filter((p) => p.categoryId === activeCategory)
+    : products;
 
   // 使用動態 Banner 數據
   const bannerSlides = bannerData.length > 0
@@ -185,14 +187,11 @@ export default function Home() {
       }))
     : defaultBannerSlides;
 
-  // Banner 數據已通過 useQuery hook 動態加載，無需額外的 useEffect
-
   useEffect(() => {
     if (bannerSlides.length === 0) return;
-    
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
-    }, 4000);
+    }, 5000);
     return () => clearInterval(timer);
   }, [bannerSlides.length]);
 
@@ -202,18 +201,15 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-
-
   // If user hasn't agreed to terms, show only the modal
   if (showTermsModal) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen" style={{ background: '#FAF7FF' }}>
         <TermsAndConditionsModal
           isOpen={true}
           onAccept={acceptTerms}
           onReject={() => {
             rejectTerms();
-            // Redirect to a blocked page or show message
             window.location.href = 'about:blank';
           }}
         />
@@ -222,55 +218,67 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: '#FAF7FF' }}>
 
       {/* Top utility bar */}
-      <div className="bg-gray-700 text-gray-300 text-xs py-1.5 hidden sm:block">
+      <div style={{ background: '#1A0A2E', color: '#B07FCC' }} className="text-xs py-1.5 hidden sm:block">
         <div className="max-w-[1200px] mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/" className="hover:text-white transition-colors">Home</Link>
-            <span className="hover:text-white transition-colors cursor-pointer">Collect this site</span>
+            <Link href="/" className="hover:text-white transition-colors tracking-wide">Home</Link>
+            <span className="hover:text-white transition-colors cursor-pointer tracking-wide">Collect this site</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/orders" className="hover:text-white transition-colors">My Order</Link>
-            <span className="hover:text-white transition-colors cursor-pointer">Apply for</span>
-            <span className="hover:text-white transition-colors cursor-pointer">Mobile Mall</span>
+            <Link href="/orders" className="hover:text-white transition-colors tracking-wide">My Order</Link>
+            <span className="hover:text-white transition-colors cursor-pointer tracking-wide">Apply for</span>
+            <span className="hover:text-white transition-colors cursor-pointer tracking-wide">Mobile Mall</span>
           </div>
         </div>
       </div>
 
       {/* Main navigation */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
+      <header className="bg-white sticky top-0 z-50" style={{ borderBottom: '1px solid #E8D5F5', boxShadow: '0 2px 12px rgba(74,29,107,0.08)' }}>
         <div className="max-w-[1200px] mx-auto px-2 sm:px-4 py-2 sm:py-3 flex items-center gap-2 sm:gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-1 sm:gap-2 shrink-0">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-red-600 rounded flex items-center justify-center">
-              <ShoppingCart size={16} className="text-white" />
+          <Link href="/" className="flex items-center gap-2 shrink-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #4A1D6B, #7B3FA0)' }}>
+              <Gem size={16} className="text-white" />
             </div>
-            <span className="font-bold text-gray-800 text-base sm:text-lg hidden sm:block">PinKoi</span>
+            <span className="font-semibold hidden sm:block tracking-widest text-sm" style={{ color: '#2D1B4E', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.2rem', letterSpacing: '0.15em' }}>PinKoi</span>
           </Link>
 
-          {/* Search bar - hidden on mobile */}
+          {/* Search bar */}
           <div className="flex-1 max-w-2xl hidden md:block">
-            <div className="flex border-2 border-red-500 rounded overflow-hidden">
+            <div className="flex rounded-sm overflow-hidden" style={{ border: '1.5px solid #7B3FA0' }}>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Please enter the item to search"
-                className="flex-1 px-3 py-1.5 text-xs sm:text-sm outline-none"
+                placeholder={language === 'zh' ? '搜尋翡翠珠寶...' : 'Search jadeite jewellery...'}
+                className="flex-1 px-3 py-1.5 text-sm outline-none bg-white"
+                style={{ color: '#2D1B4E' }}
               />
-              <button className="bg-red-500 hover:bg-red-600 text-white px-3 sm:px-5 py-1.5 sm:py-2 transition-colors">
-                <Search size={16} />
+              <button
+                className="text-white px-4 py-1.5 transition-colors"
+                style={{ background: '#4A1D6B' }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#7B3FA0')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#4A1D6B')}
+              >
+                <Search size={15} />
               </button>
             </div>
-            {/* Hot search tags */}
-            <div className="flex gap-2 mt-1 flex-wrap">
-              {['Tea', 'Keyboard', 'Shoes', 'Dress', 'Fragrance'].map((tag) => (
+            {/* Search tags */}
+            <div className="flex gap-3 mt-1 flex-wrap">
+              {(language === 'zh'
+                ? ['翡翠手鐲', '翡翠吊墜', '翡翠戒指', '翡翠耳環', '玉石項鍊']
+                : ['Jade Bangle', 'Jade Pendant', 'Jade Ring', 'Jade Earring', 'Jadeite']
+              ).map((tag) => (
                 <button
                   key={tag}
                   onClick={() => setSearchQuery(tag)}
-                  className="text-xs text-gray-500 hover:text-red-500 transition-colors"
+                  className="text-xs transition-colors"
+                  style={{ color: '#B07FCC' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = '#4A1D6B')}
+                  onMouseLeave={e => (e.currentTarget.style.color = '#B07FCC')}
                 >
                   {tag}
                 </button>
@@ -282,66 +290,78 @@ export default function Home() {
           <div className="flex items-center gap-1 sm:gap-3 shrink-0">
             <button
               onClick={toggleLanguage}
-              className="flex items-center justify-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-red-500 hover:bg-gray-100 rounded transition-colors"
+              className="flex items-center justify-center gap-1 px-2 py-1.5 text-xs sm:text-sm rounded transition-colors"
+              style={{ color: '#7B3FA0' }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#4A1D6B'; e.currentTarget.style.background = '#F5EEFF'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#7B3FA0'; e.currentTarget.style.background = 'transparent'; }}
               title={language === 'zh' ? 'Switch to English' : 'Switch to Chinese'}
             >
-              <Globe size={18} />
-              <span className="font-medium text-xs sm:text-sm">{language === 'zh' ? 'EN' : 'ZH'}</span>
+              <Globe size={16} />
+              <span className="font-medium tracking-wider">{language === 'zh' ? 'EN' : 'ZH'}</span>
             </button>
-            
-            <Link href="/cart" className="relative p-2 hover:text-red-500 transition-colors">
-              <ShoppingCart size={22} className="text-gray-600" />
+
+            <Link href="/cart" className="relative p-2 transition-colors" style={{ color: '#7B3FA0' }}>
+              <ShoppingCart size={21} />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-4 h-4 text-white text-xs rounded-full flex items-center justify-center" style={{ background: '#C9A84C', fontSize: '10px' }}>
                   {cartCount}
                 </span>
               )}
             </Link>
+
             {user ? (
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-red-500 transition-colors"
+                  className="flex items-center gap-1.5 text-sm transition-colors"
+                  style={{ color: '#7B3FA0' }}
                 >
                   <User size={20} />
-                  <span className="hidden sm:block font-medium">{user.name}</span>
+                  <span className="hidden sm:block font-light tracking-wide">{user.name}</span>
                 </button>
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg border border-gray-100 z-50">
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-800">{user.name}</p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium mt-1 inline-block ${
-                        user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
-                      }`}>
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-sm z-50" style={{ border: '1px solid #E8D5F5', boxShadow: '0 8px 32px rgba(74,29,107,0.12)' }}>
+                    <div className="px-4 py-3" style={{ borderBottom: '1px solid #E8D5F5' }}>
+                      <p className="text-sm font-medium" style={{ color: '#2D1B4E' }}>{user.name}</p>
+                      <p className="text-xs" style={{ color: '#B07FCC' }}>{user.email}</p>
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium mt-1 inline-block" style={{
+                        background: user.role === 'admin' ? '#F5EEFF' : '#EEF2FF',
+                        color: user.role === 'admin' ? '#4A1D6B' : '#4338CA'
+                      }}>
                         {user.role === 'admin' ? (language === 'zh' ? '管理員' : 'Admin') : (language === 'zh' ? '用戶' : 'User')}
                       </span>
                     </div>
-                    <Link href="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                    <Link href="/orders" className="block px-4 py-2 text-sm transition-colors" style={{ color: '#2D1B4E' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#F5EEFF')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                    >
                       {language === 'zh' ? '我的訂單' : 'My Orders'}
                     </Link>
                     {user.role === 'admin' && (
-                      <Link href="/admin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                      <Link href="/admin" className="block px-4 py-2 text-sm transition-colors" style={{ color: '#2D1B4E' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = '#F5EEFF')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      >
                         {language === 'zh' ? '管理儀表板' : 'Admin Dashboard'}
                       </Link>
                     )}
                     <button
-                      onClick={() => {
-                        logout();
-                        setShowUserMenu(false);
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 border-t border-gray-100"
+                      onClick={() => { logout(); setShowUserMenu(false); }}
+                      className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors"
+                      style={{ color: '#7B3FA0', borderTop: '1px solid #E8D5F5' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#F5EEFF')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     >
-                      <LogOut size={16} />
+                      <LogOut size={14} />
                       {language === 'zh' ? '登出' : 'Logout'}
                     </button>
                   </div>
                 )}
               </div>
             ) : (
-              <Link href="/login" className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-red-500 transition-colors">
+              <Link href="/login" className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: '#7B3FA0' }}>
                 <User size={20} />
-                <span className="hidden sm:block font-medium">{language === 'zh' ? '登入' : 'SIGN IN'}</span>
+                <span className="hidden sm:block font-light tracking-widest text-xs">{language === 'zh' ? '登入' : 'SIGN IN'}</span>
               </Link>
             )}
           </div>
@@ -349,22 +369,27 @@ export default function Home() {
       </header>
 
       {/* Main content area */}
-      <div className="max-w-[1200px] mx-auto px-4 py-4">
-        <div className="flex gap-4">
+      <div className="max-w-[1200px] mx-auto px-4 py-5">
+        <div className="flex gap-5">
           {/* Left category sidebar */}
           <aside className="w-44 shrink-0 hidden lg:block">
-            <div className="bg-white rounded shadow-sm overflow-hidden">
+            <div className="bg-white rounded-sm overflow-hidden" style={{ border: '1px solid #E8D5F5', boxShadow: '0 2px 8px rgba(74,29,107,0.06)' }}>
+              <div className="px-4 py-2.5" style={{ background: '#4A1D6B' }}>
+                <span className="text-white text-xs tracking-widest font-light uppercase">{language === 'zh' ? '商品分類' : 'Categories'}</span>
+              </div>
               {categoriesLoading ? (
-                <div className="p-4 text-center text-gray-500">{language === 'zh' ? '加載中...' : 'Loading...'}</div>
+                <div className="p-4 text-center text-purple-300 text-sm">{language === 'zh' ? '加載中...' : 'Loading...'}</div>
               ) : (
                 <>
                   <button
                     onClick={() => setActiveCategory(null)}
-                    className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-gray-50 ${
-                      activeCategory === null || activeCategory === 0
-                        ? 'bg-red-500 text-white font-medium'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-red-500'
-                    }`}
+                    className="w-full text-left px-4 py-2.5 text-sm transition-colors"
+                    style={{
+                      background: activeCategory === null ? '#F5EEFF' : 'transparent',
+                      color: activeCategory === null ? '#4A1D6B' : '#2D1B4E',
+                      borderBottom: '1px solid #F5EEFF',
+                      fontWeight: activeCategory === null ? '500' : '300',
+                    }}
                   >
                     {language === 'zh' ? '全部分類' : 'All Categories'}
                   </button>
@@ -372,11 +397,13 @@ export default function Home() {
                     <button
                       key={cat.id}
                       onClick={() => setActiveCategory(cat.id)}
-                      className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-gray-50 last:border-0 ${
-                        activeCategory === cat.id
-                          ? 'bg-red-500 text-white font-medium'
-                          : 'text-gray-700 hover:bg-gray-50 hover:text-red-500'
-                      }`}
+                      className="w-full text-left px-4 py-2.5 text-sm transition-colors"
+                      style={{
+                        background: activeCategory === cat.id ? '#F5EEFF' : 'transparent',
+                        color: activeCategory === cat.id ? '#4A1D6B' : '#2D1B4E',
+                        borderBottom: '1px solid #F5EEFF',
+                        fontWeight: activeCategory === cat.id ? '500' : '300',
+                      }}
                     >
                       {cat.name}
                     </button>
@@ -388,180 +415,212 @@ export default function Home() {
 
           {/* Main content */}
           <main className="flex-1 min-w-0">
-            {/* Hero Banner Carousel - 動態加載 */}
+            {/* Hero Banner Carousel */}
             {bannerSlides.length > 0 ? (
-              <div className="relative rounded overflow-hidden mb-4" style={{ height: '320px' }}>
+              <div className="relative rounded-sm overflow-hidden mb-5" style={{ height: '340px' }}>
                 {bannerSlides.map((slide, idx) => (
                   <div
                     key={slide.id}
-                    className={`absolute inset-0 transition-opacity duration-700 ${idx === currentSlide ? 'opacity-100' : 'opacity-0'}`}
+                    className={`absolute inset-0 transition-opacity duration-1000 ${idx === currentSlide ? 'opacity-100' : 'opacity-0'}`}
                   >
                     <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent flex items-center">
-                      <div className="ml-12 text-white">
-                        <p className="text-sm uppercase tracking-widest opacity-80">{language === 'zh' ? '熱銷商品' : 'Hot Product'}</p>
-                        <h2 className="text-3xl font-bold mt-1">{slide.title}</h2>
-                        <button 
+                    <div className="absolute inset-0 flex items-center" style={{ background: 'linear-gradient(to right, rgba(26,10,46,0.75) 0%, rgba(26,10,46,0.3) 60%, transparent 100%)' }}>
+                      <div className="ml-10 text-white">
+                        <p className="text-xs uppercase tracking-[0.3em] mb-2" style={{ color: '#C9A84C' }}>{language === 'zh' ? '精選珍品' : 'Featured Collection'}</p>
+                        <h2 className="text-3xl font-light tracking-wide" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}>{slide.title}</h2>
+                        {slide.subtitle && <p className="text-sm mt-1 font-light opacity-80 tracking-wider">{slide.subtitle}</p>}
+                        <button
                           onClick={() => slide.link ? window.location.href = slide.link : null}
-                          className="mt-4 bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded text-sm font-medium transition-colors"
+                          className="mt-5 text-white text-xs tracking-[0.2em] px-6 py-2.5 transition-all"
+                          style={{ border: '1px solid #C9A84C', background: 'transparent' }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#C9A84C'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                         >
-                          {slide.cta}
+                          {slide.cta || (language === 'zh' ? '探索更多' : 'EXPLORE MORE')}
                         </button>
                       </div>
                     </div>
                   </div>
                 ))}
                 {/* Slide indicators */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                <div className="absolute bottom-4 right-6 flex gap-2">
                   {bannerSlides.map((_, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentSlide(idx)}
-                      className={`w-2 h-2 rounded-full transition-colors ${idx === currentSlide ? 'bg-white' : 'bg-white/50'}`}
+                      className="transition-all"
+                      style={{
+                        width: idx === currentSlide ? '20px' : '6px',
+                        height: '2px',
+                        background: idx === currentSlide ? '#C9A84C' : 'rgba(255,255,255,0.5)',
+                        border: 'none',
+                        padding: 0,
+                      }}
                     />
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="relative rounded overflow-hidden mb-4 bg-gradient-to-r from-gray-200 to-gray-300" style={{ height: '320px' }}>
-                <div className="flex items-center justify-center h-full text-gray-600">
-                  <span>加載中...</span>
+              <div className="relative rounded-sm overflow-hidden mb-5 flex items-center justify-center" style={{ height: '340px', background: 'linear-gradient(135deg, #1A0A2E 0%, #4A1D6B 100%)' }}>
+                <div className="text-center">
+                  <Gem size={40} className="mx-auto mb-3" style={{ color: '#C9A84C' }} />
+                  <p className="text-white/60 text-sm tracking-widest">{language === 'zh' ? '翡翠珍品' : 'JADE COLLECTION'}</p>
                 </div>
               </div>
             )}
 
-            {/* Recommended section */}
-            <section className="bg-white rounded shadow-sm mb-4">
+            {/* Products section */}
+            <section className="bg-white rounded-sm mb-5" style={{ border: '1px solid #E8D5F5', boxShadow: '0 2px 8px rgba(74,29,107,0.06)' }}>
               <div className="section-title flex items-center justify-between">
-                <span>{t('recommended', language)}</span>
-                <Link href="/products" className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1">
+                <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.1rem', letterSpacing: '0.08em' }}>
+                  {t('recommended', language)}
+                </span>
+                <Link href="/products" className="text-xs flex items-center gap-1 transition-colors" style={{ color: '#B07FCC' }}>
                   {t('more', language)} <ChevronRight size={12} />
                 </Link>
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {productsLoading ? (
-                  <div className="col-span-full text-center text-gray-500 py-8">{language === 'zh' ? '加載商品中...' : 'Loading products...'}</div>
-                ) : products.length > 0 ? (
-                  products.map((product) => (
+                  <div className="col-span-full text-center py-12" style={{ color: '#B07FCC' }}>
+                    <Gem size={28} className="mx-auto mb-2 animate-pulse" />
+                    <p className="text-sm tracking-widest">{language === 'zh' ? '加載珍品中...' : 'Loading...'}</p>
+                  </div>
+                ) : filteredProducts.length > 0 ? (
+                  filteredProducts.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))
                 ) : (
-                  <div className="col-span-full text-center text-gray-500 py-8">{language === 'zh' ? '暫無商品' : 'No products available'}</div>
+                  <div className="col-span-full text-center py-12" style={{ color: '#B07FCC' }}>
+                    <p className="text-sm tracking-widest">{language === 'zh' ? '暫無商品' : 'No products available'}</p>
+                  </div>
                 )}
               </div>
             </section>
 
-            {/* SHOP STREET + TOP ONE sections removed */}
-
             {/* Top List */}
-            <section className="bg-white rounded shadow-sm mb-4">
+            <section className="bg-white rounded-sm mb-5" style={{ border: '1px solid #E8D5F5', boxShadow: '0 2px 8px rgba(74,29,107,0.06)' }}>
               <div className="section-title flex items-center justify-between">
-                <span>{language === 'zh' ? '排行榜' : 'Top List'}</span>
-                <Link href="/products" className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1">
+                <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.1rem', letterSpacing: '0.08em' }}>
+                  {language === 'zh' ? '熱銷排行' : 'Top Sellers'}
+                </span>
+                <Link href="/products" className="text-xs flex items-center gap-1 transition-colors" style={{ color: '#B07FCC' }}>
                   {t('more', language)} <ChevronRight size={12} />
                 </Link>
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {products.map((product) => (
+                {products.slice(0, 8).map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             </section>
-
-            {/* Promotions section removed */}
-
-            {/* You May Also Like section removed */}
           </main>
         </div>
       </div>
 
-      {/* Trust badges */}
-      <div className="bg-white border-t border-gray-100 py-6 mt-4">
+      {/* Trust badges - jade luxury style */}
+      <div className="py-8 mt-2" style={{ background: 'white', borderTop: '1px solid #E8D5F5', borderBottom: '1px solid #E8D5F5' }}>
         <div className="max-w-[1200px] mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Gold divider */}
+          <div className="jade-divider mb-6" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { icon: '🏪', title: language === 'zh' ? '商品齊全' : 'Complete variety', desc: language === 'zh' ? '百萬商品' : 'Millions of products' },
-              { icon: '🚚', title: language === 'zh' ? '快速配送' : 'Fast delivery', desc: language === 'zh' ? '同日配送' : 'Same day shipping' },
-              { icon: '✅', title: language === 'zh' ? '正品保證' : 'Genuine product', desc: language === 'zh' ? '100%正品' : '100% authentic' },
-              { icon: '💰', title: language === 'zh' ? '天天低價' : 'Low price every day', desc: language === 'zh' ? '最優惠價格' : 'Best deals guaranteed' },
+              { icon: <Gem size={22} />, title: language === 'zh' ? '天然翡翠' : 'Natural Jadeite', desc: language === 'zh' ? '100% A貨保證' : '100% Grade A Certified' },
+              { icon: <Shield size={22} />, title: language === 'zh' ? '正品保障' : 'Authenticity Guarantee', desc: language === 'zh' ? '附鑑定證書' : 'With Certificate' },
+              { icon: <Truck size={22} />, title: language === 'zh' ? '全球配送' : 'Worldwide Shipping', desc: language === 'zh' ? '安全包裝' : 'Secure Packaging' },
+              { icon: <Award size={22} />, title: language === 'zh' ? '專業鑑定' : 'Expert Appraisal', desc: language === 'zh' ? '30年翡翠經驗' : '30 Years Experience' },
             ].map((badge) => (
-              <div key={badge.title} className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center text-xl shrink-0">
+              <div key={badge.title} className="flex flex-col items-center text-center gap-3">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: '#F5EEFF', color: '#4A1D6B' }}>
                   {badge.icon}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700">{badge.title}</p>
-                  <p className="text-xs text-gray-400">{badge.desc}</p>
+                  <p className="text-sm font-medium tracking-wide" style={{ color: '#2D1B4E', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '0.95rem' }}>{badge.title}</p>
+                  <p className="text-xs mt-0.5 font-light" style={{ color: '#B07FCC' }}>{badge.desc}</p>
                 </div>
               </div>
             ))}
           </div>
+          <div className="jade-divider mt-6" />
         </div>
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-gray-400 py-8">
+      <footer className="py-10" style={{ background: '#1A0A2E', color: '#B07FCC' }}>
         <div className="max-w-[1200px] mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
-                  <ShoppingCart size={16} className="text-white" />
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #4A1D6B, #7B3FA0)' }}>
+                  <Gem size={15} className="text-white" />
                 </div>
-                <span className="text-white font-bold text-lg">PinKoi</span>
+                <span className="text-white font-light tracking-[0.2em]" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: '1.1rem' }}>PinKoi</span>
               </div>
-              <p className="text-sm">{language === 'zh' ? '您的一站式在線藝術中心' : 'Your one-stop online art center.'}</p>
+              <p className="text-sm font-light leading-relaxed tracking-wide" style={{ color: '#B07FCC' }}>
+                {language === 'zh' ? '您的一站式翡翠珠寶購物中心' : 'Your premier jadeite jewellery destination.'}
+              </p>
             </div>
             <div>
-              <h4 className="text-white font-medium mb-3">{language === 'zh' ? '快速連結' : 'Quick Links'}</h4>
-              <ul className="space-y-1.5 text-sm">
+              <h4 className="text-white font-light mb-4 tracking-widest text-xs uppercase">{language === 'zh' ? '快速連結' : 'Quick Links'}</h4>
+              <ul className="space-y-2 text-sm font-light">
                 {(language === 'zh' ? ['首頁', '商品', '分類', '促銷', '關於我們'] : ['Home', 'Products', 'Categories', 'Promotions', 'About Us']).map((link) => (
-                  <li key={link}><a href="#" className="hover:text-white transition-colors">{link}</a></li>
+                  <li key={link}>
+                    <a href="#" className="transition-colors hover:text-white tracking-wide">{link}</a>
+                  </li>
                 ))}
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-medium mb-3">{language === 'zh' ? '幫助 / 政策' : 'Help / Policy'}</h4>
-              <ul className="space-y-1.5 text-sm">
-                <li><Link href="/terms-of-service" className="hover:text-white transition-colors">{language === 'zh' ? '服務條款' : 'Terms of Service'}</Link></li>
-                <li><Link href="/privacy-policy" className="hover:text-white transition-colors">{language === 'zh' ? '隱私權政策' : 'Privacy Policy'}</Link></li>
-                <li><Link href="/disclaimer" className="hover:text-white transition-colors">{language === 'zh' ? '免責聲明' : 'Disclaimer'}</Link></li>
+              <h4 className="text-white font-light mb-4 tracking-widest text-xs uppercase">{language === 'zh' ? '幫助 / 政策' : 'Help / Policy'}</h4>
+              <ul className="space-y-2 text-sm font-light">
+                <li><Link href="/terms-of-service" className="transition-colors hover:text-white tracking-wide">{language === 'zh' ? '服務條款' : 'Terms of Service'}</Link></li>
+                <li><Link href="/privacy-policy" className="transition-colors hover:text-white tracking-wide">{language === 'zh' ? '隱私權政策' : 'Privacy Policy'}</Link></li>
+                <li><Link href="/disclaimer" className="transition-colors hover:text-white tracking-wide">{language === 'zh' ? '免責聲明' : 'Disclaimer'}</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-medium mb-3">{language === 'zh' ? '聯繫方式' : 'Contact'}</h4>
-              <div className="space-y-2 text-sm">
+              <h4 className="text-white font-light mb-4 tracking-widest text-xs uppercase">{language === 'zh' ? '聯繫方式' : 'Contact'}</h4>
+              <div className="space-y-3 text-sm font-light">
                 <div className="flex items-center gap-2">
-                  <Phone size={14} />
-                  <span>400-2647-3947</span>
+                  <Phone size={13} style={{ color: '#C9A84C' }} />
+                  <span className="tracking-wide">400-2647-3947</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <MapPin size={14} className="mt-0.5 shrink-0" />
-                  <span className="whitespace-pre-line">{`UNIT 2703, 27/F YEN SHENG CENTRE 64\nHOI YUEN ROAD, KWUN TONG\nKowloon`}</span>
+                  <MapPin size={13} className="mt-0.5 shrink-0" style={{ color: '#C9A84C' }} />
+                  <span className="whitespace-pre-line leading-relaxed">{`UNIT 2703, 27/F YEN SHENG CENTRE 64\nHOI YUEN ROAD, KWUN TONG\nKowloon`}</span>
                 </div>
               </div>
             </div>
           </div>
-          <div className="border-t border-gray-700 pt-6 pb-2">
-            <p className="text-center text-xs">Copyright © 2013-2026 PinKoi Network Technology Co., Ltd. All rights reserved.</p>
-          </div>
+          {/* Gold divider */}
+          <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, #C9A84C, transparent)', margin: '0 0 1.5rem 0' }} />
+          <p className="text-center text-xs tracking-widest font-light" style={{ color: '#7B3FA0' }}>
+            Copyright © 2013-2026 PinKoi Network Technology Co., Ltd. All rights reserved.
+          </p>
         </div>
       </footer>
 
       {/* Right floating buttons */}
       <div className="fixed right-4 bottom-20 flex flex-col gap-2 z-40">
-        <button className="w-12 h-12 bg-white border border-gray-200 shadow-md rounded flex flex-col items-center justify-center gap-0.5 hover:border-red-400 hover:text-red-500 transition-colors group">
-          <MessageCircle size={16} className="text-gray-500 group-hover:text-red-500" />
-          <span className="text-xs text-gray-500 group-hover:text-red-500 leading-none">{language === 'zh' ? '服務' : 'Service'}</span>
+        <button
+          className="w-11 h-11 bg-white flex flex-col items-center justify-center gap-0.5 transition-all"
+          style={{ border: '1px solid #E8D5F5', boxShadow: '0 2px 12px rgba(74,29,107,0.12)', borderRadius: '2px', color: '#7B3FA0' }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = '#7B3FA0'; e.currentTarget.style.color = '#4A1D6B'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = '#E8D5F5'; e.currentTarget.style.color = '#7B3FA0'; }}
+        >
+          <MessageCircle size={15} />
+          <span className="text-xs leading-none" style={{ fontSize: '9px', letterSpacing: '0.05em' }}>{language === 'zh' ? '服務' : 'Service'}</span>
         </button>
 
         {showBackToTop && (
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="w-12 h-12 bg-white border border-gray-200 shadow-md rounded flex flex-col items-center justify-center gap-0.5 hover:border-red-400 hover:text-red-500 transition-colors group"
+            className="w-11 h-11 bg-white flex flex-col items-center justify-center gap-0.5 transition-all"
+            style={{ border: '1px solid #E8D5F5', boxShadow: '0 2px 12px rgba(74,29,107,0.12)', borderRadius: '2px', color: '#7B3FA0' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#7B3FA0'; e.currentTarget.style.color = '#4A1D6B'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#E8D5F5'; e.currentTarget.style.color = '#7B3FA0'; }}
           >
-            <ArrowUp size={16} className="text-gray-500 group-hover:text-red-500" />
-            <span className="text-xs text-gray-500 group-hover:text-red-500 leading-none">{language === 'zh' ? '頂部' : 'Top'}</span>
+            <ArrowUp size={15} />
+            <span className="text-xs leading-none" style={{ fontSize: '9px', letterSpacing: '0.05em' }}>{language === 'zh' ? '頂部' : 'Top'}</span>
           </button>
         )}
       </div>

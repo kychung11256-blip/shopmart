@@ -155,12 +155,12 @@ export default function ProductDetail() {
   // 如果商品不存在或出錯，顯示錯誤頁面
   if (!isLoading && !product) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#FAF7FF] flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-800 mb-4">Product Not Found</h1>
           <p className="text-gray-600 mb-2">The product you're looking for doesn't exist or has been deleted.</p>
-          {error && <p className="text-sm text-red-500 mb-6">Error: {error.message}</p>}
-          <Link href="/" className="inline-block bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600">
+          {error && <p className="text-sm text-[#4A1D6B] mb-6">Error: {error.message}</p>}
+          <Link href="/" className="inline-block bg-[#4A1D6B] text-white px-6 py-2 rounded hover:bg-[#7B3FA0]">
             Back to Home
           </Link>
         </div>
@@ -171,9 +171,9 @@ export default function ProductDetail() {
   // 如果還在加載，顯示加載狀態
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#FAF7FF] flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mb-4"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#7B3FA0] mb-4"></div>
           <p className="text-gray-600">Loading product details...</p>
         </div>
       </div>
@@ -182,11 +182,11 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#FAF7FF] flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-800 mb-4">Error Loading Product</h1>
           <p className="text-gray-600 mb-6">Unable to load the product. Please try again.</p>
-          <Link href="/" className="inline-block bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600">
+          <Link href="/" className="inline-block bg-[#4A1D6B] text-white px-6 py-2 rounded hover:bg-[#7B3FA0]">
             Back to Home
           </Link>
         </div>
@@ -200,26 +200,26 @@ export default function ProductDetail() {
   const isSoldOut = typeof product.stock === 'number' && product.stock <= 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FAF7FF]">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-[1200px] mx-auto px-4 py-3 flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
+            <div className="w-8 h-8 bg-[#7B3FA0] rounded flex items-center justify-center">
               <ShoppingCart size={16} className="text-white" />
             </div>
             <span className="font-bold text-gray-800 text-lg hidden sm:block">PinKoi</span>
           </Link>
           <div className="flex-1 max-w-2xl hidden md:block">
-            <div className="flex border-2 border-red-500 rounded overflow-hidden">
+            <div className="flex border-2 border-[#7B3FA0] rounded overflow-hidden">
               <input type="text" placeholder="Search products..." className="flex-1 px-4 py-2 text-sm outline-none" />
-              <button className="bg-red-500 text-white px-5 py-2"><Search size={16} /></button>
+              <button className="bg-[#4A1D6B] text-white px-5 py-2"><Search size={16} /></button>
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={toggleLanguage}
-              className="flex items-center justify-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-red-500 hover:bg-gray-100 rounded transition-colors"
+              className="flex items-center justify-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-[#4A1D6B] hover:bg-gray-100 rounded transition-colors"
               title={language === 'zh' ? 'Switch to English' : 'Switch to Chinese'}
             >
               <Globe size={18} />
@@ -228,14 +228,14 @@ export default function ProductDetail() {
             <Link href="/cart">
               <button className="relative p-2">
                 <ShoppingCart size={22} className="text-gray-600" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#4A1D6B] text-white text-xs rounded-full flex items-center justify-center">3</span>
               </button>
             </Link>
             {isAuthenticated && user ? (
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-red-500 transition-colors"
+                  className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-[#4A1D6B] transition-colors"
                 >
                   <User size={20} />
                   <span className="hidden sm:block font-medium">{user.name}</span>
@@ -246,11 +246,11 @@ export default function ProductDetail() {
                       <p className="text-sm font-medium text-gray-800">{user.name}</p>
                       <p className="text-xs text-gray-500">{user.email}</p>
                     </div>
-                    <Link href="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                    <Link href="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#FAF7FF] transition-colors">
                       {language === 'zh' ? '我的訂單' : 'My Orders'}
                     </Link>
                     {user.role === 'admin' && (
-                      <Link href="/admin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                      <Link href="/admin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#FAF7FF] transition-colors">
                         {language === 'zh' ? '管理儀表板' : 'Admin Dashboard'}
                       </Link>
                     )}
@@ -259,7 +259,7 @@ export default function ProductDetail() {
                         logout();
                         setShowUserMenu(false);
                       }}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 border-t border-gray-100"
+                      className="w-full text-left px-4 py-2 text-sm text-[#7B3FA0] hover:bg-red-50 transition-colors flex items-center gap-2 border-t border-gray-100"
                     >
                       <LogOut size={16} />
                       {language === 'zh' ? '登出' : 'Logout'}
@@ -268,7 +268,7 @@ export default function ProductDetail() {
                 )}
               </div>
             ) : (
-              <Link href="/login" className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-red-500">
+              <Link href="/login" className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-[#4A1D6B]">
                 <User size={20} />
                 <span className="hidden sm:block">SIGN IN</span>
               </Link>
@@ -280,9 +280,9 @@ export default function ProductDetail() {
       {/* Breadcrumb */}
       <div className="max-w-[1200px] mx-auto px-4 py-3">
         <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/" className="hover:text-red-500">{language === 'zh' ? '首頁' : 'Home'}</Link>
+          <Link href="/" className="hover:text-[#4A1D6B]">{language === 'zh' ? '首頁' : 'Home'}</Link>
           <ChevronRight size={14} />
-          <Link href="/products" className="hover:text-red-500">{language === 'zh' ? '商品' : 'Products'}</Link>
+          <Link href="/products" className="hover:text-[#4A1D6B]">{language === 'zh' ? '商品' : 'Products'}</Link>
           <ChevronRight size={14} />
           <span className="text-gray-700 line-clamp-1 max-w-[200px]">{product.name}</span>
         </div>
@@ -307,7 +307,7 @@ export default function ProductDetail() {
                     onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'; }}
                   />
                   {discountPercent > 0 && !isSoldOut && (
-                    <div className="absolute top-3 left-3 bg-red-500 text-white text-sm px-2 py-1 rounded font-medium">
+                    <div className="absolute top-3 left-3 bg-[#4A1D6B] text-white text-sm px-2 py-1 rounded font-medium">
                       -{discountPercent}%
                     </div>
                   )}
@@ -343,7 +343,7 @@ export default function ProductDetail() {
                 </div>
 
                 {/* 庫存與已售狀態區塊 */}
-                <div className="flex items-center gap-4 mt-3 py-2.5 px-3 bg-gray-50 rounded-lg border border-gray-100">
+                <div className="flex items-center gap-4 mt-3 py-2.5 px-3 bg-[#FAF7FF] rounded-lg border border-gray-100">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs text-gray-400">{language === 'zh' ? '已售' : 'Sold'}:</span>
                     <span className="text-sm font-semibold text-gray-700">{product.sold}</span>
@@ -352,7 +352,7 @@ export default function ProductDetail() {
                   {isSoldOut ? (
                     <div className="flex items-center gap-1.5">
                       <span className="inline-block w-2 h-2 rounded-full bg-red-400" />
-                      <span className="text-sm font-semibold text-red-500">{language === 'zh' ? '已售罄' : 'Out of Stock'}</span>
+                      <span className="text-sm font-semibold text-[#4A1D6B]">{language === 'zh' ? '已售罄' : 'Out of Stock'}</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-1.5">
@@ -364,14 +364,14 @@ export default function ProductDetail() {
                   )}
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 mt-4">
+                <div className="bg-[#FAF7FF] rounded-lg p-4 mt-4">
                   <div className="flex items-baseline gap-3">
-                    <span className="text-3xl font-bold text-red-500">${product.price.toFixed(2)}</span>
+                    <span className="text-3xl font-bold text-[#4A1D6B]">${product.price.toFixed(2)}</span>
                     {product.originalPrice && product.originalPrice > product.price && (
                       <span className="text-lg text-gray-400 line-through">${product.originalPrice.toFixed(2)}</span>
                     )}
                     {discountPercent > 0 && (
-                      <span className="bg-red-100 text-red-500 text-sm px-2 py-0.5 rounded font-medium">
+                      <span className="bg-red-100 text-[#4A1D6B] text-sm px-2 py-0.5 rounded font-medium">
                         {language === 'zh' ? '節省' : 'Save'} {discountPercent}%
                       </span>
                     )}
@@ -402,7 +402,7 @@ export default function ProductDetail() {
                   <button
                     onClick={handleAddToCart}
                     disabled={isSoldOut || isAddingToCart}
-                    className="flex-1 border-2 border-red-500 text-red-500 hover:bg-red-50 py-3 rounded font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-transparent"
+                    className="flex-1 border-2 border-[#7B3FA0] text-[#4A1D6B] hover:bg-red-50 py-3 rounded font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-transparent"
                   >
                     <ShoppingCart size={18} />
                     {isSoldOut ? (language === 'zh' ? '已售罄' : 'Sold Out') : (language === 'zh' ? '加入購物車' : 'Add to Cart')}
@@ -410,13 +410,13 @@ export default function ProductDetail() {
                   <button
                     onClick={handleBuyNow}
                     disabled={isSoldOut || isAddingToCart}
-                    className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300"
+                    className="flex-1 bg-[#4A1D6B] hover:bg-[#7B3FA0] text-white py-3 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300"
                   >
                     {isSoldOut ? (language === 'zh' ? '已售罄' : 'Sold Out') : (language === 'zh' ? '立即購買' : 'Buy Now')}
                   </button>
                   <button
                     onClick={() => setIsWishlisted(!isWishlisted)}
-                    className={`w-12 h-12 border rounded flex items-center justify-center transition-colors ${isWishlisted ? 'border-red-400 bg-red-50 text-red-500' : 'border-gray-200 text-gray-400 hover:border-red-400'}`}
+                    className={`w-12 h-12 border rounded flex items-center justify-center transition-colors ${isWishlisted ? 'border-red-400 bg-red-50 text-[#4A1D6B]' : 'border-gray-200 text-gray-400 hover:border-red-400'}`}
                   >
                     <Heart size={18} className={isWishlisted ? 'fill-red-500' : ''} />
                   </button>
@@ -450,7 +450,7 @@ export default function ProductDetail() {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`px-6 py-3 text-sm font-medium capitalize transition-colors ${
-                  activeTab === tab ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-500 hover:text-gray-700'
+                  activeTab === tab ? 'text-[#4A1D6B] border-b-2 border-[#7B3FA0]' : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 {language === 'zh' 
@@ -523,7 +523,7 @@ export default function ProductDetail() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {relatedProducts.map(product => (
               <Link key={product.id} href={`/product/${product.id}`}>
-                <div className="product-card bg-gray-50 border border-gray-100 rounded overflow-hidden group cursor-pointer hover:shadow-md transition-shadow">
+                <div className="product-card bg-[#FAF7FF] border border-gray-100 rounded overflow-hidden group cursor-pointer hover:shadow-md transition-shadow">
                   <div className="relative overflow-hidden" style={{ paddingTop: '100%' }}>
                     <img
                       src={product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop'}
@@ -534,7 +534,7 @@ export default function ProductDetail() {
                   </div>
                   <div className="p-2">
                     <p className="text-xs text-gray-700 line-clamp-2">{product.name}</p>
-                    <span className="price-current text-sm font-medium text-red-500">${product.price.toFixed(2)}</span>
+                    <span className="price-current text-sm font-medium text-[#4A1D6B]">${product.price.toFixed(2)}</span>
                   </div>
                 </div>
               </Link>
@@ -549,7 +549,7 @@ export default function ProductDetail() {
           <button
             onClick={handleAddToCart}
             disabled={isSoldOut || isAddingToCart}
-            className="flex-1 border-2 border-red-500 text-red-500 hover:bg-red-50 py-3 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-transparent flex items-center justify-center gap-2"
+            className="flex-1 border-2 border-[#7B3FA0] text-[#4A1D6B] hover:bg-red-50 py-3 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-transparent flex items-center justify-center gap-2"
           >
             <ShoppingCart size={18} />
             {isSoldOut ? (
@@ -564,7 +564,7 @@ export default function ProductDetail() {
           <button
             onClick={handleBuyNow}
             disabled={isSoldOut || isAddingToCart}
-            className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300"
+            className="flex-1 bg-[#4A1D6B] hover:bg-[#7B3FA0] text-white py-3 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300"
           >
             {isSoldOut ? (language === 'zh' ? '已售罄' : 'Sold Out') : (language === 'zh' ? '立即購買' : 'Buy Now')}
           </button>

@@ -46,7 +46,7 @@ export default function OrderHistory() {
 
   if (authLoading || loading || isFetching) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="min-h-screen bg-[#FAF7FF] py-12 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center">
             <div className="animate-spin inline-block w-8 h-8 border-4 border-gray-300 border-t-red-500 rounded-full"></div>
@@ -59,15 +59,15 @@ export default function OrderHistory() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="min-h-screen bg-[#FAF7FF] py-12 px-4">
         <div className="max-w-4xl mx-auto">
           <Card className="p-8 text-center">
-            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <AlertCircle className="w-12 h-12 text-[#4A1D6B] mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Please Log In</h2>
             <p className="text-gray-600 mb-6">You need to be logged in to view your orders.</p>
             <Button
               onClick={() => navigate('/login')}
-              className="bg-red-500 hover:bg-red-600"
+              className="bg-[#4A1D6B] hover:bg-[#7B3FA0]"
             >
               Go to Login
             </Button>
@@ -78,7 +78,7 @@ export default function OrderHistory() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-[#FAF7FF] py-12 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -94,7 +94,7 @@ export default function OrderHistory() {
             <p className="text-gray-600 mb-6">You haven't placed any orders yet.</p>
             <Button
               onClick={() => navigate('/products')}
-              className="bg-red-500 hover:bg-red-600"
+              className="bg-[#4A1D6B] hover:bg-[#7B3FA0]"
             >
               Start Shopping
             </Button>
@@ -173,7 +173,7 @@ export default function OrderHistory() {
 
                   {/* Total Price and Arrow */}
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-red-500 mb-2">
+                    <p className="text-2xl font-bold text-[#4A1D6B] mb-2">
                       ${(order.totalPrice / 100).toFixed(2)}
                     </p>
                     <ChevronRight className="w-6 h-6 text-gray-400" />

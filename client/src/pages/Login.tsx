@@ -48,17 +48,17 @@ export default function Login() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[#FAF7FF] flex flex-col">
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-[1200px] mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
+            <div className="w-8 h-8 bg-[#7B3FA0] rounded flex items-center justify-center">
               <ShoppingCart size={16} className="text-white" />
             </div>
             <span className="font-bold text-gray-800 text-lg">PinKoi</span>
           </Link>
-          <Link href="/" className="text-sm text-gray-500 hover:text-red-500">
+          <Link href="/" className="text-sm text-gray-500 hover:text-[#4A1D6B]">
             {language === 'zh' ? '← 返回首頁' : '← Back to Home'}
           </Link>
         </div>
@@ -119,7 +119,7 @@ export default function Login() {
                     <input type="checkbox" className="rounded" />
                     {language === 'zh' ? '記住我' : 'Remember me'}
                   </label>
-                  <a href="#" className="text-sm text-red-500 hover:underline">
+                  <a href="#" className="text-sm text-[#4A1D6B] hover:underline">
                     {language === 'zh' ? '忘記密碼？' : 'Forgot password?'}
                   </a>
                 </div>
@@ -127,7 +127,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white py-3 rounded font-medium transition-colors"
+                  className="w-full bg-[#4A1D6B] hover:bg-[#7B3FA0] disabled:bg-red-300 text-white py-3 rounded font-medium transition-colors"
                 >
                   {isLoading 
                     ? (language === 'zh' ? '加載中...' : 'Loading...')

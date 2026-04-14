@@ -79,7 +79,7 @@ function PaymentForm({ clientSecret, onSuccess }: { clientSecret: string; onSucc
       <Button
         type="submit"
         disabled={isProcessing || !stripe || !elements}
-        className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
+        className="w-full bg-[#4A1D6B] hover:bg-[#7B3FA0] text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
       >
         {isProcessing && <Loader2 size={20} className="animate-spin" />}
         {isProcessing ? 'Processing Payment...' : 'Pay Now'}
@@ -714,8 +714,8 @@ export default function Checkout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4 flex items-center justify-center">
-        <Loader2 size={40} className="animate-spin text-red-500" />
+      <div className="min-h-screen bg-[#FAF7FF] p-4 flex items-center justify-center">
+        <Loader2 size={40} className="animate-spin text-[#4A1D6B]" />
       </div>
     );
   }
@@ -723,14 +723,14 @@ export default function Checkout() {
   // Show Stripe payment form if payment method is selected
   if (paymentMethod === 'stripe' && clientSecret && stripePromiseState) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
+      <div className="min-h-screen bg-[#FAF7FF] p-4">
         <div className="max-w-2xl mx-auto">
           <button
             onClick={() => {
               setPaymentMethod(null);
               setClientSecret(null);
             }}
-            className="flex items-center gap-2 text-red-500 hover:text-red-600 mb-6"
+            className="flex items-center gap-2 text-[#4A1D6B] hover:text-[#7B3FA0] mb-6"
           >
             <ArrowLeft size={20} />
             Back to Checkout
@@ -753,11 +753,11 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-[#FAF7FF] p-4">
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate('/cart')}
-          className="flex items-center gap-2 text-red-500 hover:text-red-600 mb-6"
+          className="flex items-center gap-2 text-[#4A1D6B] hover:text-[#7B3FA0] mb-6"
         >
           <ArrowLeft size={20} />
           Back to Cart
@@ -779,7 +779,7 @@ export default function Checkout() {
                   value={shippingAddress}
                   onChange={(e) => setShippingAddress(e.target.value)}
                   placeholder="Enter your email address"
-                  className="w-full border border-gray-300 rounded px-4 py-2 text-sm outline-none focus:border-red-500"
+                  className="w-full border border-gray-300 rounded px-4 py-2 text-sm outline-none focus:border-[#7B3FA0]"
                 />
               </div>
 
@@ -823,9 +823,9 @@ export default function Checkout() {
                   <button
                     onClick={handleStripeCheckout}
                     disabled={isProcessing}
-                    className="w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-[#7B3FA0] hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <CreditCard size={20} className="text-red-500" />
+                    <CreditCard size={20} className="text-[#4A1D6B]" />
                     <div className="text-left">
                       <div className="font-semibold">Stripe (Visa/Mastercard)</div>
                       <div className="text-sm text-gray-600">Pay securely with your card</div>
@@ -838,9 +838,9 @@ export default function Checkout() {
                   <button
                     onClick={() => handleStarPayCheckout('TRC20Buy')}
                     disabled={isProcessing}
-                    className="w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-[#7B3FA0] hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <div className="w-5 h-5 bg-red-500 rounded flex items-center justify-center text-white text-xs font-bold">$</div>
+                    <div className="w-5 h-5 bg-[#4A1D6B] rounded flex items-center justify-center text-white text-xs font-bold">$</div>
                     <div className="text-left">
                       <div className="font-semibold">USD PAY</div>
                       <div className="text-sm text-gray-600">Pay with cryptocurrency</div>
@@ -999,7 +999,7 @@ export default function Checkout() {
             </div>
           ) : (
             <div className="flex items-center justify-center h-96">
-              <Loader2 size={40} className="animate-spin text-red-500" />
+              <Loader2 size={40} className="animate-spin text-[#4A1D6B]" />
             </div>
           )}
           

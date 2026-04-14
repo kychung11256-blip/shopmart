@@ -189,7 +189,7 @@ export default function Cart() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#FAF7FF] flex items-center justify-center">
         <div className="text-center">
           <ShoppingCart size={48} className="mx-auto text-gray-400 mb-4" />
           <p className="text-gray-600">{language === 'zh' ? '加載中...' : 'Loading...'}</p>
@@ -199,43 +199,43 @@ export default function Cart() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FAF7FF]">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-[1200px] mx-auto px-2 sm:px-4 py-2 sm:py-3 flex items-center gap-2 sm:gap-4">
           <Link href="/" className="flex items-center gap-1 sm:gap-2 shrink-0">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-red-600 rounded flex items-center justify-center">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#7B3FA0] rounded flex items-center justify-center">
               <ShoppingCart size={16} className="text-white" />
             </div>
             <span className="font-bold text-gray-800 text-base sm:text-lg hidden sm:block">PinKoi</span>
           </Link>
           
           <div className="flex-1 max-w-2xl hidden md:block">
-            <div className="flex border-2 border-red-500 rounded overflow-hidden">
+            <div className="flex border-2 border-[#7B3FA0] rounded overflow-hidden">
               <input type="text" placeholder="Search products..." className="flex-1 px-3 py-1.5 text-xs sm:text-sm outline-none" />
-              <button className="bg-red-500 text-white px-3 sm:px-5 py-1.5 sm:py-2"><Search size={16} /></button>
+              <button className="bg-[#4A1D6B] text-white px-3 sm:px-5 py-1.5 sm:py-2"><Search size={16} /></button>
             </div>
           </div>
           
           <div className="flex items-center gap-1 sm:gap-3 shrink-0">
             <button
               onClick={toggleLanguage}
-              className="flex items-center justify-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-red-500 hover:bg-gray-100 rounded transition-colors"
+              className="flex items-center justify-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-[#4A1D6B] hover:bg-gray-100 rounded transition-colors"
             >
               <Globe size={18} />
               <span className="font-medium text-xs sm:text-sm">{language === 'zh' ? 'EN' : 'ZH'}</span>
             </button>
             
-            <button className="relative p-2 hover:text-red-500 transition-colors">
-              <ShoppingCart size={20} className="text-red-500" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">{cartItems.length}</span>
+            <button className="relative p-2 hover:text-[#4A1D6B] transition-colors">
+              <ShoppingCart size={20} className="text-[#4A1D6B]" />
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#4A1D6B] text-white text-xs rounded-full flex items-center justify-center">{cartItems.length}</span>
             </button>
             
             {isAuthenticated && user ? (
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-1 text-sm text-gray-600 hover:text-red-500 transition-colors"
+                  className="flex items-center gap-1 text-sm text-gray-600 hover:text-[#4A1D6B] transition-colors"
                 >
                   <User size={18} />
                   <span className="hidden sm:block font-medium text-xs sm:text-sm">{user.name}</span>
@@ -246,11 +246,11 @@ export default function Cart() {
                       <p className="text-xs sm:text-sm font-medium text-gray-800">{user.name}</p>
                       <p className="text-xs text-gray-500">{user.email}</p>
                     </div>
-                    <Link href="/orders" className="block px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50">
+                    <Link href="/orders" className="block px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-[#FAF7FF]">
                       {language === 'zh' ? '我的訂單' : 'My Orders'}
                     </Link>
                     {user.role === 'admin' && (
-                      <Link href="/admin" className="block px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50">
+                      <Link href="/admin" className="block px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-[#FAF7FF]">
                         {language === 'zh' ? '管理儀表板' : 'Admin Dashboard'}
                       </Link>
                     )}
@@ -259,7 +259,7 @@ export default function Cart() {
                         logout();
                         setShowUserMenu(false);
                       }}
-                      className="w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50 border-t border-gray-100 flex items-center gap-2"
+                      className="w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm text-[#7B3FA0] hover:bg-red-50 border-t border-gray-100 flex items-center gap-2"
                     >
                       <LogOut size={16} />
                       {language === 'zh' ? '登出' : 'Logout'}
@@ -268,7 +268,7 @@ export default function Cart() {
                 )}
               </div>
             ) : (
-              <Link href="/login" className="flex items-center gap-1 text-sm text-gray-600 hover:text-red-500">
+              <Link href="/login" className="flex items-center gap-1 text-sm text-gray-600 hover:text-[#4A1D6B]">
                 <User size={18} />
                 <span className="hidden sm:block font-medium text-xs sm:text-sm">{language === 'zh' ? '登入' : 'SIGN IN'}</span>
               </Link>
@@ -289,7 +289,7 @@ export default function Cart() {
                 <div className="text-center py-12">
                   <ShoppingCart size={48} className="mx-auto text-gray-300 mb-4" />
                   <p className="text-gray-500 mb-4">{language === 'zh' ? '購物車為空' : 'Your cart is empty'}</p>
-                  <Link href="/" className="inline-block bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600">
+                  <Link href="/" className="inline-block bg-[#4A1D6B] text-white px-6 py-2 rounded hover:bg-[#7B3FA0]">
                     {language === 'zh' ? '繼續購物' : 'Continue Shopping'}
                   </Link>
                 </div>
@@ -333,7 +333,7 @@ export default function Cart() {
                       <button
                         onClick={() => handleRemove(item.id, item.product.id)}
                         disabled={removingIds.has(item.id || 0)}
-                        className="p-1 text-red-500 hover:bg-red-50 rounded disabled:opacity-50"
+                        className="p-1 text-[#4A1D6B] hover:bg-red-50 rounded disabled:opacity-50"
                       >
                         <Trash2 size={18} />
                       </button>
@@ -366,18 +366,18 @@ export default function Cart() {
                   </div>
                 </div>
                 {hasSoldOutItems && (
-                  <div className="text-xs text-red-500 bg-red-50 border border-red-200 rounded p-2 mt-3">
+                  <div className="text-xs text-[#4A1D6B] bg-red-50 border border-red-200 rounded p-2 mt-3">
                     ⚠️ {language === 'zh' ? '購物車中有售罄商品，請移除後再結帳' : 'Some selected items are sold out. Please remove them before checkout.'}
                   </div>
                 )}
                 <button
                   onClick={handleCheckout}
                   disabled={selectedItems.length === 0 || hasSoldOutItems}
-                  className="w-full bg-red-500 text-white py-3 rounded font-medium mt-4 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-[#4A1D6B] text-white py-3 rounded font-medium mt-4 hover:bg-[#7B3FA0] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {language === 'zh' ? '結帳' : 'Checkout'}
                 </button>
-                <Link href="/" className="block text-center text-red-500 hover:text-red-600 mt-3 text-sm font-medium">
+                <Link href="/" className="block text-center text-[#4A1D6B] hover:text-[#7B3FA0] mt-3 text-sm font-medium">
                   {language === 'zh' ? '繼續購物' : 'Continue Shopping'}
                 </Link>
               </div>

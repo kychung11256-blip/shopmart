@@ -42,48 +42,87 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* ShopMart Design System
- * Design Philosophy: 活力促銷電商風 - 忠實還原 CRMEB 購物平台
- * Primary: Red (#E93323) - 促銷/強調色
- * Background: White (#FFFFFF) / Light Gray (#F5F5F5)
- * Text: Dark Gray (#333333)
- * Typography: Noto Sans SC + system fonts
- */
+/* ============================================================
+ * PinKoi Jade Design System
+ * Design Philosophy: 奢華翡翠珠寶電商風 - 深紫金色調
+ * Primary: Deep Purple (#4A1D6B) - 主色
+ * Accent: Gold (#C9A84C) - 珠寶金色強調
+ * Background: Ivory White (#FAF7FF) / Pure White
+ * Text: Deep Purple (#2D1B4E)
+ * Typography: Cormorant Garamond (EN) + Noto Serif TC (ZH)
+ * ============================================================ */
 
 :root {
-  --primary: oklch(0.5 0.22 25);        /* Red #E93323 */
-  --primary-foreground: oklch(1 0 0);   /* White */
-  --sidebar-primary: oklch(0.45 0.22 25);
+  /* Primary: Deep Purple */
+  --primary: oklch(0.35 0.18 300);        /* Deep Purple #4A1D6B */
+  --primary-foreground: oklch(1 0 0);     /* White */
+
+  /* Sidebar */
+  --sidebar-primary: oklch(0.30 0.18 300);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --chart-1: oklch(0.5 0.22 25);
-  --chart-2: oklch(0.65 0.18 25);
-  --chart-3: oklch(0.75 0.12 25);
-  --chart-4: oklch(0.85 0.08 25);
-  --chart-5: oklch(0.95 0.03 25);
-  --radius: 0.25rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.2 0 0);
+
+  /* Charts - purple scale */
+  --chart-1: oklch(0.35 0.18 300);
+  --chart-2: oklch(0.50 0.16 300);
+  --chart-3: oklch(0.65 0.12 300);
+  --chart-4: oklch(0.75 0.08 300);
+  --chart-5: oklch(0.88 0.04 300);
+
+  /* Radius - slightly more elegant */
+  --radius: 0.375rem;
+
+  /* Backgrounds */
+  --background: oklch(0.99 0.005 300);    /* Ivory white #FAF7FF */
+  --foreground: oklch(0.18 0.10 300);     /* Deep purple text #2D1B4E */
+
+  /* Card */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0 0);
+  --card-foreground: oklch(0.18 0.10 300);
+
+  /* Popover */
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0 0);
-  --secondary: oklch(0.96 0 0);
-  --secondary-foreground: oklch(0.3 0 0);
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.55 0 0);
-  --accent: oklch(0.96 0 0);
-  --accent-foreground: oklch(0.2 0 0);
-  --destructive: oklch(0.5 0.22 25);
+  --popover-foreground: oklch(0.18 0.10 300);
+
+  /* Secondary - light lavender */
+  --secondary: oklch(0.95 0.03 300);
+  --secondary-foreground: oklch(0.30 0.12 300);
+
+  /* Muted - very light purple */
+  --muted: oklch(0.96 0.02 300);
+  --muted-foreground: oklch(0.52 0.06 300);
+
+  /* Accent - light purple hover */
+  --accent: oklch(0.93 0.04 300);
+  --accent-foreground: oklch(0.25 0.14 300);
+
+  /* Destructive */
+  --destructive: oklch(0.50 0.20 25);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.9 0 0);
-  --input: oklch(0.9 0 0);
-  --ring: oklch(0.5 0.22 25);
-  --sidebar: oklch(0.18 0.01 260);
-  --sidebar-foreground: oklch(0.9 0 0);
-  --sidebar-accent: oklch(0.25 0.01 260);
+
+  /* Border / Input */
+  --border: oklch(0.88 0.04 300);
+  --input: oklch(0.88 0.04 300);
+  --ring: oklch(0.35 0.18 300);
+
+  /* Sidebar */
+  --sidebar: oklch(0.15 0.12 300);        /* Very dark purple */
+  --sidebar-foreground: oklch(0.92 0.02 300);
+  --sidebar-accent: oklch(0.22 0.12 300);
   --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(0.28 0.01 260);
-  --sidebar-ring: oklch(0.5 0.22 25);
+  --sidebar-border: oklch(0.25 0.10 300);
+  --sidebar-ring: oklch(0.35 0.18 300);
+
+  /* Custom jade brand colors */
+  --jade-purple-deep: #1A0A2E;
+  --jade-purple-dark: #2D1B4E;
+  --jade-purple-main: #4A1D6B;
+  --jade-purple-mid: #7B3FA0;
+  --jade-purple-light: #B07FCC;
+  --jade-purple-pale: #E8D5F5;
+  --jade-purple-mist: #F5EEFF;
+  --jade-gold: #C9A84C;
+  --jade-gold-light: #E8C96A;
+  --jade-ivory: #FAF7FF;
 }
 
 @layer base {
@@ -92,7 +131,11 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Noto Serif TC', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cormorant Garamond', 'Noto Serif TC', Georgia, serif;
+    letter-spacing: 0.02em;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -136,11 +179,13 @@
     }
   }
 
-  /* Price display styles */
+  /* Price display styles - gold for jade luxury feel */
   .price-current {
-    color: #E93323;
+    color: var(--jade-purple-main);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.1em;
   }
 
   .price-original {
@@ -152,26 +197,47 @@
 
   /* Product card hover effect */
   .product-card {
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
   }
 
   .product-card:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(74, 29, 107, 0.15);
+    transform: translateY(-3px);
   }
 
   /* Section title style */
   .section-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #333;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--jade-purple-dark);
     padding: 12px 16px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--jade-purple-pale);
+    font-family: 'Cormorant Garamond', 'Noto Serif TC', Georgia, serif;
+    letter-spacing: 0.05em;
   }
 
-  /* Red button */
+  /* Purple button (replaces red) */
+  .btn-primary {
+    background-color: var(--jade-purple-main);
+    color: white;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    letter-spacing: 0.08em;
+    font-size: 0.95rem;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--jade-purple-mid);
+    transform: translateY(-1px);
+  }
+
+  /* Legacy red button - now purple */
   .btn-red {
-    background-color: #E93323;
+    background-color: var(--jade-purple-main);
     color: white;
     border: none;
     padding: 8px 20px;
@@ -181,25 +247,43 @@
   }
 
   .btn-red:hover {
-    background-color: #c0392b;
+    background-color: var(--jade-purple-mid);
   }
 
-  /* Scrollbar styling */
+  /* Gold accent line */
+  .jade-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--jade-gold), transparent);
+    margin: 1.5rem 0;
+  }
+
+  /* Luxury badge */
+  .jade-badge {
+    background: linear-gradient(135deg, var(--jade-gold), var(--jade-gold-light));
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+
+  /* Scrollbar styling - purple tones */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: var(--jade-purple-mist);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #ccc;
+    background: var(--jade-purple-light);
     border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #999;
+    background: var(--jade-purple-mid);
   }
 }
