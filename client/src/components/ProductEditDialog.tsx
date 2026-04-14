@@ -9,6 +9,8 @@ import { Upload, X, ImagePlus, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import type { Product } from '@/lib/data';
 
+type Category = { id: number; name: string; [key: string]: unknown };
+
 interface ProductEditDialogProps {
   isOpen: boolean;
   product: Product | null;
@@ -28,6 +30,7 @@ export default function ProductEditDialog({ isOpen, product, onClose, onSave }: 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const uploadImageMutation = trpc.products.uploadImage.useMutation();
+  const { data: categoriesData = [] } = trpc.categories.listAll.useQuery();
 
   useEffect(() => {
     if (product) {
@@ -251,15 +254,23 @@ export default function ProductEditDialog({ isOpen, product, onClose, onSave }: 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Category</label>
-              <Select value={String(formData.categoryId || 1)} onValueChange={(val) => setFormData({ ...formData, categoryId: parseInt(val) })}>
+              <Select
+                value={String(formData.categoryId || '')}
+                onValueChange={(val) => setFormData({ ...formData, categoryId: parseInt(val) })}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">HOME PET</SelectItem>
-                  <SelectItem value="2">OUTDOORS</SelectItem>
-                  <SelectItem value="3">DIGITAL</SelectItem>
-                  <SelectItem value="4">Apparel</SelectItem>
+                  {categoriesData.length > 0 ? (
+                    categoriesData.map((cat: Category) => (
+                      <SelectItem key={cat.id} value={String(cat.id)}>
+                        {cat.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="0" disabled>No categories available</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>

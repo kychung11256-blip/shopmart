@@ -759,3 +759,9 @@
 - [x] 前端 Edit Product 彈窗加入圖片上傳區塊（點擊上傳、預覽、替換、刪除、URL 直接輸入）
 - [x] Edit Product 彈窗加入上下滾動功能（flex flex-col max-h-[90vh] overflow-y-auto）
 - [ ] 儲存 checkpoint
+
+## 🔧 Edit Product 彈窗 Category 動態同步
+
+- [ ] 確認後端 categories.list tRPC procedure 可用
+- [ ] ProductEditDialog.tsx 改為從 trpc.categories.list 動態讀取品類
+- [ ] 儲存 checkpoint
