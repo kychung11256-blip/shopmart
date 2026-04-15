@@ -562,9 +562,12 @@ export default function Home() {
             <div>
               <h4 className="text-white font-light mb-4 tracking-widest text-xs uppercase">{language === 'zh' ? '快速連結' : 'Quick Links'}</h4>
               <ul className="space-y-2 text-sm font-light">
-                {(language === 'zh' ? ['首頁', '商品', '分類', '促銷', '關於我們'] : ['Home', 'Products', 'Categories', 'Promotions', 'About Us']).map((link) => (
-                  <li key={link}>
-                    <a href="#" className="transition-colors hover:text-white tracking-wide">{link}</a>
+                {(language === 'zh'
+                  ? [{ label: '首頁', href: '/' }, { label: '商品', href: '/products' }, { label: '關於我們', href: '/about' }]
+                  : [{ label: 'Home', href: '/' }, { label: 'Products', href: '/products' }, { label: 'About Us', href: '/about' }]
+                ).map((link) => (
+                  <li key={link.label}>
+                    <Link href={link.href} className="transition-colors hover:text-white tracking-wide">{link.label}</Link>
                   </li>
                 ))}
               </ul>

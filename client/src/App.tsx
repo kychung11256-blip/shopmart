@@ -25,6 +25,7 @@ import OrderHistory from "./pages/OrderHistory";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Disclaimer from "./pages/Disclaimer";
+import AboutUs from "./pages/AboutUs";
 
 // Admin pages
 import Dashboard from "./pages/admin/Dashboard";
@@ -51,6 +52,7 @@ function Router() {
       <Route path="/terms-of-service" component={TermsOfService} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/disclaimer" component={Disclaimer} />
+      <Route path="/about" component={AboutUs} />
 
       {/* Admin routes */}
       <Route path="/admin" component={Dashboard} />

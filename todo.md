@@ -765,3 +765,10 @@
 - [ ] 確認後端 categories.list tRPC procedure 可用
 - [ ] ProductEditDialog.tsx 改為從 trpc.categories.list 動態讀取品類
 - [ ] 儲存 checkpoint
+
+## 📄 新增 About Us 頁面
+
+- [x] 建立 AboutUs.tsx 頁面（紫色翡翠主題風格）
+- [x] 在 App.tsx 註冊 /about 路由
+- [x] 在首頁頁腳快速連結加入 About Us 連結（指向 /about）
+- [ ] 儲存 checkpoint
