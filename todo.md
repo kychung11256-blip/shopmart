@@ -771,4 +771,11 @@
 - [x] 建立 AboutUs.tsx 頁面（紫色翡翠主題風格）
 - [x] 在 App.tsx 註冊 /about 路由
 - [x] 在首頁頁腳快速連結加入 About Us 連結（指向 /about）
+- [x] 儲存 checkpoint
+
+## 🔑 更新 Whop 帳號憑證
+
+- [x] 更新 WHOP_API_KEY 環境變數
+- [x] 更新 WHOP_COMPANY_ID 環境變數
+- [x] 執行測試驗證憑證正確
 - [ ] 儲存 checkpoint
