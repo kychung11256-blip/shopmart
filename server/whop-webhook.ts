@@ -14,13 +14,12 @@ import { loadInvoiceConfig } from './invoice-config';
  * Implements official Whop webhook verification using the SDK's webhooks.unwrap()
  * which follows the Standard Webhooks spec (https://www.standardwebhooks.com/).
  *
- * The SDK uses the `standardwebhooks` library internally.
- * The library strips the "whsec_" prefix if present, then base64-decodes the remaining string.
- * Whop's webhook secret starts with "ws_" which is NOT a recognized prefix,
- * so the library treats the ENTIRE string as a base64-encoded secret.
- * Therefore we must NOT call btoa() on it — pass it directly as-is.
+ * Per official Whop docs (https://docs.whop.com/developer/guides/webhooks):
+ *   webhookKey: btoa(process.env.WHOP_WEBHOOK_SECRET || "")
  *
- * Ref: https://docs.whop.com/developer/guides/webhooks
+ * The webhook secret (ws_...) must be base64-encoded via btoa() before passing
+ * to the SDK. The standardwebhooks library then base64-decodes it to get the
+ * raw key bytes used for HMAC-SHA256 signature verification.
  */
 
 function getWhopClient() {
@@ -33,9 +32,9 @@ function getWhopClient() {
 
   return new Whop({
     apiKey,
-    // Pass the secret directly — standardwebhooks will base64-decode it as-is.
-    // Do NOT call btoa() here; the ws_... secret is already in the correct format.
-    webhookKey: webhookSecret ?? undefined,
+    // Per Whop official docs: webhookKey must be btoa(secret)
+    // Ref: https://docs.whop.com/developer/guides/webhooks
+    webhookKey: webhookSecret ? btoa(webhookSecret) : undefined,
   });
 }
 

@@ -791,4 +791,4 @@
 - [x] 診斷 Invalid webhook signature 原因
 - [x] 修復 Webhook 驗證邏輯
 - [x] 測試驗證
-- [ ] 儲存 checkpoint
+- [x] 儲存 checkpoint

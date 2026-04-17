@@ -11,11 +11,11 @@ describe('Whop Webhook Configuration', () => {
     expect(apiKey).toBeDefined();
     expect(webhookSecret).toBeDefined();
 
-    // Pass secret directly (no btoa) — standardwebhooks base64-decodes it as-is.
-    // The ws_... secret is NOT a whsec_ prefix, so btoa would double-encode it.
+    // Per Whop official docs: webhookKey must be btoa(secret)
+    // Ref: https://docs.whop.com/developer/guides/webhooks
     whopClient = new Whop({
       apiKey,
-      webhookKey: webhookSecret ?? undefined,
+      webhookKey: webhookSecret ? btoa(webhookSecret) : undefined,
     });
   });
 
