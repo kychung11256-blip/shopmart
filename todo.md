@@ -778,4 +778,10 @@
 - [x] 更新 WHOP_API_KEY 環境變數
 - [x] 更新 WHOP_COMPANY_ID 環境變數
 - [x] 執行測試驗證憑證正確
+- [x] 儲存 checkpoint
+
+## 🔑 更新 WHOP_WEBHOOK_SECRET
+
+- [x] 更新 WHOP_WEBHOOK_SECRET 環境變數
+- [x] 執行 Whop Webhook 測試驗證
 - [ ] 儲存 checkpoint
