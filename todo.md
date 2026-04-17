@@ -784,4 +784,11 @@
 
 - [x] 更新 WHOP_WEBHOOK_SECRET 環境變數
 - [x] 執行 Whop Webhook 測試驗證
+- [x] 儲存 checkpoint
+
+## 🐛 修復 Whop Webhook 簽名驗證失敗
+
+- [x] 診斷 Invalid webhook signature 原因
+- [x] 修復 Webhook 驗證邏輯
+- [x] 測試驗證
 - [ ] 儲存 checkpoint
