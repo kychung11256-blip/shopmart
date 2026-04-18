@@ -792,3 +792,10 @@
 - [x] 修復 Webhook 驗證邏輯
 - [x] 測試驗證
 - [x] 儲存 checkpoint
+
+## 🍎 Apple Pay 域名驗證
+
+- [x] 將 apple-developer-merchantid-domain-association 文件部署到 /.well-known/ 路徑
+- [x] 確認 Express 靜態服務正確提供 .well-known 目錄（HTTP 200）
+- [x] 測試本地伺服器 /.well-known/apple-developer-merchantid-domain-association 可訪問
+- [ ] 儲存 checkpoint 並發布，讓 myart.icu 可訪問驗證文件
