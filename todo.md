@@ -799,3 +799,10 @@
 - [x] 確認 Express 靜態服務正確提供 .well-known 目錄（HTTP 200）
 - [x] 測試本地伺服器 /.well-known/apple-developer-merchantid-domain-association 可訪問
 - [ ] 儲存 checkpoint 並發布，讓 myart.icu 可訪問驗證文件
+
+## ✉️ 優化非登入結帳 Email 欄位（避免重複填寫）
+
+- [x] 分析兩個 Email 欄位的狀態管理
+- [x] 頂部 Email 自動同步到 Guest Checkout Email，隱藏重複欄位
+- [x] 確認訂單生成和 Webhook 不受影響
+- [ ] 儲存 checkpoint

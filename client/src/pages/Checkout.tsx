@@ -769,10 +769,11 @@ export default function Checkout() {
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-2xl font-bold mb-6">Checkout</h2>
 
-              {/* Email Address for digital delivery */}
+              {/* Email Address - only show for authenticated users; guests use the Guest Checkout form below */}
+              {isAuthenticated && (
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address * <span className="text-xs text-gray-400 font-normal"></span>
+                  Email Address *
                 </label>
                 <input
                   type="email"
@@ -782,6 +783,7 @@ export default function Checkout() {
                   className="w-full border border-gray-300 rounded px-4 py-2 text-sm outline-none focus:border-[#7B3FA0]"
                 />
               </div>
+              )}
 
               {/* Guest checkout fields */}
               {!isAuthenticated && (
@@ -790,12 +792,15 @@ export default function Checkout() {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email *
+                        Email Address *
                       </label>
                       <Input
                         type="email"
                         value={guestEmail}
-                        onChange={(e) => setGuestEmail(e.target.value)}
+                        onChange={(e) => {
+                          setGuestEmail(e.target.value);
+                          setShippingAddress(e.target.value);
+                        }}
                         placeholder="your@email.com"
                       />
                     </div>
