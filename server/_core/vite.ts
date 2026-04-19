@@ -23,6 +23,22 @@ export async function setupVite(app: Express, server: Server) {
   // CRITICAL: Add verification file handler BEFORE any other middleware
   // This must be the very first middleware to intercept requests
   app.use((req, res, next) => {
+    // Apple Pay domain verification - must be served as application/json
+    if (req.url === '/.well-known/apple-developer-merchantid-domain-association') {
+      const filePath = path.resolve(
+        import.meta.dirname,
+        '../..',
+        'client',
+        'public',
+        '.well-known',
+        'apple-developer-merchantid-domain-association'
+      );
+      if (fs.existsSync(filePath)) {
+        res.setHeader('Content-Type', 'application/json');
+        res.sendFile(filePath);
+        return;
+      }
+    }
     // Check if this is a verification file request
     if (req.url && /^\/cryptomus_[a-f0-9]+\.html$/.test(req.url)) {
       const match = req.url.match(/cryptomus_([a-f0-9]+)\.html/);
@@ -78,6 +94,15 @@ export function serveStatic(app: Express) {
 
   // Handle verification files BEFORE serving static files
   app.use((req, res, next) => {
+    // Apple Pay domain verification - must be served as application/json
+    if (req.url === '/.well-known/apple-developer-merchantid-domain-association') {
+      const filePath = path.resolve(distPath, '.well-known', 'apple-developer-merchantid-domain-association');
+      if (fs.existsSync(filePath)) {
+        res.setHeader('Content-Type', 'application/json');
+        res.sendFile(filePath);
+        return;
+      }
+    }
     if (req.url && /^\/cryptomus_[a-f0-9]+\.html$/.test(req.url)) {
       const match = req.url.match(/cryptomus_([a-f0-9]+)\.html/);
       if (match) {
