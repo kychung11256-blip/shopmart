@@ -772,7 +772,7 @@ export default function Checkout() {
               {/* Email Address for digital delivery */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address * <span className="text-xs text-gray-400 font-normal">(Your NFT will be delivered to this email)</span>
+                  Email Address * <span className="text-xs text-gray-400 font-normal"></span>
                 </label>
                 <input
                   type="email"
