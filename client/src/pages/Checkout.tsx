@@ -645,7 +645,7 @@ export default function Checkout() {
     }
 
     // Check minimum amount for Stripe ($0.50)
-    if (totalPrice < 0.50) {
+    if (totalPriceInCents < 50) {
       toast.error('Minimum order amount is $0.50 USD');
       return;
     }
@@ -694,7 +694,7 @@ export default function Checkout() {
           name: item.name,
         })),
         shippingAddress,
-        totalPrice: totalPrice,
+        totalPrice: totalPriceInCents,
       });
 
       if (paymentResult.clientSecret) {

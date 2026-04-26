@@ -805,4 +805,11 @@
 - [x] 分析兩個 Email 欄位的狀態管理
 - [x] 頂部 Email 自動同步到 Guest Checkout Email，隱藏重複欄位
 - [x] 確認訂單生成和 Webhook 不受影響
+- [x] 儲存 checkpoint
+
+## 💳 修復 Stripe 支付金額轉換錯誤
+
+- [x] 診斷金額轉換邏輯（發現前端傳美元，後端當 cents 處理）
+- [x] 修復前端：傳 totalPriceInCents 而不是 totalPrice
+- [x] 修復最低金額檢查：改為 totalPriceInCents < 50
 - [ ] 儲存 checkpoint
